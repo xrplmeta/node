@@ -2,3 +2,4 @@
 package-lock.json
 .DS_Store
 .env
+web/dist/**
