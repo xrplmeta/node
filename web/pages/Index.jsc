@@ -1,0 +1,14 @@
+export default {
+	oninit: node => {
+		node.ctx.page.title = 'Welcome'
+	},
+
+	view: node => (
+		<section>
+			<h1>An open standard for asset metadata on the XRP Ledger.</h1>
+			<p>
+				This site is under construction.
+			</p>
+		</section>
+	)
+}
