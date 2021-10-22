@@ -11,8 +11,8 @@ export default class Server{
 	}
 
 	setupRoutes(){
-		this.router.get('/assets', async ctx => {
-			ctx.body = placeholders.assets
+		this.router.get('/currencies', async ctx => {
+			ctx.body = placeholders.currencies
 		})
 	}
 

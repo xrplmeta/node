@@ -28,6 +28,15 @@ export default {
 			}
 		},
 		{
+			currency: 'CNY',
+			issuer: 'rKiCet8SdvWxPXnAgYarFUXMh1zCPz432Y',
+			meta: {
+				class: 'fiat',
+				currencyName: 'Chinese Yuan',
+				issuerName: 'Ripple Fox'
+			}
+		},
+		{
 			currency: 'BTC',
 			issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
 			meta: {
@@ -55,7 +64,7 @@ export default {
 			meta: {
 				class: 'crypto',
 				currencyName: 'Ethereum',
-				currencyIcon: 'https://www.xrptoolkit.com/static/media/eth.34dd1a3c4b.png',
+				currencyIcon: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg',
 				currencyColor: '#627eea',
 				issuerName: 'Gatehub Fifth',
 			}
@@ -77,7 +86,7 @@ export default {
 			meta: {
 				class: 'crypto',
 				currencyName: 'Litecoin',
-				currencyIcon: 'https://cryptologos.cc/logos/history/litecoin-logo-2013.png',
+				currencyIcon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.svg',
 				currencyColor: '#dddddd',
 				issuerName: 'Gatehub Fifth'
 			}
@@ -94,13 +103,43 @@ export default {
 			}
 		},
 		{
+			currency: 'CSC',
+			issuer: 'rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr',
+			meta: {
+				class: 'crypto',
+				currencyName: 'Casino Coin',
+				currencyColor: '#00563D',
+				issuerName: 'Casino Coin'
+			}
+		},
+		{
 			currency: 'XAU',
 			issuer: 'rcoef87SYMJ58NAFx7fNM5frVknmvHsvJ',
 			meta: {
 				class: 'commodity',
 				currencyName: 'Gold',
-				currencyColor: '#0AC18E',
+				currencyColor: '#FFFF46',
 				issuerName: 'Gatehub Fifth'
+			}
+		},
+		{
+			currency: 'XAU',
+			issuer: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
+			meta: {
+				class: 'commodity',
+				currencyName: 'Gold',
+				currencyColor: '#FFFF46',
+				issuerName: 'Ripple Singapore'
+			}
+		},
+		{
+			currency: 'XAG',
+			issuer: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
+			meta: {
+				class: 'commodity',
+				currencyName: 'Silver',
+				currencyColor: '#DDDDDD',
+				issuerName: 'Ripple Singapore'
 			}
 		}
 	]
