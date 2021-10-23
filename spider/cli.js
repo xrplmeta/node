@@ -1,27 +1,18 @@
 import minimist from 'minimist'
 import dotenv from 'dotenv'
-import Repo from './repo.js'
+import Repo from '../core/repo.js'
 import Discovery from './discovery.js'
 
 
-const args = minimist(process.argv.slice(2))
-
 dotenv.config()
 
-
+const args = minimist(process.argv.slice(2))
 const repo = new Repo(process.env.DATA_DIR)
+const discovery = new Discovery({repo, node: process.env.XRPL_NODE})
 
 
 ;(async () => {
 	await repo.open()
 
-	if(run.includes('ticker'))
-		ticker.start()
-
-	if(run.includes('sync'))
-		sync.start()
-
-	if(run.includes('server')){
-		server.listen(process.env.PORT)
-	}
+	discovery.start(parseInt(process.env.DISCOVERY_INTERVAL))
 })()
