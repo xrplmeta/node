@@ -11,10 +11,16 @@ export default class extends RestProvider{
 		this.repo = repo
 		this.nodes = nodes
 		this.config = config
+		this.log = log.for('bithomp', 'cyan')
 	}
 
 	run(){
-		this.loopSuperOperation('bithomp-assets', this.config.refresh_interval, this.refresh)
+		this.loopOperation(
+			'bithomp-assets', 
+			null,
+			this.config.refreshInterval, 
+			this.refresh.bind(this)
+		)
 	}
 
 	async refresh(){

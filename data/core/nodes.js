@@ -5,7 +5,7 @@ import { log } from '../../common/logging.js'
 
 export default class{
 	constructor(nodes){
-		this.log = log.for({name: 'nodes', color: 'yellow'})
+		this.log = log.for('nodes', 'yellow')
 		this.queue = []
 		this.clients = []
 

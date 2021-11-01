@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS "Metas" (
 CREATE TABLE IF NOT EXISTS "Operations" (
 	"id"		INTEGER NOT NULL UNIQUE,
 	"type"		TEXT NOT NULL,
-	"subject"	TEXT NOT NULL,
+	"subject"	TEXT,
 	"start"		INTEGER NOT NULL,
 	"end"		INTEGER NOT NULL,
 	"result"	TEXT NOT NULL,
@@ -40,12 +40,29 @@ CREATE TABLE IF NOT EXISTS "Trustlines" (
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
-CREATE TABLE IF NOT EXISTS "TrustlineStats" (
+CREATE TABLE IF NOT EXISTS "Holdings" (
 	"id"		INTEGER NOT NULL UNIQUE,
 	"trustline"	INTEGER NOT NULL,
 	"date"		INTEGER NOT NULL,
 	"count"		INTEGER NOT NULL,
-	"issued"	TEXT NOT NULL,
+	"amount"	TEXT NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS "Whales" (
+	"id"		INTEGER NOT NULL UNIQUE,
+	"trustline"	INTEGER NOT NULL,
+	"address"	TEXT NOT NULL,
+	"balance"	TEXT NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE TABLE IF NOT EXISTS "Distributions" (
+	"id"		INTEGER NOT NULL UNIQUE,
+	"trustline"	INTEGER NOT NULL,
+	"date"		INTEGER NOT NULL,
+	"percent"	REAL NOT NULL,
+	"share"		REAL NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
@@ -77,7 +94,7 @@ export default class Repo extends EventEmitter{
 		super()
 
 		this.config = config
-		this.log = log.for({name: 'repo', color: 'yellow'})
+		this.log = log.for('repo', 'yellow')
 	}
 
 	async open(){
@@ -112,40 +129,94 @@ export default class Repo extends EventEmitter{
 		)
 
 		await this.db.insert(
-			'TrustlineStats',
+			'Holdings',
 			trustlines.map((trustline, i) => ({
 				date: t,
 				trustline: trustlineRows[i].id,
 				count: trustline.count,
-				issued: trustline.issued
+				amount: trustline.amount
 			})),
 		)
+	}
+
+	async setWhales({currency, issuer}, whales){
+		let trustline = await this.getTrustline({currency, issuer})
+
+		await this.db.run(`DELETE FROM Whales WHERE trustline = ?`, trustline.id)
+		await this.db.insert(
+			'Whales',
+			whales.map(whale => ({
+				trustline: trustline.id,
+				address: whale.address,
+				balance: whale.balance
+			}))
+		)
+	}
+
+	async setDistributions(t, {currency, issuer}, distributions){
+		let trustline = await this.getTrustline({currency, issuer})
+
+		await this.db.insert(
+			'Distributions',
+			distributions.map(distribution => ({
+				trustline: trustline.id,
+				date: t,
+				percent: distribution.percent,
+				share: distribution.share
+			})),
+			{
+				duplicate: {
+					keys: ['trustline', 'date', 'percent'],
+					update: true
+				}
+			}
+		)
+	}
+
+	async getMeta(type, subject, key, source){
+		let metas = await this.db.all(
+			`SELECT value, source
+			FROM Metas
+			WHERE type = ? AND subject = ? AND key = ?`,
+			type, subject, key
+		)
+
+		if(metas.length === 0)
+			return undefined
+
+		return metas[0].value
+	}
+
+	async setMeta(meta){
+		await this.setMetas([meta])
 	}
 
 	async setMetas(metas){
 		let rows = []
 
 		for(let meta of metas){
-			let subject
-
-			switch(meta.type){
-				case 'issuer':
-					subject = this.db.getv(`SELECT id FROM Issuers WHERE address = ?`, meta.subject)
-					break
-			}
-
 			if(!meta.meta)
 				continue
+
+			if(typeof meta.subject !== 'number'){
+				switch(meta.type){
+					case 'issuer':
+						meta.subject = (await this.getIssuer({address: meta.subject}, true)).id
+						break
+				}
+			}
 
 			for(let [key, value] of Object.entries(meta.meta)){
 				rows.push({
 					type: meta.type,
-					subject,
+					subject: meta.subject,
+					source: meta.source,
 					key,
 					value,
-					source: meta.source
 				})
 			}
+
+			await wait(1)
 		}
 
 		await this.db.insert(
@@ -160,28 +231,71 @@ export default class Repo extends EventEmitter{
 		)
 	}
 
+	async getIssuer(by, createIfNonExistent){
+		if(by.address){
+			let issuer = await this.db.get(
+				`SELECT id 
+				FROM Issuers 
+				WHERE address = ?`, 
+				by.address
+			)
 
-	getTrustline(by){
-		if(by.currency && by.issuer){
-			return this.db.get(`SELECT * FROM Trustlines WHERE currency=? AND issuer=?`, by.currency, by.issuer)
+			if(!issuer && createIfNonExistent)
+				issuer = await this.db.insert(
+					'Issuers',
+					{address: by.address}
+				)
+
+			return issuer
 		}
 	}
 
+	async getTrustline(by){
+		if(by.currency && by.issuer){
+			let issuer = await this.getIssuer(by.issuer)
 
-	async isOperationDue(type, subject, interval){
-		let last = await this.getLastOperationFor(type, subject)
+			if(!issuer)
+				return null
 
-		if(!last)
-			return true
-
-		if(last.result !== 'success')
-			return true
-
-		return last.start + interval < unixNow()
+			return this.db.get(
+				`SELECT * 
+				FROM Trustlines 
+				WHERE currency=? AND issuer=?`, 
+				by.currency, issuer.id
+			)
+		}
 	}
 
-	async getMostRecentOperation({type, subject}){
-		return await this.db.get(`SELECT * FROM Operations WHERE type=? AND subject=?`, type, subject)
+	async getNextEntityOperation(type, entity){
+		let table = 'Issuers'
+
+		return await this.db.get(
+			`SELECT
+				Operations.*, ${table}.id as entity
+			FROM
+				${table}
+				LEFT JOIN Operations
+					ON 
+						Operations.type = ?
+						AND
+						Operations.subject = (? || ':' || ${table}.id)
+			GROUP BY
+				Operations.subject
+			ORDER BY
+				(CASE WHEN start IS NULL THEN 1 ELSE 0 END) DESC,
+				MAX(start) ASC`,
+			type, entity
+		)
+	}
+
+	async getMostRecentOperation(type){
+		return await this.db.get(
+			`SELECT * 
+			FROM Operations 
+			WHERE type=?
+			ORDER BY start DESC`, 
+			type
+		)
 	}
 
 	async recordOperation(type, subject, promise){

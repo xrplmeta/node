@@ -10,7 +10,7 @@ export function log(who, ...contents){
 	console.log(`[\x1b[${logColors[who.color]}${who.name}\x1b[0m]`, ...contents)
 }
 
-log.for = who => log.bind(null, who)
+log.for = (name, color) => log.bind(null, {name, color})
 
 
 

@@ -12,7 +12,7 @@ export default class extends BaseProvider{
 		this.repo = repo
 		this.nodes = nodes
 		this.config = config
-		this.log = log.for({name: 'ledger', color: 'cyan'})
+		this.log = log.for('ledger', 'cyan')
 	}
 
 	async run(){
@@ -44,7 +44,7 @@ export default class extends BaseProvider{
 	async scan(t, full){
 		let ledgerIndex = await this.findLedgerIndexAtTime(t)
 		let scanned = 0
-		let trustlines = {}
+		let balances = {}
 		let accounts = {}
 		let lastMarker
 
@@ -68,13 +68,16 @@ export default class extends BaseProvider{
 				if(state.LedgerEntryType === 'RippleState'){
 					let currency = state.HighLimit.currency
 					let issuer = state.HighLimit.value === '0' ? state.HighLimit.issuer : state.LowLimit.issuer
+					let holder = state.HighLimit.value !== '0' ? state.HighLimit.issuer : state.LowLimit.issuer
 					let key = `${currency}:${issuer}`
 
-					if(!trustlines[key])
-						trustlines[key] = {count: 0, issued: new Decimal(0)}
+					if(!balances[key])
+						balances[key] = []
 
-					trustlines[key].count++
-					trustlines[key].issued = trustlines[key].issued.plus(new Decimal(state.Balance.value).abs())
+					balances[key].push({
+						address: holder, 
+						value: new Decimal(state.Balance.value).abs()
+					})
 				}else if(state.LedgerEntryType === 'AccountRoot'){
 					if(full){
 						if(state.Domain || state.EmailHash){
@@ -89,43 +92,93 @@ export default class extends BaseProvider{
 
 			scanned += result.state.length
 
-			this.log(`scanned ${pretty(scanned)} entries: ${pretty(Object.keys(trustlines).length)} trustlines`)
+			this.log(`scanned ${pretty(scanned)} entries: ${pretty(Object.keys(balances).length)} trustlines`)
 
 			lastMarker = result.marker
 			
-			if(!lastMarker)
+			//if(!lastMarker)
 				break
 		}
 
-		let trustlineRows = Object.entries(trustlines)
-			.map(([key, {count, issued}]) => {
-				if(count < this.config.minTrustlines || issued.valueOf() === 0){
-					return null
-				}
+		this.log(`computing distrubutions`)
 
+		let trustlines = Object.entries(balances)
+			.map(([key, balances]) => {
 				let [currency, issuer] = key.split(':')
+				let count = balances.length
+				let holders = balances.filter(balance => balance.value.gt(0))
+				let holdersCount = holders.length
+				let amount = holders.reduce((sum, balance) => sum.plus(balance.value), new Decimal(0))
+				let whales = []
+				let distributions = []
+
+				if(count < this.config.minTrustlines)
+					return null
+
+				if(!amount.gt(0))
+					return null
+
+				holders.sort((a, b) => {
+					if(b.value.gt(a.value))
+						return 1
+					else if(a.value.gt(b.value))
+						return -1
+					else
+						return 0
+				})
+
+				whales = holders
+					.slice(0, this.config.captureWhales)
+					.map(balance => ({
+						address: balance.address,
+						balance: balance.value.toString()
+					}))
+				
+				distributions = this.config.topPercenters
+					.map(percent => {
+						let group = holders.slice(0, Math.ceil(holdersCount * percent / 100))
+						let wealth = group.reduce((sum, balance) => sum.plus(balance.value), new Decimal(0))
+						let share = wealth.div(amount).times(100)
+
+						return {
+							percent,
+							share: share.valueOf()
+						}
+					})
+
 
 				return {
-					currency,
-					issuer,
-					count,
-					issued: issued.toString()
+					stat: {
+						currency,
+						issuer,
+						count,
+						amount: amount.toString()
+					},
+					whales,
+					distributions
 				}
 			})
 			.filter(row => row)
 
-		this.log(`writing ${trustlineRows.length} trustlines to db`)
+		this.log(`writing ${trustlines.length} trustlines to db`)
 
-		await this.repo.setTrustlines(t, trustlineRows)
+		await this.repo.setTrustlines(t, trustlines.map(({stat}) => stat))
 
 
 		if(full){
-			await this.repo.setMetas(trustlineRows.map(row => ({
-				meta: accounts[row.issuer],
+			this.log(`writing metas, whales & distrubutions to db`)
+
+			await this.repo.setMetas(trustlines.map(({stat}) => ({
+				meta: accounts[stat.issuer],
 				type: 'issuer',
-				subject: row.issuer,
+				subject: stat.issuer,
 				source: 'ledger'
 			})))
+
+			for(let {stat, whales, distributions} of trustlines){
+				await this.repo.setWhales(stat, whales)
+				await this.repo.setDistributions(t, stat, distributions)
+			}
 		}
 
 		this.log(`scan complete`)

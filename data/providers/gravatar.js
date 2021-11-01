@@ -1,46 +1,53 @@
-import fetch from 'node-fetch'
-import Rest from '../../common/rest.js'
+import { RestProvider } from './base.js'
 import { wait } from '../../common/time.js'
 import { log, pretty } from '../../common/logging.js'
 
 
 
-export default class{
-	constructor({repo, key, secret}){
+export default class extends RestProvider{
+	constructor({repo, nodes, config}){
+		super({base: 'https://www.gravatar.com'})
+
 		this.repo = repo
-		this.api = new Rest({base: 'https://www.gravatar.com', fetch})
-		this.log = log.for({name: 'gravatar', color: 'cyan'})
+		this.nodes = nodes
+		this.config = config
+		this.log = log.for('gravatar', 'cyan')
+	}
+ 
+
+	run(){
+		this.loopOperation(
+			'gravatar',
+			'issuer',
+			this.config.refreshInterval,
+			this.update.bind(this)
+		)
 	}
 
-	async run(interval){
-		while(true){
-			let todo = await this.repo.getNextDueIssuerForOperation('gravatar', interval, 'having-email')
 
-			if(!todo){
-				await wait(1000)
-				continue
-			}
-
-			await this.repo.recordOperation('gravatar', todo.issuer, this.update(todo))
-		}
-	}
-
-	async update({issuer, emailHash}){
-		this.log(`checking avatar ${emailHash}`)
-
-		let res = await this.api.get(`avatar/${emailHash.toLowerCase()}`, {d: 404}, {raw: true})
+	async update(issuerId){
+		let emailHash = await this.repo.getMeta('issuer', issuerId, 'emailHash', 'ledger')
 		let meta = {icon: null}
 
-		if(res.status === 200){
-			meta.icon = `https://www.gravatar.com/avatar/${emailHash.toLowerCase()}`
-		}else if(res.status !== 404){
-			throw {message: `HTTP Error ${res.status}`}
-		}
+		console.log('checking', issuerId)
 
-		this.repo.setMeta({
+		if(emailHash){
+			this.log(`checking avatar ${emailHash}`)
+
+			let res = await this.api.get(`avatar/${emailHash.toLowerCase()}`, {d: 404}, {raw: true})
+
+			if(res.status === 200){
+				meta.icon = `https://www.gravatar.com/avatar/${emailHash.toLowerCase()}`
+			}else if(res.status !== 404){
+				throw {message: `HTTP Error ${res.status}`}
+			}
+		}
+			
+
+		await this.repo.setMeta({
 			meta,
 			type: 'issuer',
-			subject: issuer,
+			subject: issuerId,
 			source: 'gravatar.com'
 		})
 	}
