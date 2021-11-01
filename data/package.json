@@ -1,18 +1,17 @@
 {
-  "name": "@xrplmeta/spider",
+  "name": "@xrplmeta/data",
   "type": "module",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "main": "cli.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^10.0.0",
+    "@dbkit/sqlite": "file:../../../libs/@dbkit/sqlite",
     "minimist": "^1.2.5",
+    "node-fetch": "^3.0.0",
+    "toml": "^3.0.0",
     "xrpl": "^2.0.0"
   }
 }

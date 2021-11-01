@@ -3,7 +3,8 @@ import Router from '@koa/router'
 import placeholders from './placeholders.js'
 
 export default class Server{
-	constructor(){
+	constructor(repo){
+		this.repo = repo
 		this.koa = new Koa()
 		this.router = new Router()
 
@@ -12,7 +13,7 @@ export default class Server{
 
 	setupRoutes(){
 		this.router.get('/currencies', async ctx => {
-			ctx.body = placeholders.currencies
+			ctx.body = await this.repo.getCurrencies()
 		})
 	}
 

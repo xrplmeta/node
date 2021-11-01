@@ -19,6 +19,13 @@ export function wait(ms){
 }
 
 
+export function pretty(thing){
+	if(typeof thing === 'number')
+		return thing.toLocaleString('en-US')
+
+	return thing
+}
+
 
 export function currencyCodeForHumans(code){
 	if(code.length === 3)
@@ -26,11 +33,15 @@ export function currencyCodeForHumans(code){
 
 	let readable = ''
 
-    for (let i = 0; i < code.length; i += 2) {
-        readable += String.fromCharCode(parseInt(code.substr(i, 2), 16))
-    }
+	for (let i = 0; i < code.length; i += 2) {
+		readable += String.fromCharCode(parseInt(code.substr(i, 2), 16))
+	}
 
-    return decodeURIComponent(escape(readable))
+	try{
+		return decodeURIComponent(escape(readable)).replace(/\u0000/g, '')
+	}catch{
+		return code
+	}
 }
 
 export function unixNow(){
