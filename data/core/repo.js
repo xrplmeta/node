@@ -106,7 +106,7 @@ export default class Repo extends EventEmitter{
 		this.log(`opened database: ${file}`)
 	}
 
-	async setTrustlines(t, trustlines){
+	async setTrustlineHoldings(t, trustlines){
 		let issuerRows = await this.db.insert(
 			'Issuers',
 			trustlines.map(trustline => ({
@@ -136,11 +136,18 @@ export default class Repo extends EventEmitter{
 				count: trustline.count,
 				amount: trustline.amount
 			})),
+			{
+				duplicate: {
+					keys: ['trustline', 'date'], 
+					update: true
+				}
+			}
+
 		)
 	}
 
 	async setWhales({currency, issuer}, whales){
-		let trustline = await this.getTrustline({currency, issuer})
+		let trustline = await this.getTrustline({currency, issuer}, true)
 
 		await this.db.run(`DELETE FROM Whales WHERE trustline = ?`, trustline.id)
 		await this.db.insert(
@@ -234,7 +241,7 @@ export default class Repo extends EventEmitter{
 	async getIssuer(by, createIfNonExistent){
 		if(by.address){
 			let issuer = await this.db.get(
-				`SELECT id 
+				`SELECT * 
 				FROM Issuers 
 				WHERE address = ?`, 
 				by.address
@@ -247,12 +254,19 @@ export default class Repo extends EventEmitter{
 				)
 
 			return issuer
+		}else if(by.id){
+			return await this.db.get(
+				`SELECT * 
+				FROM Issuers 
+				WHERE id = ?`, 
+				by.id
+			)
 		}
 	}
 
 	async getTrustline(by){
 		if(by.currency && by.issuer){
-			let issuer = await this.getIssuer(by.issuer)
+			let issuer = await this.getIssuer({address: by.issuer})
 
 			if(!issuer)
 				return null
@@ -288,25 +302,38 @@ export default class Repo extends EventEmitter{
 		)
 	}
 
-	async getMostRecentOperation(type){
-		return await this.db.get(
-			`SELECT * 
-			FROM Operations 
-			WHERE type=?
-			ORDER BY start DESC`, 
-			type
-		)
+	async getMostRecentOperation(type, subject){
+		if(subject){
+			return await this.db.get(
+				`SELECT * 
+				FROM Operations 
+				WHERE type=? AND subject=?
+				ORDER BY start DESC`, 
+				type, subject
+			)
+		}else{
+			return await this.db.get(
+				`SELECT * 
+				FROM Operations 
+				WHERE type=?
+				ORDER BY start DESC`, 
+				type
+			)
+		}
 	}
 
 	async recordOperation(type, subject, promise){
 		let start = unixNow()
 		let result
 
-			await promise
 		try{
+			await promise
 			result = 'success'
 		}catch(error){
 			this.log(`operation "${type}/${subject}" failed: ${error.toString()}`)
+
+			await wait(3000)
+
 			result = `error: ${error.toString()}`
 		}
 

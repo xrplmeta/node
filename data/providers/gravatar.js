@@ -6,7 +6,12 @@ import { log, pretty } from '../../common/logging.js'
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super({base: 'https://www.gravatar.com'})
+		super({
+			base: 'https://www.gravatar.com',
+			ratelimit: config.maxRequestsPerMinute 
+				? {tokensPerInterval: config.maxRequestsPerMinute, interval: 'minute'}
+				: null
+		})
 
 		this.repo = repo
 		this.nodes = nodes
@@ -28,8 +33,6 @@ export default class extends RestProvider{
 	async update(issuerId){
 		let emailHash = await this.repo.getMeta('issuer', issuerId, 'emailHash', 'ledger')
 		let meta = {icon: null}
-
-		console.log('checking', issuerId)
 
 		if(emailHash){
 			this.log(`checking avatar ${emailHash}`)

@@ -1,6 +1,10 @@
+import { RateLimiter } from 'limiter'
+
+
 export default class Rest{
 	constructor(config){
 		this.config = config || {}
+		this.limiter = config.ratelimit ? new RateLimiter(config.ratelimit) : null
 		this.fetch = config.fetch || (typeof fetch !== 'undefined' ? fetch.bind(window) : null)
 	}
 
@@ -27,7 +31,7 @@ export default class Rest{
 	}
 
 	
-	makeRequest(method, route, data, options){
+	async makeRequest(method, route, data, options){
 		data = this.mergeData(data || {})
 		options = options || {}
 		let headers = options.headers || {}
@@ -53,7 +57,10 @@ export default class Rest{
 			req.body = JSON.stringify(data)
 		}
 
-		return this.fetch(url, req)
+		if(this.limiter)
+			await this.limiter.removeTokens(1)
+
+		return await this.fetch(url, req)
 			.then(res => {
 				if(options.raw){
 					return res
@@ -64,11 +71,16 @@ export default class Rest{
 
 					error.httpCode = res.status
 
-					return res.json()
-							.then(data => {
-								Object.assign(error, data)
-								throw error
-							})
+					return res.text()
+						.then(text => {
+							try{
+								Object.assign(error, JSON.parse(text))
+							}catch{
+								error.text = text
+							}
+
+							throw error
+						})
 				}else{
 					return res.json()
 						.catch(err => null)

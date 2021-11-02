@@ -1,33 +1,34 @@
 import minimist from 'minimist'
-import { log } from '../common/logging.js'
+import { log as l } from '../common/logging.js'
 import { load as loadConfig } from './core/config.js'
 import Repo from './core/repo.js'
 import Nodes from './core/nodes.js'
 import providers from './providers/index.js'
 
 
+const log = l.for('cli', 'green')
 const args = minimist(process.argv.slice(2))
 const only = args.only ? args.only.split(',').map(str => str.trim()) : null
 const configPath = args.config || 'config.toml'
 
-log({name: 'cli', color: 'green'}, `starting with config "${configPath}"`)
+log(`starting with config "${configPath}"`)
 
 const config = loadConfig(configPath)
 const repo = new Repo(config.data)
 const nodes = new Nodes(config.nodes)
+const activeProviders = Object.entries(providers)
+	.filter(([key, provider]) => !only || only.includes(key))
 
+
+log(`will run data providers:`)
+
+activeProviders.forEach(([key]) => log(`- ${key}`))
 
 ;(async () => {
 	await repo.open()
 
-	for(let [key, provider] of Object.entries(providers)){
-		if(only && !only.includes(key))
-			continue
-
-		log({name: 'cli', color: 'green'}, `running provider ${key}`)
-
-		let provider = new providers[key]({repo, nodes, config: config[key]})
-
-		provider.run()
+	for(let [key, provider] of activeProviders){
+		new providers[key]({repo, nodes, config: config[key]})
+			.run()
 	}
 })()

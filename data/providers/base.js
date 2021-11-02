@@ -12,7 +12,7 @@ export class BaseProvider{
 			if(entity){
 				let operation = await this.repo.getNextEntityOperation(type, entity)
 
-				if(operation.result === 'success' && operation.start + interval > unixNow()){
+				if(!operation || (operation.result === 'success' && operation.start + interval > unixNow())){
 					await wait(1000)
 					continue
 				}

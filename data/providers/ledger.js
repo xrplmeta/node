@@ -15,15 +15,21 @@ export default class extends BaseProvider{
 		this.log = log.for('ledger', 'cyan')
 	}
 
-	async run(){
+	run(){
+		this.runScanner()
+		//this.runExchangeTicker()
+		//this.runExchangeSync()
+	}
+
+	async runScanner(){
 		while(true){
 			let mostRecent = Math.floor(Date.now() / (this.config.scanInterval * 1000)) * this.config.scanInterval
 			let next = null
 
 			for(let t=mostRecent; t>=this.config.scanUntil; t-=this.config.scanInterval){
-				let operation = await this.repo.getMostRecentOperation({type: 'ledger-scan', subject: `t${t}`})
+				let operation = await this.repo.getMostRecentOperation('ledger-scan', `t${t}`)
 
-				if(operation)
+				if(operation && operation.result === 'success')
 					continue
 
 
@@ -96,7 +102,7 @@ export default class extends BaseProvider{
 
 			lastMarker = result.marker
 			
-			//if(!lastMarker)
+			if(!lastMarker)
 				break
 		}
 
@@ -162,7 +168,7 @@ export default class extends BaseProvider{
 
 		this.log(`writing ${trustlines.length} trustlines to db`)
 
-		await this.repo.setTrustlines(t, trustlines.map(({stat}) => stat))
+		await this.repo.setTrustlineHoldings(t, trustlines.map(({stat}) => stat))
 
 
 		if(full){
