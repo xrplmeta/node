@@ -1,9 +1,6 @@
-import Observer from './observer.js'
+import { deriveExchanges } from './xrpl.js'
 
-
-let observer = new Observer({connection: {on: ()=>0}})
-
-console.log(observer.deriveExchange(JSON.parse(`{
+console.log(deriveExchanges(JSON.parse(`{
     "Account": "rE9Ef6Ldf3TrhtFHwsDrbNB2dzfwoCyMGY",
     "Expiration": 717930106,
     "Fee": "12",

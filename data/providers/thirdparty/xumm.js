@@ -1,12 +1,12 @@
-import { RestProvider } from './base.js'
-import { wait } from '../../common/time.js'
-import { log, pretty } from '../../common/logging.js'
+import { RestProvider } from '../base.js'
+import { wait } from '../../../common/time.js'
+import { log, pretty } from '../../../common/logging.js'
 
 
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super({
+		super('xumm', {
 			base: 'https://xumm.app/api/v1/platform', 
 			headers: {'x-api-key': config.apiKey, 'x-api-secret': config.apiSecret},
 			ratelimit: config.maxRequestsPerMinute 

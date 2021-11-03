@@ -1,11 +1,13 @@
-import ledger from './ledger.js'
-import xumm from './xumm.js'
-import bithomp from './bithomp.js'
-import gravatar from './gravatar.js'
+import ledgerScan from './ledger/scan.js'
+import ledgerExchange from './ledger/exchange.js'
+import xumm from './thirdparty/xumm.js'
+import bithomp from './thirdparty/bithomp.js'
+import gravatar from './thirdparty/gravatar.js'
 
 export default {
-	ledger,
-	xumm,
-	bithomp,
-	gravatar
+	'ledger.scan': ledgerScan,
+	'ledger.exchange': ledgerExchange,
+	'thirdparty.xumm': xumm,
+	'thirdparty.bithomp': bithomp,
+	'thirdparty.gravatar': gravatar
 }

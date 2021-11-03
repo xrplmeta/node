@@ -13,13 +13,17 @@ export default class{
 			if(node.disabled)
 				continue
 
-			let client = new xrpl.Client(node.url, {timeout: 60000})
+			let connections = node.connections || 1
 
-			//yes
-			client.nodeConfig = node
+			for(let i=0; i<connections; i++){
+				let client = new xrpl.Client(node.url, {timeout: 60000})
 
-			this.clients.push(client)
-			this.loop(client)
+				//yes
+				client.nodeConfig = node
+
+				this.clients.push(client)
+				this.loop(client)
+			}
 		}
 	}
 
@@ -56,9 +60,17 @@ export default class{
 		}
 	}
 
-	request(request){
+	request({priority, ...request}){
+		priority = priority || 0
+
 		return new Promise((resolve, reject) => {
-			this.queue.push({request, resolve, reject})
+			let insertAt = this.queue.length - 1
+
+			while(insertAt > 0 && priority > this.queue[insertAt].priority){
+				insertAt--
+			}
+
+			this.queue.splice(insertAt, 0, {priority, request, resolve, reject})
 		})
 	}
 

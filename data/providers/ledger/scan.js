@@ -1,27 +1,20 @@
-import { BaseProvider } from './base.js'
-import { wait } from '../../common/time.js'
-import { log, pretty } from '../../common/logging.js'
-import Decimal from '../../common/decimal.js'
+import { BaseProvider } from '../base.js'
+import { wait } from '../../../common/time.js'
+import { log, pretty } from '../../../common/logging.js'
+import Decimal from '../../../common/decimal.js'
 
 
 
 export default class extends BaseProvider{
 	constructor({repo, nodes, config}){
-		super()
+		super('ledger.scan')
 
 		this.repo = repo
 		this.nodes = nodes
 		this.config = config
-		this.log = log.for('ledger', 'cyan')
 	}
 
-	run(){
-		this.runScanner()
-		//this.runExchangeTicker()
-		//this.runExchangeSync()
-	}
-
-	async runScanner(){
+	async run(){
 		while(true){
 			let mostRecent = Math.floor(Date.now() / (this.config.scanInterval * 1000)) * this.config.scanInterval
 			let next = null
@@ -62,7 +55,8 @@ export default class extends BaseProvider{
 					command: 'ledger_data',
 					ledger_index: ledgerIndex,
 					marker: lastMarker,
-					limit: 100000
+					limit: 100000,
+					priority: 100
 				})
 			}catch(error){
 				this.log(`could not fetch ledger data: ${error.toString()}`)

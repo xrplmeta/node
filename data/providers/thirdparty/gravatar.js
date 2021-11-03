@@ -1,12 +1,10 @@
-import { RestProvider } from './base.js'
-import { wait } from '../../common/time.js'
-import { log, pretty } from '../../common/logging.js'
+import { RestProvider } from '../base.js'
 
 
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super({
+		super('gravatar', {
 			base: 'https://www.gravatar.com',
 			ratelimit: config.maxRequestsPerMinute 
 				? {tokensPerInterval: config.maxRequestsPerMinute, interval: 'minute'}
@@ -16,7 +14,6 @@ export default class extends RestProvider{
 		this.repo = repo
 		this.nodes = nodes
 		this.config = config
-		this.log = log.for('gravatar', 'cyan')
 	}
  
 

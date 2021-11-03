@@ -77,9 +77,9 @@ CREATE TABLE IF NOT EXISTS "Exchanges" (
 	PRIMARY KEY("tx")
 );
 
-CREATE TABLE IF NOT EXISTS "ExchangeCoverage" (
+CREATE TABLE IF NOT EXISTS "Coverage" (
 	"id"			INTEGER NOT NULL UNIQUE,
-	"address"		TEXT,
+	"issuer"		INTEGER,
 	"headTx"		TEXT,
 	"headDate"		INTEGER,
 	"tailTx"		TEXT,
@@ -264,6 +264,16 @@ export default class Repo extends EventEmitter{
 		}
 	}
 
+	async getTrustlines(){
+		return this.db.all(
+			`SELECT 
+				id,
+				currency, 
+				(SELECT address FROM Issuers WHERE Issuers.id = issuer) as issuer
+			FROM Trustlines`, 
+		)
+	}
+
 	async getTrustline(by){
 		if(by.currency && by.issuer){
 			let issuer = await this.getIssuer({address: by.issuer})
@@ -279,6 +289,121 @@ export default class Repo extends EventEmitter{
 			)
 		}
 	}
+
+	async addExchange(asset, exchange){
+		let tx = Buffer.from(exchange.tx, 'hex')
+		let from = exchange.from.currency === 'XRP' ? 0 : (await this.getTrustline(exchange.from)).id
+		let to = exchange.to.currency === 'XRP' ? 0 : (await this.getTrustline(exchange.to)).id
+
+		await this.db.insert(
+			'Exchanges',
+			{
+				tx,
+				from,
+				to,
+				date: exchange.date,
+				price: exchange.price,
+				volume: exchange.volume,
+				maker: exchange.maker
+			},
+			{
+				duplicate: {
+					keys: ['tx'], 
+					skip: true
+				}
+			}
+		)
+	}
+
+	async getExchanges(asset, {start, end}){
+		let database = await this.getDatabaseFor(asset)
+
+		return await database.all(
+			`SELECT date, price, volume, maker, taker 
+			FROM Exchanges 
+			WHERE date >=? AND date<=?
+			ORDER BY date ASC`, 
+			start, 
+			end
+		)
+	}
+
+	async getHeadExchange(issuerAddress){
+		let issuer = await this.getIssuer({address: issuerAddress}, true)
+
+		return await database.get(
+			`SELECT * 
+			FROM Exchanges 
+			WHERE from = @issuer OR to = @issuer
+			ORDER BY date DESC 
+			LIMIT 1`,
+			{issuer: issuer.id}
+		)
+	}
+
+	async updateAllCoverageHeads(segment){
+		let issuers = await this.db.all(
+			`SELECT * 
+			FROM Issuers
+			WHERE (SELECT COUNT(1) FROM Trustlines WHERE Trustlines.issuer=Issuers.id) > 0`
+		)
+
+		for(let issuer of issuers){
+			await this.updateCoverage(issuer, segment)
+		}
+	}
+
+	async updateCoverage(issuer, segment){
+		let issuerId = issuer.id ? issuer.id : await this.getIssuer(issuer, true)
+		let intersecting = await database.all(
+			`SELECT * FROM WHERE issuer=? AND Coverage NOT (headDate<? OR tailDate>?)`,
+			issuerId,
+			segment.tailDate,
+			segment.headDate
+		)
+		let newSpan = {...segment}
+
+		for(let seg of intersecting){
+			if(seg.tailDate < newSpan.tailDate){
+				newSpan.tailDate = seg.tailDate
+				newSpan.tailTx = seg.tailTx
+			}
+
+			if(seg.headDate > newSpan.headDate){
+				newSpan.headDate = seg.headDate
+				newSpan.headTx = seg.headTx
+			}
+		}
+
+		for(let seg of intersecting){
+			await this.db.run(`DELETE FROM Coverage WHERE id=?`, seg.id)
+		}
+
+		await this.db.insert(
+			'Coverage',
+			{
+				issuer: issuerId,
+				tailDate: newSpan.tailDate,
+				tailTx: newSpan.tailTx,
+				headDate: newSpan.headDate,
+				headTx: newSpan.headTx
+			}
+		)
+	}
+
+	async getMostRecentCoverageSpan(issuer){
+		let issuerId = issuer.id ? issuer.id : await this.getIssuer(issuer, true)
+
+		return await this.db.get(
+			`SELECT *
+			FROM Coverage 
+			WHERE issuer=?
+			ORDER BY tailDate DESC 
+			LIMIT 1`,
+			issuerId
+		)
+	}
+
 
 	async getNextEntityOperation(type, entity){
 		let table = 'Issuers'

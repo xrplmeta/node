@@ -1,12 +1,15 @@
-import { RestProvider } from './base.js'
-import { wait } from '../../common/time.js'
-import { log, pretty } from '../../common/logging.js'
+import { RestProvider } from '../base.js'
+import { wait } from '../../../common/time.js'
+import { log, pretty } from '../../../common/logging.js'
 
 
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super({base: 'https://bithomp.com/api/v2', headers: {'x-bithomp-token': config.apiKey}})
+		super('bithomp', {
+			base: 'https://bithomp.com/api/v2', 
+			headers: {'x-bithomp-token': config.apiKey}}
+		)
 
 		this.repo = repo
 		this.nodes = nodes
