@@ -1,15 +1,18 @@
 import xrpl from 'xrpl'
+import EventEmitter from '../../common/events.js'
 import { wait } from '../../common/time.js'
 import { log } from '../../common/logging.js'
 
 
-export default class{
-	constructor(nodes){
+export default class extends EventEmitter{
+	constructor(config){
+		super()
+
 		this.log = log.for('nodes', 'yellow')
 		this.queue = []
 		this.clients = []
 
-		for(let node of nodes){
+		for(let node of config.nodes){
 			if(node.disabled)
 				continue
 
@@ -20,18 +23,39 @@ export default class{
 
 				//yes
 				client.nodeConfig = node
+				client.on('transaction', tx => this.emit('transaction', tx))
+				client.on('ledgerClosed', ledger => this.emit('ledger', ledger))
+				client.on('connected', () => {
+					this.printConnections(`${client.nodeConfig.url} established`)
+
+					if(node.subscribable){
+						this.subscribeClient(client)
+					}
+				})
+				client.on('disconnected', async code => {
+					this.printConnections(`${client.nodeConfig.url} disconnected (code ${code})`)
+					this.connectClient(client)
+				})
+				
 
 				this.clients.push(client)
+				this.connectClient(client)
 				this.loop(client)
 			}
 		}
 	}
 
-	async loop(client){
-		await this.ensureConnected(client)
 
+
+
+	async loop(client){
 		while(true){
 			let job = null
+
+			while(!client.isConnected()){
+				await wait(100)
+				continue
+			}
 
 			for(let i=0; i<this.queue.length; i++){
 				let item = this.queue[i]
@@ -49,8 +73,6 @@ export default class{
 			}
 
 			try{
-				await this.ensureConnected(client)
-
 				let { result } = await client.request(job.request)
 
 				job.resolve(result)
@@ -74,13 +96,24 @@ export default class{
 		})
 	}
 
-	async ensureConnected(client){
+	async getCurrentLedger(){
+		let result = await this.request({command: 'ledger'})
+
+		return result.ledger || result.closed.ledger
+	}
+
+	async subscribeClient(client){
+		let result = await this.request({
+			command: 'subscribe',
+			streams: ['ledger', 'transactions']
+		})
+	}
+
+	async connectClient(client){
 		while(!client.isConnected()){
 			try{
 				await client.connect()
-				this.printConnections(`${client.nodeConfig.url} established`)
 			}catch(error){
-				this.printConnections(`${client.nodeConfig.url} lost: ${error.message}`)
 				await wait(3000)
 			}
 		}

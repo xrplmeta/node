@@ -32,7 +32,7 @@ export class BaseProvider{
 
 				if(recent && recent.result === 'success' && recent.start + interval > unixNow()){
 					await wait(1000)
-					return
+					continue
 				}
 
 				await this.repo.recordOperation(type, null, execute())

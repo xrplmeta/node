@@ -10,6 +10,10 @@ export function rippleNow(){
 	return unixNow() - 946684800
 }
 
+export function rippleToUnix(timestamp){
+	return timestamp + 946684800
+}
+
 export function laxHumanDuration(seconds){
 	if(seconds < 1)
 		return `less than a second`

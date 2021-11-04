@@ -8,11 +8,12 @@ ws_port=4090
 
 
 [LEDGER]
+history_ledgers = 1000000
 scan_interval = 14400
-scan_until = 0
 min_trustlines = 3
 capture_whales = 100
 top_percenters = [0.01, 0.1, 1.0, 10.0, 25.0, 50.0]
+
 
 [XUMM]
 api_key = "5a674f6a-2c81-4469-bf93-11073f386b14"
@@ -26,31 +27,27 @@ refresh_interval = 600
 api_key = "ed95d680-3282-11ec-a9bc-6154c7b13d69"
 
 [GRAVATAR]
-refresh_interval = 1800
+refresh_interval = 3600
 max_requests_per_minute = 60
 
 
 
 [[NODES]]
-disabled = true
 url = "wss://s1.ripple.com"
-history = 0
 scannable = false
+subscribable = true
 
 [[NODES]]
 disabled = true
 url = "wss://s2.ripple.com"
-history = "full"
 scannable = false
 
 [[NODES]]
 disabled = true
 url = "wss://xrpcluster.com"
-history = "full"
 scannable = false
 
 [[NODES]]
 url = "ws://xrptrader.org:4920"
-history = 2000000
 scannable = true
-connections = 5
+connections = 3

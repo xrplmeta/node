@@ -40,6 +40,11 @@ CREATE TABLE IF NOT EXISTS "Trustlines" (
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS "C+I" ON "Trustlines" (
+	"currency",
+	"issuer"
+);
+
 CREATE TABLE IF NOT EXISTS "Holdings" (
 	"id"		INTEGER NOT NULL UNIQUE,
 	"trustline"	INTEGER NOT NULL,
@@ -47,6 +52,14 @@ CREATE TABLE IF NOT EXISTS "Holdings" (
 	"count"		INTEGER NOT NULL,
 	"amount"	TEXT NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE INDEX IF NOT EXISTS "T" ON "Holdings" (
+	"trustline"
+);
+
+CREATE INDEX IF NOT EXISTS "D" ON "Holdings" (
+	"date"
 );
 
 CREATE TABLE IF NOT EXISTS "Whales" (
@@ -76,16 +89,6 @@ CREATE TABLE IF NOT EXISTS "Exchanges" (
 	"maker"		BLOB NOT NULL,
 	PRIMARY KEY("tx")
 );
-
-CREATE TABLE IF NOT EXISTS "Coverage" (
-	"id"			INTEGER NOT NULL UNIQUE,
-	"issuer"		INTEGER,
-	"headTx"		TEXT,
-	"headDate"		INTEGER,
-	"tailTx"		TEXT,
-	"tailDate"		INTEGER,
-	PRIMARY KEY("id" AUTOINCREMENT)
-);
 `
 
 
@@ -98,7 +101,7 @@ export default class Repo extends EventEmitter{
 	}
 
 	async open(){
-		let file = path.join(this.config.dir, 'meta.db')
+		let file = path.join(this.config.data.dir, 'meta.db')
 
 		this.db = new Database({file})
 		this.db.exec(setupQuery)
@@ -177,6 +180,15 @@ export default class Repo extends EventEmitter{
 					update: true
 				}
 			}
+		)
+	}
+
+	async getMetas(type, subject){
+		return await this.db.all(
+			`SELECT key, value, source
+			FROM Metas
+			WHERE type = ? AND subject = ?`,
+			type, subject
 		)
 	}
 
@@ -274,46 +286,81 @@ export default class Repo extends EventEmitter{
 		)
 	}
 
-	async getTrustline(by){
+	async getTrustline(by, createIfNonExistent){
 		if(by.currency && by.issuer){
-			let issuer = await this.getIssuer({address: by.issuer})
+			let issuer = await this.getIssuer({address: by.issuer}, createIfNonExistent)
 
 			if(!issuer)
 				return null
 
-			return this.db.get(
+			let trustline = this.db.get(
 				`SELECT * 
 				FROM Trustlines 
 				WHERE currency=? AND issuer=?`, 
 				by.currency, issuer.id
 			)
+
+			if(!trustline && createIfNonExistent)
+				trustline = await this.db.insert(
+					'Trustlines',
+					{
+						currency: by.currency, 
+						issuer: issuer.id
+					}
+				)
+
+			return trustline
 		}
 	}
 
-	async addExchange(asset, exchange){
-		let tx = Buffer.from(exchange.tx, 'hex')
-		let from = exchange.from.currency === 'XRP' ? 0 : (await this.getTrustline(exchange.from)).id
-		let to = exchange.to.currency === 'XRP' ? 0 : (await this.getTrustline(exchange.to)).id
-
-		await this.db.insert(
-			'Exchanges',
-			{
-				tx,
-				from,
-				to,
-				date: exchange.date,
-				price: exchange.price,
-				volume: exchange.volume,
-				maker: exchange.maker
-			},
-			{
-				duplicate: {
-					keys: ['tx'], 
-					skip: true
-				}
-			}
+	async getMostRecentHoldings(trustlines){
+		return await this.db.all(
+			`SELECT * 
+			FROM Holdings
+			WHERE trustline IN (${trustlines.map(() => '?').join(',')})
+			ORDER BY date DESC`,
+			trustlines.map(({id}) => id)
 		)
+
+		/*return await this.db.tx(async () => {
+			return await Promise.all(trustlines.map(async ({id}) => await this.db.get(
+				`SELECT * FROM Holdings WHERE trustline = ? ORDER BY date DESC`,
+				id
+			)))
+		})*/
 	}
+
+	async insertExchanges(exchanges){
+		for(let exchange of exchanges){
+			let tx = Buffer.from(exchange.tx, 'hex')
+			let from = exchange.from.currency !== 'XRP' 
+				? (await this.getTrustline(exchange.from, true)).id
+				: 0
+			let to = exchange.to.currency !== 'XRP' 
+				? (await this.getTrustline(exchange.to, true)).id
+				: 0
+
+			await this.db.insert(
+				'Exchanges',
+				{
+					tx,
+					date: exchange.date,
+					from,
+					to,
+					price: exchange.price,
+					volume: exchange.volume,
+					maker: exchange.maker.slice(1, 6)
+				},
+				{
+					duplicate: {
+						keys: ['tx'], 
+						ignore: true
+					}
+				}
+			)
+		}
+	}
+
 
 	async getExchanges(asset, {start, end}){
 		let database = await this.getDatabaseFor(asset)
@@ -341,68 +388,6 @@ export default class Repo extends EventEmitter{
 		)
 	}
 
-	async updateAllCoverageHeads(segment){
-		let issuers = await this.db.all(
-			`SELECT * 
-			FROM Issuers
-			WHERE (SELECT COUNT(1) FROM Trustlines WHERE Trustlines.issuer=Issuers.id) > 0`
-		)
-
-		for(let issuer of issuers){
-			await this.updateCoverage(issuer, segment)
-		}
-	}
-
-	async updateCoverage(issuer, segment){
-		let issuerId = issuer.id ? issuer.id : await this.getIssuer(issuer, true)
-		let intersecting = await database.all(
-			`SELECT * FROM WHERE issuer=? AND Coverage NOT (headDate<? OR tailDate>?)`,
-			issuerId,
-			segment.tailDate,
-			segment.headDate
-		)
-		let newSpan = {...segment}
-
-		for(let seg of intersecting){
-			if(seg.tailDate < newSpan.tailDate){
-				newSpan.tailDate = seg.tailDate
-				newSpan.tailTx = seg.tailTx
-			}
-
-			if(seg.headDate > newSpan.headDate){
-				newSpan.headDate = seg.headDate
-				newSpan.headTx = seg.headTx
-			}
-		}
-
-		for(let seg of intersecting){
-			await this.db.run(`DELETE FROM Coverage WHERE id=?`, seg.id)
-		}
-
-		await this.db.insert(
-			'Coverage',
-			{
-				issuer: issuerId,
-				tailDate: newSpan.tailDate,
-				tailTx: newSpan.tailTx,
-				headDate: newSpan.headDate,
-				headTx: newSpan.headTx
-			}
-		)
-	}
-
-	async getMostRecentCoverageSpan(issuer){
-		let issuerId = issuer.id ? issuer.id : await this.getIssuer(issuer, true)
-
-		return await this.db.get(
-			`SELECT *
-			FROM Coverage 
-			WHERE issuer=?
-			ORDER BY tailDate DESC 
-			LIMIT 1`,
-			issuerId
-		)
-	}
 
 
 	async getNextEntityOperation(type, entity){
@@ -425,6 +410,15 @@ export default class Repo extends EventEmitter{
 				MAX(start) ASC`,
 			type, entity
 		)
+	}
+
+	async hasSuccessfulOperation(type, subject){
+		let operation = await this.getMostRecentOperation(type, subject)
+
+		if(operation && operation.result === 'success')
+			return true
+
+		return false
 	}
 
 	async getMostRecentOperation(type, subject){
@@ -462,6 +456,10 @@ export default class Repo extends EventEmitter{
 			result = `error: ${error.toString()}`
 		}
 
+		await this.markOperation(type, subject, start, result)
+	}
+
+	async markOperation(type, subject, start, result){
 		await this.db.insert('Operations', {
 			type,
 			subject,

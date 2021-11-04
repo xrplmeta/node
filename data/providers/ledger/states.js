@@ -7,11 +7,11 @@ import Decimal from '../../../common/decimal.js'
 
 export default class extends BaseProvider{
 	constructor({repo, nodes, config}){
-		super('ledger.scan')
+		super('ledger.states')
 
 		this.repo = repo
 		this.nodes = nodes
-		this.config = config
+		this.config = config.ledger
 	}
 
 	async run(){
@@ -20,7 +20,7 @@ export default class extends BaseProvider{
 			let next = null
 
 			for(let t=mostRecent; t>=this.config.scanUntil; t-=this.config.scanInterval){
-				let operation = await this.repo.getMostRecentOperation('ledger-scan', `t${t}`)
+				let operation = await this.repo.getMostRecentOperation('ledger.states', `t${t}`)
 
 				if(operation && operation.result === 'success')
 					continue
@@ -35,7 +35,7 @@ export default class extends BaseProvider{
 				continue
 			}
 
-			await this.repo.recordOperation('ledger-scan', `t${next}`, this.scan(next, next === mostRecent))
+			await this.repo.recordOperation('ledger.states', `t${next}`, this.scan(next, next === mostRecent))
 		}
 	}
 

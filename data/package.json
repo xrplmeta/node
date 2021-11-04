@@ -9,6 +9,8 @@
   "license": "ISC",
   "dependencies": {
     "@dbkit/sqlite": "file:../../../libs/@dbkit/sqlite",
+    "@koa/router": "^10.1.1",
+    "koa": "^2.13.4",
     "minimist": "^1.2.5",
     "node-fetch": "^3.0.0",
     "toml": "^3.0.0",

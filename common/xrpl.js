@@ -1,19 +1,28 @@
 import Decimal from './decimal.js'
 
+
 export function deriveExchanges(tx){
+	let hash = tx.hash || tx.transaction.hash
+	let account = tx.Account || tx.transaction.Account
 	let exchanges = []
 	let parties = {}
 	let bookChange = ({currency, issuer, account, change}) => {
-		if(!parties[account])
-			parties[account] = []
+		let party = parties[account]
 
-		let existing = parties[account].find(change => 
+		if(!party)
+			party = parties[account] = []
+
+		let exchange = party.find(change => 
 			change.currency === currency && change.issuer === issuer)
 
-		if(existing){
-			existing.change = existing.change.plus(change)
+		if(exchange){
+			exchange.change = exchange.change.plus(change)
+
+			if(exchange.change.eq('0')){
+				party.splice(party.indexOf(exchange), 1)
+			}
 		}else{
-			parties[account].push({
+			party.push({
 				currency,
 				issuer,
 				change
@@ -21,7 +30,7 @@ export function deriveExchanges(tx){
 		}
 	}
 
-	for(let node of tx.meta.AffectedNodes){
+	for(let node of (tx.meta || tx.metaData).AffectedNodes){
 		let nodeKey = Object.keys(node)[0]
 		let nodeData = node[nodeKey]
 
@@ -29,7 +38,7 @@ export function deriveExchanges(tx){
 			continue
 
 		if(nodeData.LedgerEntryType === 'RippleState'){
-			let previousBalance = nodeKey === 'ModifiedNode' 
+			let previousBalance = nodeKey !== 'CreatedNode' 
 				? nodeData.PreviousFields.Balance.value
 				: '0'
 			let finalBalance = nodeData.FinalFields.Balance.value
@@ -57,7 +66,12 @@ export function deriveExchanges(tx){
 			})
 
 		}else if(nodeData.LedgerEntryType === 'AccountRoot'){
-			let previousBalance = nodeData.PreviousFields.Balance
+			if(!nodeData.FinalFields?.Balance)
+				continue
+
+			let previousBalance = nodeKey !== 'CreatedNode' 
+				? nodeData.PreviousFields.Balance
+				: '0' 
 			let finalBalance = nodeData.FinalFields.Balance
 			let change = Decimal.sub(finalBalance, previousBalance).div('1000000')
 			let account = nodeData.FinalFields.Account
@@ -74,16 +88,19 @@ export function deriveExchanges(tx){
 	bookChange({
 		currency: 'XRP',
 		issuer: null,
-		account: tx.Account,
-		change: new Decimal(tx.Fee).div('1000000')
+		account,
+		change: new Decimal(tx.Fee || tx.transaction.Fee).div('1000000')
 	})
 
 	for(let [address, changes] of Object.entries(parties)){
-		if(changes.length !== 2){
+		if(changes.length < 2)
+			continue
+
+		if(changes.length > 2){
 			throw new Error('multi currency exchange parsing not implemented, yet')
 		}
 
-		let isMaker = address === tx.Account
+		let isMaker = address === account
 		let take = changes[0].change.gt(0) ? changes[0] : changes[1]
 		let pay = changes[1].change.gt(0) ? changes[0] : changes[1]
 		let price
@@ -122,6 +139,8 @@ export function deriveExchanges(tx){
 			exchange.price = wavgPriceSum.div(wavgPriceDiv)
 		}else{
 			exchanges.push(exchange = {
+				tx: hash,
+				maker: account,
 				from: {currency: from.currency, issuer: from.issuer},
 				to: {currency: to.currency, issuer: to.issuer},
 				price,
@@ -133,5 +152,27 @@ export function deriveExchanges(tx){
 			exchange.volume = volume
 	}
 
-	return exchanges
+	return exchanges.map(exchange => ({
+		...exchange,
+		price: exchange.price.toString(),
+		volume: exchange.volume.toString(),
+	}))
+}
+
+
+export function currencyHexToUTF8(code){
+	if(code.length === 3)
+		return code
+
+	let readable = ''
+
+	for (let i = 0; i < code.length; i += 2) {
+		readable += String.fromCharCode(parseInt(code.substr(i, 2), 16))
+	}
+
+	try{
+		return decodeURIComponent(escape(readable)).replace(/\u0000/g, '')
+	}catch{
+		return code
+	}
 }

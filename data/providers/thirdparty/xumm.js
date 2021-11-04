@@ -8,28 +8,34 @@ export default class extends RestProvider{
 	constructor({repo, nodes, config}){
 		super('xumm', {
 			base: 'https://xumm.app/api/v1/platform', 
-			headers: {'x-api-key': config.apiKey, 'x-api-secret': config.apiSecret},
-			ratelimit: config.maxRequestsPerMinute 
-				? {tokensPerInterval: config.maxRequestsPerMinute, interval: 'minute'}
+			headers: {
+				'x-api-key': config.xumm.apiKey, 
+				'x-api-secret': config.xumm.apiSecret
+			},
+			ratelimit: config.xumm.maxRequestsPerMinute 
+				? {
+					tokensPerInterval: config.xumm.maxRequestsPerMinute, 
+					interval: 'minute'
+				}
 				: null
 		})
 
 		this.repo = repo
 		this.nodes = nodes
-		this.config = config
+		this.config = config.xumm
 		this.log = log.for('xumm', 'cyan')
 	}
 
 	run(){
 		this.loopOperation(
-			'xumm-assets', 
+			'xumm.assets', 
 			null, 
 			this.config.refreshIntervalAssets,
 			this.scanAssets.bind(this)
 		)
 
 		this.loopOperation(
-			'xumm-kyc', 
+			'xumm.kyc', 
 			'issuer', 
 			this.config.refreshIntervalKyc,
 			this.checkKYC.bind(this)

@@ -6,14 +6,17 @@ export default class extends RestProvider{
 	constructor({repo, nodes, config}){
 		super('gravatar', {
 			base: 'https://www.gravatar.com',
-			ratelimit: config.maxRequestsPerMinute 
-				? {tokensPerInterval: config.maxRequestsPerMinute, interval: 'minute'}
+			ratelimit: config.gravatar.maxRequestsPerMinute 
+				? {
+					tokensPerInterval: config.gravatar.maxRequestsPerMinute, 
+					interval: 'minute'
+				}
 				: null
 		})
 
 		this.repo = repo
 		this.nodes = nodes
-		this.config = config
+		this.config = config.gravatar
 	}
  
 

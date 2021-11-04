@@ -8,18 +8,18 @@ export default class extends RestProvider{
 	constructor({repo, nodes, config}){
 		super('bithomp', {
 			base: 'https://bithomp.com/api/v2', 
-			headers: {'x-bithomp-token': config.apiKey}}
+			headers: {'x-bithomp-token': config.bithomp.apiKey}}
 		)
 
 		this.repo = repo
 		this.nodes = nodes
-		this.config = config
+		this.config = config.bithomp
 		this.log = log.for('bithomp', 'cyan')
 	}
 
 	run(){
 		this.loopOperation(
-			'bithomp-assets', 
+			'bithomp.assets', 
 			null,
 			this.config.refreshInterval, 
 			this.refresh.bind(this)
