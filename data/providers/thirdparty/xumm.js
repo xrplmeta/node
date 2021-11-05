@@ -71,7 +71,7 @@ export default class extends RestProvider{
 						icon: currency.avatar
 					},
 					type: 'currency',
-					subject: `${currency.currency}:${currency.issuer}`,
+					subject: currency,
 					source: 'xumm.app'
 				})
 			}

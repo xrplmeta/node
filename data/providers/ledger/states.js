@@ -1,5 +1,5 @@
 import { BaseProvider } from '../base.js'
-import { wait } from '../../../common/time.js'
+import { wait, unixNow } from '../../../common/time.js'
 import { log, pretty } from '../../../common/logging.js'
 import Decimal from '../../../common/decimal.js'
 
@@ -16,38 +16,50 @@ export default class extends BaseProvider{
 
 	async run(){
 		while(true){
-			let mostRecent = Math.floor(Date.now() / (this.config.scanInterval * 1000)) * this.config.scanInterval
+			let now = unixNow()
+			let scanNow = Math.floor(now / this.config.scanInterval) * this.config.scanInterval
+			let historyNow = Math.floor(now / this.config.historyInterval) * this.config.historyInterval
 			let next = null
+			let mode
 
-			for(let t=mostRecent; t>=this.config.scanUntil; t-=this.config.scanInterval){
-				let operation = await this.repo.getMostRecentOperation('ledger.states', `t${t}`)
+			if(scanNow > historyNow && !await this.repo.hasSuccessfulOperation('ledger.states', `t${scanNow}`)){
+				mode = 'replace'
+				next = scanNow
+			}else{
+				for(let t=historyNow; t>=0; t-=this.config.historyInterval){
+					if(!await this.repo.hasSuccessfulOperation('ledger.states', `t${t}`)){
+						next = t
+						break
+					}
+				}
 
-				if(operation && operation.result === 'success')
-					continue
-
-
-				next = t
-				break
+				if(next === historyNow)
+					mode = 'full'
+				else
+					mode = 'historical'
 			}
+
+			
 
 			if(!next){
 				await wait(1000)
 				continue
 			}
 
-			await this.repo.recordOperation('ledger.states', `t${next}`, this.scan(next, next === mostRecent))
+			await this.repo.recordOperation('ledger.states', `t${next}`, this.scan(next, mode))
 		}
 	}
 
 
-	async scan(t, full){
+	async scan(t, mode){
 		let ledgerIndex = await this.findLedgerIndexAtTime(t)
 		let scanned = 0
+		let books = {}
 		let balances = {}
 		let accounts = {}
 		let lastMarker
 
-		this.log(`scanning ledger #${ledgerIndex}...`)
+		this.log(`scanning ledger #${ledgerIndex} in ${mode} mode...`)
 
 		while(true){
 			try{
@@ -79,7 +91,7 @@ export default class extends BaseProvider{
 						value: new Decimal(state.Balance.value).abs()
 					})
 				}else if(state.LedgerEntryType === 'AccountRoot'){
-					if(full){
+					if(mode !== 'historical'){
 						if(state.Domain || state.EmailHash){
 							accounts[state.Account] = {
 								domain: state.Domain ? Buffer.from(state.Domain, 'hex').toString() : undefined,
@@ -87,6 +99,37 @@ export default class extends BaseProvider{
 							}
 						}
 					}
+				}else if(state.LedgerEntryType === 'Offer'){
+					let currency
+					let issuer
+					let buy
+					let sell
+
+					if(typeof state.TakerGets === 'string'){
+						currency = state.TakerPays.currency
+						issuer = state.TakerPays.issuer
+						sell = new Decimal(state.TakerGets).div('1000000')
+					}else if(typeof state.TakerPays === 'string'){
+						currency = state.TakerGets.currency
+						issuer = state.TakerGets.issuer
+						buy = new Decimal(state.TakerPays).div('1000000')
+					}else{
+						//non XRP pairs not yet supported
+						continue
+					}
+
+					let key = `${currency}:${issuer}`
+
+					if(!books[key])
+						books[key] = {
+							buy: new Decimal(0), 
+							sell: new Decimal(0)
+						}
+
+					if(buy)
+						books[key].buy = books[key].buy.plus(buy)
+					else if(sell)
+						books[key].sell = books[key].sell.plus(sell)
 				}
 			}
 
@@ -100,7 +143,7 @@ export default class extends BaseProvider{
 				break
 		}
 
-		this.log(`computing distrubutions`)
+		this.log(`computing distrubutions & liquidities`)
 
 		let trustlines = Object.entries(balances)
 			.map(([key, balances]) => {
@@ -111,6 +154,7 @@ export default class extends BaseProvider{
 				let amount = holders.reduce((sum, balance) => sum.plus(balance.value), new Decimal(0))
 				let whales = []
 				let distributions = []
+				let liquidity = books[key]
 
 				if(count < this.config.minTrustlines)
 					return null
@@ -151,8 +195,10 @@ export default class extends BaseProvider{
 					stat: {
 						currency,
 						issuer,
-						count,
-						amount: amount.toString()
+						accounts: count,
+						supply: amount.toString(),
+						buy: liquidity ? liquidity.buy.toString() : '0',
+						sell: liquidity ? liquidity.sell.toString() : '0',
 					},
 					whales,
 					distributions
@@ -160,12 +206,18 @@ export default class extends BaseProvider{
 			})
 			.filter(row => row)
 
-		this.log(`writing ${trustlines.length} trustlines to db`)
-
-		await this.repo.setTrustlineHoldings(t, trustlines.map(({stat}) => stat))
 
 
-		if(full){
+		this.log(`writing ${trustlines.length} trustline stats to db`)
+
+		await this.repo.setStats(
+			t, 
+			trustlines.map(({stat}) => stat), 
+			mode === 'replace'
+		)
+
+
+		if(mode !== 'historical'){
 			this.log(`writing metas, whales & distrubutions to db`)
 
 			await this.repo.setMetas(trustlines.map(({stat}) => ({

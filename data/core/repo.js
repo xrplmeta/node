@@ -45,20 +45,22 @@ CREATE UNIQUE INDEX IF NOT EXISTS "C+I" ON "Trustlines" (
 	"issuer"
 );
 
-CREATE TABLE IF NOT EXISTS "Holdings" (
+CREATE TABLE IF NOT EXISTS "Stats" (
 	"id"		INTEGER NOT NULL UNIQUE,
 	"trustline"	INTEGER NOT NULL,
 	"date"		INTEGER NOT NULL,
-	"count"		INTEGER NOT NULL,
-	"amount"	TEXT NOT NULL,
+	"accounts"	INTEGER NOT NULL,
+	"supply"	TEXT NOT NULL,
+	"buy"		TEXT NOT NULL,
+	"sell"		TEXT NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
-CREATE INDEX IF NOT EXISTS "T" ON "Holdings" (
+CREATE INDEX IF NOT EXISTS "T" ON "Stats" (
 	"trustline"
 );
 
-CREATE INDEX IF NOT EXISTS "D" ON "Holdings" (
+CREATE INDEX IF NOT EXISTS "D" ON "Stats" (
 	"date"
 );
 
@@ -109,7 +111,7 @@ export default class Repo extends EventEmitter{
 		this.log(`opened database: ${file}`)
 	}
 
-	async setTrustlineHoldings(t, trustlines){
+	async setStats(t, trustlines, replaceLatest){
 		let issuerRows = await this.db.insert(
 			'Issuers',
 			trustlines.map(trustline => ({
@@ -131,13 +133,27 @@ export default class Repo extends EventEmitter{
 			}
 		)
 
+		if(replaceLatest){
+			for(let {id} of trustlineRows){
+				await this.db.run(
+					`DELETE FROM Stats
+					WHERE trustline = ?
+					ORDER BY date DESC
+					LIMIT 1`,
+					id
+				)
+			}
+		}
+
 		await this.db.insert(
-			'Holdings',
+			'Stats',
 			trustlines.map((trustline, i) => ({
 				date: t,
 				trustline: trustlineRows[i].id,
-				count: trustline.count,
-				amount: trustline.amount
+				accounts: trustline.accounts,
+				supply: trustline.supply,
+				buy: trustline.buy,
+				sell: trustline.sell,
 			})),
 			{
 				duplicate: {
@@ -222,6 +238,9 @@ export default class Repo extends EventEmitter{
 					case 'issuer':
 						meta.subject = (await this.getIssuer({address: meta.subject}, true)).id
 						break
+					case 'currency':
+						meta.subject = (await this.getTrustline(meta.subject, true)).id
+						break
 				}
 			}
 
@@ -281,7 +300,8 @@ export default class Repo extends EventEmitter{
 			`SELECT 
 				id,
 				currency, 
-				(SELECT address FROM Issuers WHERE Issuers.id = issuer) as issuer
+				(SELECT address FROM Issuers WHERE Issuers.id = issuer) as issuer,
+				issuer as issuerId
 			FROM Trustlines`, 
 		)
 	}
@@ -313,22 +333,31 @@ export default class Repo extends EventEmitter{
 		}
 	}
 
-	async getMostRecentHoldings(trustlines){
-		return await this.db.all(
-			`SELECT * 
-			FROM Holdings
-			WHERE trustline IN (${trustlines.map(() => '?').join(',')})
-			ORDER BY date DESC`,
-			trustlines.map(({id}) => id)
-		)
+	async getRecentStats(trustline, t){
+		if(t === undefined){
+			return await this.db.get(
+				`SELECT *
+				FROM Stats
+				WHERE trustline = ?
+				ORDER BY date DESC`,
+				trustline.id
+			)
+		}else{
+			let gridT = Math.floor(t / this.config.ledger.scanInterval) * this.config.ledger.scanInterval
 
-		/*return await this.db.tx(async () => {
-			return await Promise.all(trustlines.map(async ({id}) => await this.db.get(
-				`SELECT * FROM Holdings WHERE trustline = ? ORDER BY date DESC`,
-				id
-			)))
-		})*/
+			return await this.db.get(
+				`SELECT *
+				FROM Stats
+				WHERE trustline = ?
+				AND date >= ?
+				ORDER BY date ASC`,
+				trustline.id,
+				gridT
+			)
+		}
+		
 	}
+
 
 	async insertExchanges(exchanges){
 		for(let exchange of exchanges){
@@ -362,16 +391,29 @@ export default class Repo extends EventEmitter{
 	}
 
 
-	async getExchanges(asset, {start, end}){
-		let database = await this.getDatabaseFor(asset)
-
-		return await database.all(
-			`SELECT date, price, volume, maker, taker 
+	async getExchanges(base, quote){
+		return await this.db.all(
+			`SELECT *
 			FROM Exchanges 
-			WHERE date >=? AND date<=?
+			WHERE 
+			(\`from\` = @base AND \`to\` = @quote)
+			OR
+			(\`from\` = @quote AND \`to\` = @base)
 			ORDER BY date ASC`, 
-			start, 
-			end
+			{base, quote}
+		)
+	}
+
+	async getExchangesCoverage(base, quote){
+		return await this.db.all(
+			`SELECT MIN(date) as min, MAX(date) as max
+			FROM Exchanges 
+			WHERE 
+			(\`from\` = @base AND \`to\` = @quote)
+			OR
+			(\`from\` = @quote AND \`to\` = @base)
+			ORDER BY date ASC`, 
+			{base, quote}
 		)
 	}
 
@@ -456,6 +498,16 @@ export default class Repo extends EventEmitter{
 			result = `error: ${error.toString()}`
 		}
 
+		let mostRecent = await this.getMostRecentOperation(type, subject)
+
+		if(mostRecent){
+			await this.db.run(
+				`DELETE FROM Operations
+				WHERE id = ?`,
+				mostRecent.id
+			)
+		}
+
 		await this.markOperation(type, subject, start, result)
 	}
 
@@ -469,201 +521,3 @@ export default class Repo extends EventEmitter{
 		})
 	}
 }
-
-
-/*import path from 'path'
-import Database from 'better-sqlite3'
-import Rest from '../shared/rest.js'
-import EventEmitter from '../shared/events.js'
-import { log, wait, unixNow, currencyCodeForHumans } from '../shared/utils.js'
-
-
-const setupQuery = `
-CREATE TABLE IF NOT EXISTS "Currencies" (
-	"id"			INTEGER NOT NULL UNIQUE,
-	"currency"		TEXT NOT NULL,
-	"issuer"		TEXT NOT NULL,
-	"trustlines"	INTEGER NOT NULL,
-	PRIMARY KEY("id" AUTOINCREMENT)
-);
-
-CREATE TABLE IF NOT EXISTS "Metas" (
-	"id"		INTEGER NOT NULL UNIQUE,
-	"type"		TEXT NOT NULL,
-	"subject"	TEXT NOT NULL,
-	"key"		TEXT NOT NULL,
-	"value"		TEXT,
-	"source"	TEXT NOT NULL,
-	PRIMARY KEY("id" AUTOINCREMENT)
-);
-
-CREATE TABLE IF NOT EXISTS "Operations" (
-	"id"		INTEGER NOT NULL UNIQUE,
-	"type"		TEXT NOT NULL,
-	"subject"	TEXT NOT NULL,
-	"start"		INTEGER NOT NULL,
-	"end"		INTEGER NOT NULL,
-	"result"	TEXT NOT NULL,
-	PRIMARY KEY("id" AUTOINCREMENT)
-);
-`
-
-const statements = {
-	selectCurrencies: `SELECT * FROM Currencies`,
-	selectLastOperation: `SELECT * FROM Operations WHERE type=@type AND subject=@subject ORDER BY end DESC LIMIT 1`,
-	insertOperation: `INSERT INTO Operations (type, subject, start, end, result) VALUES (@type, @subject, @start, @end, @result)`,
-	selectCurrency: `SELECT * FROM Currencies WHERE currency=@currency AND issuer=@issuer`,
-	updateCurrency: `UPDATE Currencies SET trustlines=@trustlines WHERE id=@id`,
-	insertCurrency: `INSERT INTO Currencies (currency, issuer, trustlines) VALUES (@currency, @issuer, @trustlines)`,
-	selectMeta: `SELECT id FROM Metas WHERE type=@type AND subject=@subject AND key=@key AND source=@source`,
-	updateMeta: `UPDATE Metas SET value=@value WHERE id=@id`,
-	deleteMeta: `DELETE FROM Metas WHERE id=@id`,
-	insertMeta: `INSERT INTO Metas (type, subject, key, value, source) VALUES (@type, @subject, @key, @value, @source)`,
-	selectIssuerByOldestOperation: 
-		`SELECT 
-			DISTINCT issuer, 
-			(SELECT end FROM Operations WHERE type=@type AND subject=issuer ORDER BY end DESC LIMIT 1) as end
-		FROM 
-			Currencies 
-		ORDER BY end ASC, trustlines DESC
-		LIMIT 1`,
-	selectIssuerHavingEmailByOldestOperation: 
-		`SELECT 
-			DISTINCT issuer, 
-			value as emailHash, 
-			(SELECT end FROM Operations WHERE type=@type AND subject=issuer ORDER BY end DESC LIMIT 1) as end
-		FROM 
-			Currencies 
-			LEFT JOIN Metas 
-				ON (Metas.type='issuer' AND Metas.subject=issuer AND key='emailHash' AND source='ledger') 
-		WHERE 
-			emailHash NOT NULL
-		ORDER BY 
-			end ASC, trustlines DESC
-		LIMIT 1`
-}
-
-
-export default class Repo extends EventEmitter{
-	constructor(){
-		super()
-
-		this.dir = process.env.DATA_DIR
-		this.log = log.for({name: 'repo', color: 'yellow'})
-	}
-
-	async open(){
-		let fullPath = path.join(this.dir, 'meta.db')
-
-		this.db = new Database(fullPath)
-		this.dbops = {}
-
-		await this.db.exec(setupQuery)
-
-		this.log(`opened database: ${fullPath}`)
-
-		for(let [key, sql] of Object.entries(statements)){
-			this.dbops[key] = this.db.prepare(sql)
-		}
-
-		this.setCurrency = this.db.transaction(currency => {
-			let existing = this.dbops.selectCurrency.get(currency)
-
-			if(existing){
-				this.dbops.updateCurrency.run({...existing, ...currency})
-			}else{
-				this.dbops.insertCurrency.run(currency)
-			}
-		})
-
-		this.setMeta = this.db.transaction(meta => {
-			for(let [key, value] of Object.entries(meta.meta)){
-				let row = {...meta, key, value}
-				let existing = this.dbops.selectMeta.get(row)
-
-				if(existing){
-					if(value)
-						this.dbops.updateMeta.run({...existing, ...row})
-					else
-						this.dbops.deleteMeta.run(existing)
-				}else{
-					if(value)
-						this.dbops.insertMeta.run(row)
-				}
-			}
-		})
-
-		this.setCurrencies = this.db.transaction(currencies => 
-			currencies.forEach(currency => this.setCurrency(currency))
-		)
-
-		this.setMetas = this.db.transaction(metas => 
-			metas.forEach(meta => this.setMeta(meta))
-		)
-	}
-
-	async getCurrencies(){
-		return this.dbops.selectCurrencies.all()
-			.map(currency => ({
-				currency: currency.currency,
-				issuer: currency.issuer,
-				trustlines: currency.trustlines
-			}))
-	}
-
-	async recordOperation(type, subject, promise){
-		let start = unixNow()
-		let result
-
-		try{
-			await promise
-			result = 'success'
-		}catch(error){
-			this.log(`operation ${type}/${subject} failed: \n${error.toString()}`)
-			result = 'error'
-		}
-
-		this.dbops.insertOperation.run({
-			type,
-			subject,
-			start,
-			end: unixNow(),
-			result
-		})
-	}
-
-	async getLastOperationFor(type, subject){
-		return this.dbops.selectLastOperation.get({type, subject})
-	}
-
-	async isOperationDue(type, subject, interval){
-		let last = await this.getLastOperationFor(type, subject)
-
-		if(!last)
-			return true
-
-		if(last.result !== 'success')
-			return true
-
-		return last.end + interval < unixNow()
-	}
-
-	async getNextDueIssuerForOperation(type, interval, special){
-		let next
-
-		switch(special){
-			case 'having-email':
-				next = this.dbops.selectIssuerHavingEmailByOldestOperation.get({type})
-				break
-
-			default:
-				next = this.dbops.selectIssuerByOldestOperation.get({type})
-				break
-		}
-
-		if(next.end && next.end + interval >= unixNow())
-			return null
-
-		return next
-	}
-}*/

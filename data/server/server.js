@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import HTTPWrapper from './http.js'
 import WSWrapper from './ws.js'
 import * as datasets from './datasets.js'
@@ -7,7 +8,7 @@ import { log } from '../../common/logging.js'
 export default class Server{
 	constructor({repo, config}){
 		this.repo = repo
-		this.config = config.server
+		this.config = config
 		this.http = new HTTPWrapper(this)
 		this.ws = new WSWrapper(this)
 		this.cache = {}
@@ -19,8 +20,8 @@ export default class Server{
 		await this.fillCache('currencies')
 		this.log(`done`)
 
-		this.http.listen(this.config.httpPort)
-		this.ws.listen(this.config.wsPort)
+		this.http.listen(this.config.server.httpPort)
+		this.ws.listen(this.config.server.wsPort)
 	}
 
 	makeCtx(parameters){
@@ -31,13 +32,27 @@ export default class Server{
 		}
 	}
 
-	async serveDataset(key, options){
-		if(this.cache[key])
-			return this.cache[key]
+	async serveDataset(key, parameters){
+		let xid = key + crypto.createHash('md5')
+			.update(parameters ? JSON.stringify(parameters) : '') // might have to replace with something more steady
+			.digest('base64')
+			.slice(0, 8)
 
-		let { dataset, invalidate } = await datasets[key](this.repo, options)
+		let cached = this.cache[xid]
 
-		this.cache[key] = dataset
+		if(cached){
+			if(!cached.invalidate || !await cached.invalidate()){
+				return cached.dataset
+			}
+		}
+
+		let { dataset, invalidate } = await datasets[key]({
+			repo: this.repo, 
+			config: this.config, 
+			parameters
+		})
+
+		this.cache[xid] = { dataset, invalidate }
 
 		return dataset
 	}
