@@ -1,3 +1,6 @@
+import { currencyHexToUTF8 } from '../../common/xrpl.js'
+import { keySort, decimalCompare } from '../../common/data.js'
+
 const candlestickIntervals = {
 	'5m': 60 * 5,
 	'15m': 60 * 15,
@@ -8,17 +11,25 @@ const candlestickIntervals = {
 
 
 export async function currencies(ctx){
-	let currencies = await ctx.dataset('currencies')
+	let currencies = ctx.datasets.currencies.get()
 
 	if(!ctx.parameters.full){
 		currencies = currencies.map(currency => ({
 			...currency,
+			currency: currencyHexToUTF8(currency.currency),
 			meta: {
 				currency: collapseMetas(currency.meta.currency, ctx.parameters.source_priority),
 				issuer: collapseMetas(currency.meta.issuer, ctx.parameters.source_priority),
 			}
 		}))
 	}
+
+	currencies = keySort(
+		currencies, 
+		currency => currency.stats.liquidity, 
+		decimalCompare
+	)
+		.reverse()
 
 	return currencies
 }

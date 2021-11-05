@@ -1,11 +1,8 @@
 [DATA]
-dir = "V:/xrpl"
-
-[SERVER]
-http_port=4080
-ws_port=4090
+dir = "/Users/mwni/Documents/xrpl"
 
 [API]
+port=4080
 default_source_priority = ['ledger', 'website', 'xumm.app', 'bithomp.com', 'gravatar.com']
 
 

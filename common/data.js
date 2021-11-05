@@ -44,13 +44,32 @@ export function pickBest(items, score){
 	return best.item
 }
 
-export function keySort(array, key){
+export function keySort(array, key, compare){
 	let list = array.map(item => ({item, key: key(item)}))
 
+	compare = compare || ((a, b) => a - b)
+
 	return list
-		.sort((a, b) => a.key - b.key)
+		.sort((a, b) => compare(a.key, b.key))
 		.map(({item}) => item)
 }
+
+export function decimalCompare(a, b){
+	if(a && b){
+		if(a.gt(b))
+			return 1
+		else if(b.gt(a))
+			return -1
+	}else{
+		if(a && !b)
+			return 1
+		else if(b && !a)
+			return -1
+	}
+
+	return 0
+}
+
 
 export function nestDotNotated(map){
 	let nested = {}

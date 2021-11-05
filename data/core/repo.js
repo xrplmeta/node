@@ -1,5 +1,5 @@
 import path from 'path'
-import { Database } from '@dbkit/sqlite'
+import Database from './db.js'
 import EventEmitter from '../../common/events.js'
 import { wait, unixNow } from '../../common/time.js'
 import { log } from '../../common/logging.js'
@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS "Distributions" (
 );
 
 CREATE TABLE IF NOT EXISTS "Exchanges" (
+	"id"		INTEGER NOT NULL UNIQUE,
 	"tx"		BLOB NOT NULL UNIQUE,
 	"date"		INTEGER NOT NULL,
 	"from"		INTEGER NOT NULL,
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS "Exchanges" (
 	"price"		REAL NOT NULL,
 	"volume"	REAL NOT NULL,
 	"maker"		BLOB NOT NULL,
-	PRIMARY KEY("tx")
+	PRIMARY KEY("id")
 );
 `
 
@@ -263,7 +264,7 @@ export default class Repo extends EventEmitter{
 			{
 				duplicate: {
 					keys: ['type', 'subject', 'key', 'source'],
-					update: true
+					replace: true
 				}
 			}
 		)
@@ -300,8 +301,7 @@ export default class Repo extends EventEmitter{
 			`SELECT 
 				id,
 				currency, 
-				(SELECT address FROM Issuers WHERE Issuers.id = issuer) as issuer,
-				issuer as issuerId
+				(SELECT address FROM Issuers WHERE Issuers.id = issuer) as issuer
 			FROM Trustlines`, 
 		)
 	}
@@ -417,19 +417,23 @@ export default class Repo extends EventEmitter{
 		)
 	}
 
-	async getHeadExchange(issuerAddress){
-		let issuer = await this.getIssuer({address: issuerAddress}, true)
-
-		return await database.get(
-			`SELECT * 
-			FROM Exchanges 
-			WHERE from = @issuer OR to = @issuer
-			ORDER BY date DESC 
-			LIMIT 1`,
-			{issuer: issuer.id}
-		)
+	async getTableHeads(){
+		return {
+			Trustlines: await this.db.getv(`SELECT MAX(id) FROM Trustlines`),
+			Stats: await this.db.getv(`SELECT MAX(id) FROM Stats`),
+			Metas: await this.db.getv(`SELECT MAX(id) FROM Metas`),
+			Exchanges: await this.db.getv(`SELECT MAX(id) FROM Exchanges`),
+		}
 	}
 
+	async getTableEntriesAfter(table, id){
+		return await this.db.all(
+			`SELECT *
+			FROM ${table}
+			WHERE id > ?`,
+			id
+		)
+	}
 
 
 	async getNextEntityOperation(type, entity){

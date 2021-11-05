@@ -1,6 +1,7 @@
 import { BaseProvider } from '../base.js'
 import { wait, unixNow } from '../../../common/time.js'
 import { log, pretty } from '../../../common/logging.js'
+import { keySort, decimalCompare } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
 
 
@@ -162,14 +163,8 @@ export default class extends BaseProvider{
 				if(!amount.gt(0))
 					return null
 
-				holders.sort((a, b) => {
-					if(b.value.gt(a.value))
-						return 1
-					else if(a.value.gt(b.value))
-						return -1
-					else
-						return 0
-				})
+				holders = keySort(holders, holder => holder.value, decimalCompare)
+					.reverse()
 
 				whales = holders
 					.slice(0, this.config.captureWhales)
