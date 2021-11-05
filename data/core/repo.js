@@ -343,7 +343,7 @@ export default class Repo extends EventEmitter{
 				trustline.id
 			)
 		}else{
-			let gridT = Math.floor(t / this.config.ledger.scanInterval) * this.config.ledger.scanInterval
+			let gridT = Math.floor(t / this.config.ledger.historyInterval) * this.config.ledger.historyInterval
 
 			return await this.db.get(
 				`SELECT *

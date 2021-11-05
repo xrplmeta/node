@@ -12,6 +12,12 @@ export async function currencies(ctx){
 		let { currency, issuer } = trustline
 		let humanCurrency = currencyHexToUTF8(currency)
 		let currentStats = await ctx.repo.getRecentStats(trustline)
+		/*let currentCandles = await exchanges({
+			base: trustline, 
+			quote: {currency: 'XRP'},
+			format: 'candlesticks',
+
+		})*/
 		let currencyMetas = await ctx.repo.getMetas('currency', trustline.id)
 		let issuerMetas = await ctx.repo.getMetas('issuer', trustline.issuerId)
 		let yesterdayStats
@@ -31,11 +37,14 @@ export async function currencies(ctx){
 		)
 
 		if(currentStats){
-			stats.trustlines = currentStats.count
+			stats.trustlines = currentStats.accounts
+			stats.supply = currentStats.supply
+			stats.liquiditiy = Decimal.sum(currentStats.buy, currentStats.sell)
+
 			yesterdayStats = await ctx.repo.getRecentStats(trustline, currentStats.date - 60*60*24)
 
 			if(yesterdayStats){
-				stats.trustlines_change = Math.round((currentStats.count / yesterdayStats.count - 1) * 10000) / 100
+				stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
 			}
 		}
 
