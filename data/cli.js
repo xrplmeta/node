@@ -1,5 +1,5 @@
 import minimist from 'minimist'
-import { log as l } from '../common/logging.js'
+import { log as l } from './lib/logging.js'
 import { load as loadConfig } from './core/config.js'
 import Repo from './core/repo.js'
 import Nodes from './core/nodes.js'

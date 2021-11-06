@@ -1,6 +1,6 @@
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
-import { log } from '../../../common/logging.js'
+import { log } from '../../lib/logging.js'
 import { subscribe } from '../../core/updates.js'
 
 

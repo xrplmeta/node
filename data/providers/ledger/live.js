@@ -19,8 +19,6 @@ export default class extends BaseProvider{
 				expecting: ledger.txn_count,
 				time: unixNow()
 			}
-
-			
 		})
 
 		this.nodes.on('transaction', tx => {

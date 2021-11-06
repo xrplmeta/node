@@ -1,6 +1,6 @@
 import { BaseProvider } from '../base.js'
 import { wait, unixNow } from '../../../common/time.js'
-import { log, pretty } from '../../../common/logging.js'
+import { pretty } from '../../lib/logging.js'
 import { keySort, decimalCompare } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
 

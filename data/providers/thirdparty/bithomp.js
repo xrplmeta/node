@@ -1,6 +1,6 @@
 import { RestProvider } from '../base.js'
 import { wait } from '../../../common/time.js'
-import { log, pretty } from '../../../common/logging.js'
+import { pretty } from '../../lib/logging.js'
 
 
 
@@ -14,7 +14,6 @@ export default class extends RestProvider{
 		this.repo = repo
 		this.nodes = nodes
 		this.config = config.bithomp
-		this.log = log.for('bithomp', 'cyan')
 	}
 
 	run(){

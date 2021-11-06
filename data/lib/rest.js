@@ -236,15 +236,6 @@ URLSearchParamsProto.forEach = function forEach(callback, thisArg) {
 	}, this);
 };
 
-/*
-URLSearchParamsProto.toBody = function() {
-	return new Blob(
-		[this.toString()],
-		{type: 'application/x-www-form-urlencoded'}
-	);
-};
-*/
-
 URLSearchParamsProto.toJSON = function toJSON() {
 	return {};
 };

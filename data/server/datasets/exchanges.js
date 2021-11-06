@@ -1,4 +1,4 @@
-import { log } from '../../../common/logging.js'
+import { log } from '../../lib/logging.js'
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import { createURI as createPairURI } from '../../../common/pair.js'
 import Decimal from '../../../common/decimal.js'
@@ -40,13 +40,12 @@ export default class{
 		let key = this.deriveKey(base, quote, interval)
 
 		if(!this.data[key])
-			await this.build(base, quote, interval)
+			await this.build(base, quote)
 
-		return this.data[key]
+		return this.data[key].candles
 	}
 
 	async handleUpdates(updates){
-
 		for(let update of updates){
 			if(update.context !== 'exchanges')
 				continue

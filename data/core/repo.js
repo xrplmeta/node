@@ -3,7 +3,7 @@ import Database from './db.js'
 import EventEmitter from '../../common/events.js'
 import * as submodules from './repo/index.js'
 import { wait, unixNow } from '../../common/time.js'
-import { log } from '../../common/logging.js'
+import { log } from '../lib/logging.js'
 
 
 export default class Repo extends EventEmitter{

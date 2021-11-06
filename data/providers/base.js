@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
-import Rest from '../../common/rest.js'
+import Rest from '../lib/rest.js'
+import { log, pretty } from '../lib/logging.js'
 import { wait, unixNow } from '../../common/time.js'
-import { log, pretty } from '../../common/logging.js'
 
 
 

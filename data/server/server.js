@@ -2,7 +2,7 @@ import Koa from 'koa'
 import websocket from 'koa-easy-ws'
 import HTTPRouter from './http.js'
 import * as datasets from './datasets/index.js'
-import { log } from '../../common/logging.js'
+import { log } from '../lib/logging.js'
 
 export default class Server{
 	constructor({repo, config}){

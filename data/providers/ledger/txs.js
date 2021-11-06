@@ -1,6 +1,5 @@
 import { BaseProvider } from '../base.js'
 import { rippleToUnix } from '../../../common/time.js'
-import { log, pretty } from '../../../common/logging.js'
 import { deriveExchanges } from '../../../common/xrpl.js'
 
 

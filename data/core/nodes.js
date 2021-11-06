@@ -1,7 +1,7 @@
 import xrpl from 'xrpl'
 import EventEmitter from '../../common/events.js'
 import { wait } from '../../common/time.js'
-import { log } from '../../common/logging.js'
+import { log } from '../lib/logging.js'
 
 
 export default class extends EventEmitter{
@@ -11,79 +11,130 @@ export default class extends EventEmitter{
 		this.log = log.for('nodes', 'yellow')
 		this.queue = []
 		this.clients = []
+		this.seen = []
 
-		for(let node of config.nodes){
-			if(node.disabled)
+		for(let spec of config.nodes){
+			if(spec.disabled)
 				continue
 
-			let connections = node.connections || 1
+			let connections = spec.connections || 1
 
 			for(let i=0; i<connections; i++){
-				let client = new xrpl.Client(node.url, {timeout: 60000})
+				let client = new xrpl.Client(spec.url, {timeout: 60000})
 
 				//yes
-				client.nodeConfig = node
-				client.on('transaction', tx => this.emit('transaction', tx))
-				client.on('ledgerClosed', ledger => this.emit('ledger', ledger))
-				client.on('connected', () => {
-					this.printConnections(`${client.nodeConfig.url} established`)
-
-					if(node.subscribable){
-						this.subscribeClient(client)
+				client.spec = spec
+				client.on('transaction', tx => {
+					if(!this.hasSeen(`tx${tx.transaction.hash}`))
+						this.emit('transaction', tx)
+				})
+				client.on('ledgerClosed', ledger => {
+					if(ledger.validated_ledgers){
+						client.spec.ledgers = ledger.validated_ledgers
+							.split(',')
+							.map(range => range
+								.split('-')
+								.map(i => parseInt(i))
+							)
 					}
+
+					if(!this.hasSeen(`ledger${ledger.ledger_index}`))
+						this.emit('ledger', ledger)
+				})
+				client.on('connected', () => {
+					this.printConnections(`${client.spec.url} established`)
+					this.subscribeClient(client)
 				})
 				client.on('disconnected', async code => {
-					this.printConnections(`${client.nodeConfig.url} disconnected (code ${code})`)
-					this.connectClient(client)
+					this.printConnections(`${client.spec.url} disconnected: code ${code}`)
+					this.relentlesslyConnect(client)
 				})
-				client.on('error', console.log)
+				client.on('error', error => {
+					this.log(`${client.spec.url} error: ${error}`)
+				})
 				
 
 				this.clients.push(client)
-				this.connectClient(client)
-				this.loop(client)
+				this.relentlesslyConnect(client)
 			}
 		}
+
+		this.loop()
 	}
 
+	hasSeen(key){
+		if(this.seen.includes(key))
+			return true
 
+		this.seen.push(key)
 
+		if(this.seen.length > 10000)
+			this.seen.shift()
+	}
 
-	async loop(client){
+	async loop(){
 		while(true){
-			let job = null
+			for(let job of this.queue){
+				let bids = this.clients
+					.map(client => this.bidForJob(client, job))
+					.filter(bid => bid)
+					.sort((a, b) => b.bid - a.bid)
 
-			while(!client.isConnected()){
-				await wait(100)
-				continue
-			}
-
-			for(let i=0; i<this.queue.length; i++){
-				let item = this.queue[i]
-
-				if(item.request.command === 'ledger' 
-					|| item.request.command === 'ledger_data' 
-					&& !client.nodeConfig.scannable)
+				if(bids.length === 0)
 					continue
 
-				job = this.queue.splice(i, 1)[0]
-				break
+				this.doJob(bids[0].client, job)
+				this.queue = this.queue.filter(j => j !== job)
+
+				
 			}
 
-			if(!job){
-				await wait(250)
-				continue
-			}
-
-			try{
-				let { result } = await client.request(job.request)
-
-				job.resolve(result)
-			}catch(error){
-				job.reject(error)
-			}
+			await wait(100)
 		}
 	}
+
+	bidForJob(client, job){
+		if(!client.isConnected())
+			return
+
+		if(client.spec.busy)
+			return null
+
+		let bid = 1
+		let index = job.request.ledger_index
+
+		if(index){
+			if(!client.spec.ledgers)
+				return null
+
+			let has = client.spec.ledgers
+				.some(([start, end]) => index >= start && index <= end)
+
+			if(!has)
+				return null
+			
+		}
+
+		if(client.spec.admin)
+			bid++
+
+		return {client, bid}
+	}
+
+	async doJob(client, job){
+		client.spec.busy = true
+
+		try{
+			let { result } = await client.request(job.request)
+
+			job.resolve(result)
+		}catch(error){
+			job.reject(error)
+		}
+
+		client.spec.busy = false
+	}
+
 
 	request({priority, ...request}){
 		priority = priority || 0
@@ -106,13 +157,13 @@ export default class extends EventEmitter{
 	}
 
 	async subscribeClient(client){
-		let result = await this.request({
+		let result = await client.request({
 			command: 'subscribe',
 			streams: ['ledger', 'transactions']
 		})
 	}
 
-	async connectClient(client){
+	async relentlesslyConnect(client){
 		while(!client.isConnected()){
 			try{
 				await client.connect()

@@ -1,5 +1,5 @@
 [DATA]
-dir = "V:/xrpl"
+dir = "/Users/mwni/Documents/xrpl"
 
 [API]
 port=4080
@@ -35,20 +35,9 @@ max_requests_per_minute = 60
 
 [[NODES]]
 url = "wss://s1.ripple.com"
-scannable = false
-subscribable = true
 
-[[NODES]]
-disabled = true
-url = "wss://s2.ripple.com"
-scannable = false
-
-[[NODES]]
-disabled = true
-url = "wss://xrpcluster.com"
-scannable = false
 
 [[NODES]]
 url = "ws://xrptrader.org:4920"
-scannable = true
+admin = true
 connections = 3
