@@ -60,7 +60,7 @@ export default class extends RestProvider{
 
 		this.log(`writing ${pretty(metas.length)} metas to db...`)
 
-		await this.repo.setMetas(metas)
+		await this.repo.metas.set(metas)
 
 		this.log(`asset scan complete`)
 	}

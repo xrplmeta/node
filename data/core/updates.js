@@ -5,19 +5,65 @@ export async function subscribe(repo, callback){
 
 	while(true){
 		let nextHeads = await repo.getTableHeads()
-		let updates = {}
+		let updates = []
 
 		for(let [k, i] of Object.entries(heads)){
 			if(nextHeads[k] !== i){
-				updates[k] = await repo.getTableEntriesAfter(k, i)
+				let newEntries = await repo.getTableEntriesAfter(k, i)
+				let newSubjects = []
+
+				switch(k){
+					case 'Trustlines':
+						updates.push(...newEntries.map(({id}) => ({
+							context: 'trustlines',
+							type: 'trustline',
+							subject: id
+						})))
+						break
+
+					case 'Metas':
+						updates.push(...newEntries.map(({type, id}) => ({
+							context: 'metas',
+							type,
+							subject: id,
+						})))
+						break
+
+					case 'Stats':
+						updates.push(...newEntries.map(({trustline}) => ({
+							context: 'stats',
+							type: 'trustline',
+							subject: trustline,
+						})))
+						break
+
+					case 'Exchanges':
+						newEntries.forEach(({from, to}) => {
+							if(from)
+								updates.push({
+									context: 'exchanges',
+									type: 'trustline',
+									subject: from,
+								})
+
+							if(to)
+								updates.push({
+									context: 'exchanges',
+									type: 'trustline',
+									subject: to,
+								})
+						})
+						break
+				}
 			}
 		}
 
-		if(Object.keys(updates).length === 0){
+		if(updates.length === 0){
 			await wait(1000)
 			continue
 		}
 
+		// updates still need to be made unique to save performance
 
 		heads = nextHeads
 		callback(updates)

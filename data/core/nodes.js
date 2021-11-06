@@ -36,6 +36,7 @@ export default class extends EventEmitter{
 					this.printConnections(`${client.nodeConfig.url} disconnected (code ${code})`)
 					this.connectClient(client)
 				})
+				client.on('error', console.log)
 				
 
 				this.clients.push(client)
@@ -60,7 +61,9 @@ export default class extends EventEmitter{
 			for(let i=0; i<this.queue.length; i++){
 				let item = this.queue[i]
 
-				if(item.request.command === 'ledger_data' && !client.nodeConfig.scannable)
+				if(item.request.command === 'ledger' 
+					|| item.request.command === 'ledger_data' 
+					&& !client.nodeConfig.scannable)
 					continue
 
 				job = this.queue.splice(i, 1)[0]

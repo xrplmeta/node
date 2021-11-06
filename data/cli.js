@@ -9,7 +9,7 @@ import providers from './providers/index.js'
 
 const log = l.for('cli', 'yellow')
 const args = minimist(process.argv.slice(2))
-const only = args.only ? args.only.split(',').map(str => str.trim()) : null
+const only = args.only ? args.only.split(',') : null
 const configPath = args.config || 'config.toml'
 
 log(`starting with config "${configPath}"`)
@@ -30,7 +30,7 @@ activeProviders.forEach(([key]) => log(`- ${key}`))
 	await repo.open()
 
 	if(!only || only.includes('server'))
-		server.start()
+		await server.start()
 
 	for(let [key, provider] of activeProviders){
 		new providers[key]({repo, nodes, config: config})

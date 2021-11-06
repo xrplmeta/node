@@ -19,13 +19,13 @@ export default class extends BaseProvider{
 			let i = currentLedger.ledger_index
 
 			while(i --> 0){
-				if(await this.repo.hasSuccessfulOperation(`ledger.txs`, `l${i}`))
+				if(await this.repo.operations.hasCompleted(`ledger.txs`, `l${i}`))
 					continue
 
-				if(await this.repo.hasSuccessfulOperation(`ledger.live`, `l${i}`))
+				if(await this.repo.operations.hasCompleted(`ledger.live`, `l${i}`))
 					continue
 
-				await this.repo.recordOperation('ledger.txs', `l${i}`, this.sift(i))
+				await this.repo.operations.record('ledger.txs', `l${i}`, this.sift(i))
 				break
 			}
 		}
@@ -57,7 +57,7 @@ export default class extends BaseProvider{
 
 		this.log(`found ${exchanges.length} exchanges`)
 
-		await this.repo.insertExchanges(exchanges.map(exchange => ({
+		await this.repo.exchanges.insert(exchanges.map(exchange => ({
 			...exchange,
 			date: rippleToUnix(ledger.close_time)
 		})))

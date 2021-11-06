@@ -1,5 +1,5 @@
 [DATA]
-dir = "/Users/mwni/Documents/xrpl"
+dir = "V:/xrpl"
 
 [API]
 port=4080
@@ -9,7 +9,7 @@ default_source_priority = ['ledger', 'website', 'xumm.app', 'bithomp.com', 'grav
 
 [LEDGER]
 history_ledgers = 1000000
-history_interval = 14400
+history_grid = 14400
 scan_interval = 900
 min_trustlines = 3
 capture_whales = 100

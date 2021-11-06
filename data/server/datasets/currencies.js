@@ -1,77 +1,81 @@
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
+import { log } from '../../../common/logging.js'
+import { subscribe } from '../../core/updates.js'
+
 
 export default class{
 	constructor(ctx){
 		this.ctx = ctx
 		this.data = []
+		this.log = log.for('server.currencies', 'green')
 	}
 
 	async init(){
-		await this.updateAll()
+		await this.buildAll(progress => 
+			this.log.replace(`building list (${Math.round(progress * 100)}%)`)
+		)
+
+		this.log(`built list           `)
+
+		subscribe(this.ctx.repo, this.handleUpdates.bind(this))
 	}
 
-	get(){
+	async get(){
 		return this.data.map(({data}) => data)
 	}
 
 	async handleUpdates(updates){
-		if(updates.Stats){
-			await this.updateAll()
-			return
-		}
+		for(let update of updates){
+			if(!['trustlines', 'metas', 'stats'].includes(update.context))
+				continue
 
-		if(updates.Trustlines){
-			for(let trustline of updates.Trustlines){
-				await this.update(trustline)
+			let entry
+
+			switch(update.type){
+				case 'issuer':
+					entry = this.data.find(({ids}) => ids.issuer === update.subject)
+					break
+
+				case 'trustline':
+					entry = this.data.find(({ids}) => ids.trustline === update.subject)
+					break
 			}
-		}
 
-		if(updates.Metas){
-			for(let meta of updates.Metas){
-				let entry
+			if(!entry)
+				continue
 
-				switch(meta.type){
-					case 'issuer':
-						entry = this.data.find(({ids}) => ids.issuer === meta.subject)
-						break
-
-					case 'currency':
-						entry = this.data.find(({ids}) => ids.trustline === meta.subject)
-						break
-				}
-
-				if(!entry)
-					continue
-
-				await this.update(entry.data)
-			}
+			await this.build(entry.data)
 		}
 	}
 
-	async updateAll(){
-		let trustlines = await this.ctx.repo.getTrustlines()
+	async buildAll(progress){
+		let trustlines = await this.ctx.repo.trustlines.get()
+		let i = 0
 
 		for(let trustline of trustlines){
-			await this.update(trustline)
+			await this.build(trustline)
+
+			if(progress)
+				progress(i++ / trustlines.length)
 		}
 	}
 
-	async update(trustline){
+	async build(trustline){
 		let ctx = this.ctx
 		let { currency, issuer } = trustline
 		let issuerId
 
 		if(typeof issuer === 'number'){
 			issuerId = issuer
-			issuer = (await ctx.repo.getIssuer({address: issuer})).address
+			issuer = (await ctx.repo.issuers.getOne({id: issuer})).address
 		}else{
-			issuerId = (await ctx.repo.getIssuer({address: issuer})).id
+			issuerId = (await ctx.repo.issuers.getOne({address: issuer})).id
 		}
 		
-		let currentStats = await ctx.repo.getRecentStats(trustline)
-		let currencyMetas = await ctx.repo.getMetas('currency', trustline.id)
-		let issuerMetas = await ctx.repo.getMetas('issuer', issuerId)
+		let currentStats = await ctx.repo.stats.getRecent(trustline)
+		let currencyMetas = await ctx.repo.metas.get('currency', trustline.id)
+		let issuerMetas = await ctx.repo.metas.get('issuer', issuerId)
 		let yesterdayStats
 		let trustlinesCount
 		let meta = {}
@@ -91,9 +95,9 @@ export default class{
 		if(currentStats){
 			stats.trustlines = currentStats.accounts
 			stats.supply = currentStats.supply
-			stats.liquidity = Decimal.sum(currentStats.buy, currentStats.sell)
+			stats.liquidity = Decimal.sum(currentStats.buy, currentStats.sell).toString()
 
-			yesterdayStats = await ctx.repo.getRecentStats(trustline, currentStats.date - 60*60*24)
+			yesterdayStats = await ctx.repo.stats.getRecent(trustline, currentStats.date - 60*60*24)
 
 			if(yesterdayStats){
 				stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100

@@ -10,7 +10,19 @@ export function log(who, ...contents){
 	console.log(`[\x1b[${logColors[who.color]}${who.name}\x1b[0m]`, ...contents)
 }
 
-log.for = (name, color) => log.bind(null, {name, color})
+log.replace = (who, ...contents) => {
+	process.stdout.write(`[\x1b[${logColors[who.color]}${who.name}\x1b[0m] ${contents.join(' ')}\r`)
+}
+
+log.for = (name, color) => {
+	let bound = log.bind(null, {name, color})
+
+	bound.replace = log.replace.bind(null, {name, color})
+
+	return bound
+}
+
+
 
 
 

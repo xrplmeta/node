@@ -70,7 +70,7 @@ export default class extends RestProvider{
 						name: currency.name,
 						icon: currency.avatar
 					},
-					type: 'currency',
+					type: 'trustline',
 					subject: currency,
 					source: 'xumm.app'
 				})
@@ -79,20 +79,20 @@ export default class extends RestProvider{
 
 		this.log(`writing ${pretty(metas.length)} metas to db...`)
 
-		await this.repo.setMetas(metas)
+		await this.repo.metas.set(metas)
 
 		this.log(`asset scan complete`)
 	}
 
 	async checkKYC(issuerId){
-		let issuer = await this.repo.getIssuer({id: issuerId})
+		let issuer = await this.repo.issuers.getOne({id: issuerId})
 
 		this.log(`checking KYC for ${issuer.address}`)
 
 		let { kycApproved } = await this.api.get(`kyc-status/${issuer.address}`)
 		let meta = {kyc: kycApproved ? 'approved' : null}
 
-		this.repo.setMeta({
+		this.repo.metas.setOne({
 			meta,
 			type: 'issuer',
 			subject: issuer.id,

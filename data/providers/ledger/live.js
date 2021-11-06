@@ -27,7 +27,7 @@ export default class extends BaseProvider{
 			this.currentLedger.expecting--
 
 			if(this.currentLedger.expecting === 0){
-				this.repo.markOperation(
+				this.repo.operations.mark(
 					'ledger.txs', 
 					`l${this.currentLedger.index}`, 
 					this.currentLedger.time, 
@@ -50,7 +50,7 @@ export default class extends BaseProvider{
 
 				this.log(`${exchanges.length} new exchange(s)`)
 
-				this.repo.insertExchanges(exchanges.map(exchange => ({
+				this.repo.exchanges.insert(exchanges.map(exchange => ({
 					...exchange,
 					date: rippleToUnix(tx.transaction.date)
 				})))

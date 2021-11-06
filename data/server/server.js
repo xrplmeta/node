@@ -2,7 +2,6 @@ import Koa from 'koa'
 import websocket from 'koa-easy-ws'
 import HTTPRouter from './http.js'
 import * as datasets from './datasets/index.js'
-import { subscribe } from '../core/updates.js'
 import { log } from '../../common/logging.js'
 
 export default class Server{
@@ -26,11 +25,6 @@ export default class Server{
 			await dataset.init()
 		}
 
-		subscribe(this.repo, updates => {
-			for(let dataset of Object.values(this.datasets)){
-				dataset.handleUpdates(updates)
-			}
-		})
 
 		this.koa.use(async (ctx, next) => {
 			if(ctx.ws){

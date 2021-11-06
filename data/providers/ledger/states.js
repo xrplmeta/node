@@ -18,41 +18,40 @@ export default class extends BaseProvider{
 	async run(){
 		while(true){
 			let now = unixNow()
-			let scanNow = Math.floor(now / this.config.scanInterval) * this.config.scanInterval
-			let historyNow = Math.floor(now / this.config.historyInterval) * this.config.historyInterval
-			let next = null
-			let mode
+			let liveHead = Math.floor(now / this.config.scanInterval) * this.config.scanInterval
+			let historyHead = Math.floor(now / this.config.historyGrid) * this.config.historyGrid
+			let full = false
+			let next
 
-			if(scanNow > historyNow && !await this.repo.hasSuccessfulOperation('ledger.states', `t${scanNow}`)){
-				mode = 'replace'
-				next = scanNow
+
+			if(!await this.repo.operations.hasCompleted('ledger.states', `t${liveHead}`)){
+				next = liveHead
+				full = true
 			}else{
-				for(let t=historyNow; t>=0; t-=this.config.historyInterval){
-					if(!await this.repo.hasSuccessfulOperation('ledger.states', `t${t}`)){
+				for(let t=historyHead; t>=0; t-=this.config.historyGrid){
+					if(!await this.repo.operations.hasCompleted('ledger.states', `t${t}`)){
 						next = t
 						break
 					}
 				}
-
-				if(next === historyNow)
-					mode = 'full'
-				else
-					mode = 'historical'
 			}
 
-			
 
 			if(!next){
 				await wait(1000)
 				continue
 			}
 
-			await this.repo.recordOperation('ledger.states', `t${next}`, this.scan(next, mode))
+			await this.repo.operations.record(
+				'ledger.states', 
+				`t${next}`, 
+				this.scan(next, full, historyHead)
+			)
 		}
 	}
 
 
-	async scan(t, mode){
+	async scan(t, full, lastHistory){
 		let ledgerIndex = await this.findLedgerIndexAtTime(t)
 		let scanned = 0
 		let books = {}
@@ -60,7 +59,7 @@ export default class extends BaseProvider{
 		let accounts = {}
 		let lastMarker
 
-		this.log(`scanning ledger #${ledgerIndex} in ${mode} mode...`)
+		this.log(`scanning ledger #${ledgerIndex} (${new Date(t*1000).toISOString()})`)
 
 		while(true){
 			try{
@@ -92,7 +91,7 @@ export default class extends BaseProvider{
 						value: new Decimal(state.Balance.value).abs()
 					})
 				}else if(state.LedgerEntryType === 'AccountRoot'){
-					if(mode !== 'historical'){
+					if(full){
 						if(state.Domain || state.EmailHash){
 							accounts[state.Account] = {
 								domain: state.Domain ? Buffer.from(state.Domain, 'hex').toString() : undefined,
@@ -205,17 +204,17 @@ export default class extends BaseProvider{
 
 		this.log(`writing ${trustlines.length} trustline stats to db`)
 
-		await this.repo.setStats(
+		await this.repo.stats.set(
 			t, 
 			trustlines.map(({stat}) => stat), 
-			mode === 'replace'
+			full ? lastHistory : null
 		)
 
 
-		if(mode !== 'historical'){
+		if(full){
 			this.log(`writing metas, whales & distrubutions to db`)
 
-			await this.repo.setMetas(trustlines.map(({stat}) => ({
+			await this.repo.metas.set(trustlines.map(({stat}) => ({
 				meta: accounts[stat.issuer],
 				type: 'issuer',
 				subject: stat.issuer,
@@ -223,27 +222,12 @@ export default class extends BaseProvider{
 			})))
 
 			for(let {stat, whales, distributions} of trustlines){
-				await this.repo.setWhales(stat, whales)
-				await this.repo.setDistributions(t, stat, distributions)
+				await this.repo.whales.set(stat, whales)
+				await this.repo.distributions.set(t, stat, distributions)
 			}
 		}
 
 		this.log(`scan complete`)
-	}
-
-	getNextScanTime(){
-		let mostRecent = Math.floor(Date.now() / (this.config.scan_interval * 1000)) * this.config.scan_interval
-		let next = null
-
-		for(let t=mostRecent; t>=this.config.scanUntil; t-=this.config.scan_interval){
-			if(this.repo.hasScannedAtTime(t))
-				continue
-
-			next = t
-			break
-		}
-
-		return next
 	}
 
 	async findLedgerIndexAtTime(t){

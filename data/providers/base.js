@@ -15,27 +15,27 @@ export class BaseProvider{
 			await wait(10)
 
 			if(entity){
-				let operation = await this.repo.getNextEntityOperation(type, entity)
+				let operation = await this.repo.operations.getNext(type, entity)
 
 				if(!operation || (operation.result === 'success' && operation.start + interval > unixNow())){
 					await wait(1000)
 					continue
 				}
 
-				await this.repo.recordOperation(
+				await this.repo.operations.record(
 					type, 
 					`${entity}:${operation.entity}`, 
 					execute(operation.entity)
 				)
 			}else{
-				let recent = await this.repo.getMostRecentOperation(type)
+				let recent = await this.repo.operations.getMostRecent(type)
 
 				if(recent && recent.result === 'success' && recent.start + interval > unixNow()){
 					await wait(1000)
 					continue
 				}
 
-				await this.repo.recordOperation(type, null, execute())
+				await this.repo.operations.record(type, null, execute())
 			}
 
 			

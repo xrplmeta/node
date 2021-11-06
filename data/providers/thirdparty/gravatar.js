@@ -31,7 +31,7 @@ export default class extends RestProvider{
 
 
 	async update(issuerId){
-		let emailHash = await this.repo.getMeta('issuer', issuerId, 'emailHash', 'ledger')
+		let emailHash = await this.repo.metas.getOne('issuer', issuerId, 'emailHash', 'ledger')
 		let meta = {icon: null}
 
 		if(emailHash){
@@ -47,7 +47,7 @@ export default class extends RestProvider{
 		}
 			
 
-		await this.repo.setMeta({
+		await this.repo.metas.setOne({
 			meta,
 			type: 'issuer',
 			subject: issuerId,
