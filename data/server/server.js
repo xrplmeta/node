@@ -1,6 +1,7 @@
 import Koa from 'koa'
 import websocket from 'koa-easy-ws'
 import HTTPRouter from './http.js'
+import WSManager from './ws.js'
 import * as datasets from './datasets/index.js'
 import { log } from '../lib/logging.js'
 
@@ -11,6 +12,7 @@ export default class Server{
 		this.datasets = {}
 		this.koa = new Koa()
 		this.router = new HTTPRouter({repo, config, datasets: this.datasets})
+		this.ws = new WSManager({repo, config, datasets: this.datasets})
 		this.log = log.for('server', 'green')
 
 		for(let [key, datasetClass] of Object.entries(datasets)){
@@ -25,12 +27,10 @@ export default class Server{
 			await dataset.init()
 		}
 
-
+		this.koa.use(websocket())
 		this.koa.use(async (ctx, next) => {
 			if(ctx.ws){
-
-
-				return ctx.ws.send('hello')
+				this.ws.register(await ctx.ws())
 			}else{
 				return await next(ctx)
 			}

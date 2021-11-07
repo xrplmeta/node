@@ -13,58 +13,55 @@ const candlestickIntervals = {
 
 
 export async function currencies(ctx){
-	let currencies = await ctx.datasets.currencies.get()
-	let list = []
+	let trustlines = await ctx.datasets.trustlines.get()
+	let stacks = []
 	let now = unixNow()
 
-	for(let currency of currencies){
-		let candles = await exchanges({
-			...ctx,
-			parameters: {
-				base: currency, 
-				quote: {currency: 'XRP'}, 
-				format: '1d',
-				start: unixNow - 60*60*24,
-				end: unixNow
+	for(let trustline of trustlines){
+		let enriched = await enrichTrustline(ctx, trustline)
+		let stack = stacks.find(stack => stack.currency === enriched.currency)
+
+		if(!stack){
+			stack = {
+				currency: enriched.currency,
+				trustlines: [],
+				stats: {
+					volume: new Decimal(0),
+					marketcap: new Decimal(0),
+					liquidity: new Decimal(0),
+				}
 			}
-		})
-		let modified = {
-			...currency,
-			currency: currencyHexToUTF8(currency.currency),
-			meta: {
-				currency: collapseMetas(currency.meta.currency, ctx.parameters.source_priority),
-				issuer: collapseMetas(currency.meta.issuer, ctx.parameters.source_priority),
-				emailHash: undefined,
-				socials: undefined
-			},
-			stats: {
-				...currency.stats,
-				supply: undefined
-			}
+
+			stacks.push(stack)
 		}
 
-		if(candles.length > 0){
-			let lastCandle = candles[candles.length - 1]
+		stack.trustlines.push(enriched)
 
-			modified.stats = {
-				...modified.stats,
-				price: lastCandle.c,
-				cap: Decimal.mul(modified.stats.supply || 0, lastCandle.c),
-				volume: Decimal.sum(...candles.map(candle => candle.v))
-			}
-		}
-
-		list.push(modified)
+		stack.stats.volume = stack.stats.volume.plus(enriched.stats.volume || 0)
+		stack.stats.marketcap = stack.stats.marketcap.plus(enriched.stats.marketcap || 0)
+		stack.stats.liquidity = stack.stats.liquidity.plus(enriched.stats.liquidity || 0)
 	}
 
-	list = keySort(
-		list, 
-		currency => currency.stats.volume, 
+	keySort(
+		stacks, 
+		stack => stack.stats.volume, 
 		decimalCompare
 	)
-		.reverse()
+	stacks.reverse()
 
-	return list
+	for(let stack of stacks){
+		stack.count = stack.trustlines.length
+
+		keySort(
+			stack.trustlines,
+			trustline => trustline.stats.volume,
+			decimalCompare
+		)
+		stack.trustlines.reverse()
+		stack.trustlines = stack.trustlines.slice(0, 3)
+	}
+
+	return stacks
 }
 
 export async function exchanges(ctx){
@@ -86,6 +83,45 @@ export async function exchanges(ctx){
 	}
 }
 
+async function enrichTrustline(ctx, trustline){
+	let candles = await exchanges({
+		...ctx,
+		parameters: {
+			base: trustline, 
+			quote: {currency: 'XRP'}, 
+			format: '1d',
+			start: unixNow - 60*60*24,
+			end: unixNow
+		}
+	})
+	let enriched = {
+		...trustline,
+		currency: currencyHexToUTF8(trustline.currency),
+		meta: {
+			currency: collapseMetas(trustline.meta.currency, ctx.parameters.source_priority),
+			issuer: collapseMetas(trustline.meta.issuer, ctx.parameters.source_priority),
+			emailHash: undefined,
+			socials: undefined
+		},
+		stats: {
+			...trustline.stats,
+			supply: undefined
+		}
+	}
+
+	if(candles.length > 0){
+		let lastCandle = candles[candles.length - 1]
+
+		enriched.stats = {
+			...enriched.stats,
+			price: lastCandle.c,
+			marketcap: Decimal.mul(enriched.stats.supply || 0, lastCandle.c),
+			volume: Decimal.sum(...candles.map(candle => candle.v))
+		}
+	}
+
+	return enriched
+}
 
 function collapseMetas(metas, sourcePriority){
 	let collapsed = {}

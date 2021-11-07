@@ -1,4 +1,4 @@
-import currencies from './currencies.js'
+import trustlines from './trustlines.js'
 import exchanges from './exchanges.js'
 
-export { currencies, exchanges }
+export { trustlines, exchanges }

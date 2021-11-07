@@ -15,6 +15,11 @@ export default class extends Router{
 		)
 
 		this.get(
+			'/currency/:currency', 
+			this.wrappedProcedure('currency')
+		)
+
+		this.get(
 			'/exchanges/:base/:quote/:format', 
 			this.wrappedProcedure(
 				'exchanges', 
