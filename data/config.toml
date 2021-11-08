@@ -1,5 +1,5 @@
 [DATA]
-dir = "V:/xrpl"
+dir = "/Users/mwni/Documents/xrpl"
 
 [API]
 port=4080

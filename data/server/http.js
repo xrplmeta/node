@@ -15,8 +15,19 @@ export default class extends Router{
 		)
 
 		this.get(
-			'/currency/:currency', 
-			this.wrappedProcedure('currency')
+			'/currency/:currency/stats', 
+			this.wrappedProcedure('currency_stats')
+		)
+
+		this.get(
+			'/trustline/:trustline', 
+			this.wrappedProcedure(
+				'trustline', 
+				parameters => ({
+					...parameters,
+					...parsePairURIComponent(parameters.trustline)
+				})
+			)
 		)
 
 		this.get(
@@ -47,11 +58,11 @@ export default class extends Router{
 
 				ctx.body = await procedures[name]({...this.ctx, parameters})
 			}catch(error){
-				ctx.status = 400
-
 				if(error.expose){
+					ctx.status = 400
 					ctx.body = error
 				}else{
+					ctx.status = 500
 					console.error(error)
 				}
 			}

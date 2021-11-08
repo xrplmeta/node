@@ -83,6 +83,42 @@ export async function currencies(ctx){
 	return stacks
 }
 
+export async function currency_stats(ctx){
+	let currency = currencyUTF8ToHex(ctx.parameters.currency)
+	let trustlines = await ctx.datasets.trustlines.get()
+	let selectedTrustlines = trustlines.filter(trustline => trustline.currency === currency)
+	let stats = {
+		volume: new Decimal(0),
+		marketcap: new Decimal(0),
+		liquidity: new Decimal(0),
+	}
+
+	for(let trustline of selectedTrustlines){
+		let enriched = await enrichTrustline(ctx, trustline)
+
+		stats.volume = stats.volume.plus(enriched.stats.volume || 0)
+		stats.marketcap = stats.marketcap.plus(enriched.stats.marketcap || 0)
+		stats.liquidity = stats.liquidity.plus(enriched.stats.liquidity || 0)
+	}
+
+	return stats
+}
+
+export async function trustline(ctx){
+	let currency = currencyUTF8ToHex(ctx.parameters.currency)
+	let issuer = ctx.parameters.issuer
+	let trustlines = await ctx.datasets.trustlines.get()
+	let trustline = trustlines.find(trustline => trustline.currency === currency && trustline.issuer === issuer)
+	
+	if(!trustline){
+		throw {message: 'trustline not listed', expose: true}
+	}
+
+	let enriched = await enrichTrustline(ctx, trustline)
+
+	return enriched
+}
+
 export async function exchanges(ctx){
 	let { base, quote, format, start, end } = ctx.parameters
 
