@@ -176,3 +176,21 @@ export function currencyHexToUTF8(code){
 		return code
 	}
 }
+
+export function currencyUTF8ToHex(code){
+	if(/^[a-zA-Z0-9\?\!\@\#\$\%\^\&\*\<\>\(\)\{\}\[\]\|\]\{\}]{3}$/.test(code))
+		return code
+
+	if(/^[A-Z0-9]{40}$/.test(code))
+		return code
+
+	let hex = ''
+
+	for(let i=0; i<code.length; i++){
+		hex += code.charCodeAt(i).toString(16)
+	}
+
+	return hex
+		.toUpperCase()
+		.padEnd(40, '0')
+}

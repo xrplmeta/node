@@ -1,5 +1,5 @@
 [DATA]
-dir = "/Users/mwni/Documents/xrpl"
+dir = "V:/xrpl"
 
 [API]
 port=4080
@@ -34,6 +34,7 @@ max_requests_per_minute = 60
 
 
 [[NODES]]
+disabled = true
 url = "wss://s1.ripple.com"
 
 

@@ -75,6 +75,11 @@ CREATE TABLE IF NOT EXISTS "Whales" (
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
+CREATE INDEX IF NOT EXISTS "Whales-T" ON "Whales" (
+	"trustline"
+);
+
+
 CREATE TABLE IF NOT EXISTS "Distributions" (
 	"id"		INTEGER NOT NULL UNIQUE,
 	"trustline"	INTEGER NOT NULL,
@@ -82,6 +87,10 @@ CREATE TABLE IF NOT EXISTS "Distributions" (
 	"percent"	REAL NOT NULL,
 	"share"		REAL NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE INDEX IF NOT EXISTS "Distributions-T" ON "Distributions" (
+	"trustline"
 );
 
 CREATE TABLE IF NOT EXISTS "Exchanges" (

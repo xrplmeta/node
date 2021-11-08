@@ -8,9 +8,18 @@ export async function get(){
 	)
 }
 
+export async function has({currency, issuer}){
+	if(currency === 'XRP')
+		return true
+
+	return !!await getOne.call(this, {currency, issuer})
+}
+
 export async function getOne(by, createIfNonExistent){
 	if(by.currency && by.issuer){
-		let issuer = await this.issuers.getOne({address: by.issuer}, createIfNonExistent)
+		let issuer = typeof by.issuer === 'string'
+			? await this.issuers.getOne({address: by.issuer}, createIfNonExistent)
+			: await this.issuers.getOne({id: by.issuer}, createIfNonExistent)
 
 		if(!issuer)
 			return null
@@ -37,6 +46,6 @@ export async function getOne(by, createIfNonExistent){
 
 export async function idFromCurrency(currency){
 	return currency.currency !== 'XRP' 
-		? (await this.trustlines.getOne(currency, true)).id
+		? (await this.trustlines.getOne.call(this, currency, true)).id
 		: 0
 }
