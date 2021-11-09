@@ -21,20 +21,7 @@ export async function currencies(ctx){
 
 	for(let trustline of trustlines){
 		let enriched = await enrichTrustline(ctx, trustline)
-		let formatted = {
-			...enriched,
-			currency: currencyHexToUTF8(enriched.currency),
-			meta: {
-				currency: collapseMetas(trustline.meta.currency, ctx.parameters.source_priority),
-				issuer: collapseMetas(trustline.meta.issuer, ctx.parameters.source_priority),
-				emailHash: undefined,
-				socials: undefined
-			},
-			stats: {
-				...enriched.stats,
-				supply: undefined
-			}
-		}
+		let formatted = formatTrustline(ctx, enriched)
 		let stack = stacks.find(stack => stack.currency === formatted.currency)
 
 		if(!stack){
@@ -60,7 +47,7 @@ export async function currencies(ctx){
 
 	stacks = keySort(
 		stacks, 
-		stack => stack.stats.volume, 
+		stack => stack.stats.volume || new Decimal(0), 
 		decimalCompare
 	)
 		.reverse()
@@ -69,11 +56,14 @@ export async function currencies(ctx){
 		stack.count = stack.trustlines.length
 		stack.trustlines = keySort(
 			stack.trustlines,
-			trustline => trustline.stats.volume,
+			trustline => Decimal.sum(
+				trustline.stats.volume || 0, 
+				(trustline.stats.trustlines || 0) / 1000
+			), 
 			decimalCompare
 		)
 			.reverse()
-			.filter(trustline => trustline.stats.trustlines >= minTrustlines)
+			.filter((trustline, i) => i < 3 || trustline.stats.trustlines >= minTrustlines)
 	}
 
 	if(limit)
@@ -115,8 +105,9 @@ export async function trustline(ctx){
 	}
 
 	let enriched = await enrichTrustline(ctx, trustline)
+	let formatted = await formatTrustline(ctx, enriched)
 
-	return enriched
+	return formatted
 }
 
 export async function exchanges(ctx){
@@ -177,6 +168,19 @@ async function enrichTrustline(ctx, trustline){
 	}
 
 	return enriched
+}
+
+function formatTrustline(ctx, trustline){
+	return {
+		...trustline,
+		currency: currencyHexToUTF8(trustline.currency),
+		meta: {
+			currency: collapseMetas(trustline.meta.currency, ctx.parameters.source_priority),
+			issuer: collapseMetas(trustline.meta.issuer, ctx.parameters.source_priority),
+			emailHash: undefined,
+			socials: undefined
+		}
+	}
 }
 
 function collapseMetas(metas, sourcePriority){
