@@ -25,9 +25,7 @@ export async function set(t, trustlines, replaceAfter){
 			await this.db.run(
 				`DELETE FROM Stats
 				WHERE trustline = ?
-				AND date > ?
-				ORDER BY date DESC
-				LIMIT 1`,
+				AND date > ?`,
 				id,
 				replaceAfter
 			)

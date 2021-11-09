@@ -223,7 +223,12 @@ export default class extends BaseProvider{
 
 			for(let {stat, whales, distributions} of trustlines){
 				await this.repo.whales.set(stat, whales)
-				await this.repo.distributions.set(t, stat, distributions)
+				await this.repo.distributions.set(
+					t, 
+					stat, 
+					distributions, 
+					full ? lastHistory : null
+				)
 			}
 		}
 

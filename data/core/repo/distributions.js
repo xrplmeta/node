@@ -1,5 +1,15 @@
-export async function set(t, {currency, issuer}, distributions){
+export async function set(t, {currency, issuer}, distributions, replaceAfter){
 	let trustline = await this.trustlines.getOne({currency, issuer})
+
+	if(replaceAfter){
+		await this.db.run(
+			`DELETE FROM Distributions
+			WHERE trustline = ?
+			AND date > ?`,
+			id,
+			replaceAfter
+		)
+	}
 
 	await this.db.insert(
 		'Distributions',
