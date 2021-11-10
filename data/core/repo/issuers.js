@@ -1,3 +1,10 @@
+export async function get(){
+	return this.db.all(
+		`SELECT *
+		FROM Issuers`, 
+	)
+}
+
 export async function getOne(by, createIfNonExistent){
 	if(by.address){
 		let issuer = await this.db.get(

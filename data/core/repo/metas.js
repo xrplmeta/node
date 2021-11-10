@@ -4,7 +4,7 @@ export async function get(type, subject){
 	return await this.db.all(
 		`SELECT key, value, source
 		FROM Metas
-		WHERE type = ? AND subject = ?`,
+		WHERE type = ? AND subject = ? AND value NOT NULL`,
 		type, subject
 	)
 }
@@ -54,8 +54,6 @@ export async function set(metas){
 				value,
 			})
 		}
-
-		await wait(1)
 	}
 
 	await this.db.insert(

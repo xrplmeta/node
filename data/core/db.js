@@ -83,7 +83,7 @@ export default class{
 
 						return {...existing, ...data}
 					}else if(options.duplicate.replace){
-						if(Object.entries(data).every(([k, v]) => existing[k] !== v)){
+						if(Object.entries(data).some(([k, v]) => existing[k] !== v)){
 							await this.run(
 								`DELETE FROM ${table}
 								WHERE ${compare.join(` AND `)}`,
