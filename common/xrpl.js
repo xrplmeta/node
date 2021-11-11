@@ -194,3 +194,30 @@ export function currencyUTF8ToHex(code){
 		.toUpperCase()
 		.padEnd(40, '0')
 }
+
+
+export function fromLedgerAmount(amount){
+	if(typeof amount === 'string')
+		return {
+			currency: 'XRP',
+			value: Decimal.div(amount, '1000000')
+		}
+	
+	return {
+		currency: amount.currency,
+		issuer: amount.issuer,
+		value: new Decimal(amount.value)
+	}
+}
+
+
+export function toLedgerAmount(amount){
+	if(amount.currency === 'XRP')
+		return amount.value.times(1000000).toString()
+
+	return {
+		currency: amount.currency,
+		issuer: amount.issuer,
+		value: amount.value.toString()
+	}
+}

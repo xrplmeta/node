@@ -18,6 +18,7 @@ export default class{
 	constructor(ctx){
 		this.ctx = ctx
 		this.data = {}
+		this.pairs = {}
 		this.log = log.for('server.exchanges', 'green')
 	}
 
@@ -50,9 +51,10 @@ export default class{
 			if(update.context !== 'exchanges')
 				continue
 
-			for(let entry of Object.values(this.data)){
-				if(entry.base === update.subject || entry.quote === update.subject){
-					await this.build(entry.base, entry.quote)
+			for(let pair of Object.values(this.pairs)){
+				if(pair.base === update.subject || pair.quote === update.subject){
+					console.log('build', pair.base)
+					await this.build(pair.base, pair.quote)
 				}
 			}
 		}
@@ -112,6 +114,10 @@ export default class{
 				quote: quoteId,
 				interval,
 				candles
+			}
+			this.pairs[`${baseId}/${quoteId}`] = {
+				base: baseId,
+				quote: quoteId,
 			}
 		}
 	}

@@ -55,19 +55,23 @@ export function keySort(array, key, compare){
 }
 
 export function decimalCompare(a, b){
-	if(a && b){
-		if(a.gt(b))
-			return 1
-		else if(b.gt(a))
-			return -1
-	}else{
-		if(a && !b)
-			return 1
-		else if(b && !a)
-			return -1
+	if(a.gt(b))
+		return 1
+	else if(b.gt(a))
+		return -1
+	else
+		return 0
+}
+
+
+export function batched(items, batchSize){
+	let batches = []
+
+	for(let i=0; i<items.length; i+=batchSize){
+		batches.push(items.slice(i, i + batchSize))
 	}
 
-	return 0
+	return batches
 }
 
 
