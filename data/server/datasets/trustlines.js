@@ -74,7 +74,7 @@ export default class{
 		}
 		
 		let currentStats = await ctx.repo.stats.getRecent(trustline)
-		let currencyMetas = await ctx.repo.metas.get('currency', trustline.id)
+		let currencyMetas = await ctx.repo.metas.get('trustline', trustline.id)
 		let issuerMetas = await ctx.repo.metas.get('issuer', issuerId)
 		let yesterdayStats
 		let trustlinesCount

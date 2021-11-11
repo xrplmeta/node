@@ -137,7 +137,11 @@ export async function exchanges(ctx){
 
 		let candles = await ctx.datasets.exchanges.get(base, quote, format)
 
-		return candles
+		if(start && end)
+			return candles
+				.filter(candle => candle.t >= start && candle.t <= end)
+		else
+			return candles
 	}
 }
 

@@ -52,8 +52,7 @@ export default class{
 				continue
 
 			for(let pair of Object.values(this.pairs)){
-				if(pair.base === update.subject || pair.quote === update.subject){
-					console.log('build', pair.base)
+				if(pair.base.id === update.subject || pair.quote.id === update.subject){
 					await this.build(pair.base, pair.quote)
 				}
 			}
@@ -66,8 +65,6 @@ export default class{
 		let baseId = typeof base === 'number' ? base : await ctx.repo.trustlines.idFromCurrency(base)
 		let quoteId = typeof quote === 'number' ? quote : await ctx.repo.trustlines.idFromCurrency(quote)
 		let exchanges = await ctx.repo.exchanges.get(baseId, quoteId)
-		let headExchange = exchanges[exchanges.length-1]
-		let tailExchange = exchanges[0]
 
 
 		for(let [intervalKey, interval] of Object.entries(candlestickIntervals)){
@@ -109,17 +106,15 @@ export default class{
 			if(candle)
 				pop()
 
+
 			this.data[key] = {
 				base: baseId,
 				quote: quoteId,
 				interval,
 				candles
 			}
-			
-			this.pairs[`${baseId}/${quoteId}`] = {
-				base: baseId,
-				quote: quoteId,
-			}
+
+			this.pairs[`${baseId}/${quoteId}`] = {base, quote}
 		}
 	}
 
