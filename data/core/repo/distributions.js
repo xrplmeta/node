@@ -6,7 +6,7 @@ export async function set(t, {currency, issuer}, distributions, replaceAfter){
 			`DELETE FROM Distributions
 			WHERE trustline = ?
 			AND date > ?`,
-			id,
+			trustline.id,
 			replaceAfter
 		)
 	}

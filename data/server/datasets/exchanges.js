@@ -115,6 +115,7 @@ export default class{
 				interval,
 				candles
 			}
+			
 			this.pairs[`${baseId}/${quoteId}`] = {
 				base: baseId,
 				quote: quoteId,
