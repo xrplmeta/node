@@ -34,3 +34,14 @@ export function laxHumanDuration(seconds){
 	else
 		return `over 1,000 years`
 }
+
+export function onceAndForAll(func){
+	let promise
+
+	return async (...args) => {
+		if(!promise)
+			promise = func(...args)
+
+		return await promise
+	}
+}

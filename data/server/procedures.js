@@ -14,9 +14,11 @@ const candlestickIntervals = {
 
 export async function currencies(ctx){
 	let limit = ctx.parameters.limit || 100
+	let offset = ctx.parameters.offset || 0
 	let minTrustlines = ctx.parameters.min_trustlines || 100
 	let trustlines = await ctx.datasets.trustlines.get()
 	let stacks = []
+	let total = 0
 	let now = unixNow()
 
 	for(let trustline of trustlines){
@@ -66,11 +68,13 @@ export async function currencies(ctx){
 			.filter((trustline, i) => i < 3 || trustline.stats.trustlines >= minTrustlines)
 	}
 
+	total = stacks.length
+
 	if(limit)
-		stacks = stacks.slice(0, limit)
+		stacks = stacks.slice(offset, offset + limit)
 
 
-	return stacks
+	return {currencies: stacks, count: total}
 }
 
 export async function currency_stats(ctx){
