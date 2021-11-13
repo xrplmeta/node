@@ -89,6 +89,8 @@ export default class extends RestProvider{
 
 					if(profile.entities?.url?.urls){
 						meta.domain = profile.entities.url.urls[0].expanded_url
+							.replace(/^https?:\/\//, '')
+							.replace(/\/$/, '')
 					}
 
 					if(profile.entities?.description?.urls){

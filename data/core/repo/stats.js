@@ -52,6 +52,10 @@ export async function set(t, trustlines, replaceAfter){
 	)
 }
 
+export async function get(trustline, start, end){
+	return 0
+}
+
 
 export async function getRecent(trustline, t){
 	if(t === undefined){

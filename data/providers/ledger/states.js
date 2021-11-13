@@ -94,7 +94,12 @@ export default class extends BaseProvider{
 					if(full){
 						if(state.Domain || state.EmailHash){
 							accounts[state.Account] = {
-								domain: state.Domain ? Buffer.from(state.Domain, 'hex').toString() : undefined,
+								domain: state.Domain 
+									? Buffer.from(state.Domain, 'hex')
+										.toString()
+										.replace(/^https?:\/\//, '')
+										.replace(/\/$/, '')
+									: undefined,
 								emailHash: state.EmailHash
 							}
 						}

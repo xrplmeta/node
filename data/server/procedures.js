@@ -98,6 +98,15 @@ export async function currency_stats(ctx){
 	return stats
 }
 
+export async function stats_history(ctx){
+	let currency = currencyUTF8ToHex(ctx.parameters.currency)
+	let issuer = ctx.parameters.issuer
+	let start = ctx.parameters.start || 0
+	let end = ctx.parameters.start || unixNow()
+
+	return await ctx.repo.stats.get({currency, issuer}, start, end)
+}
+
 export async function trustline(ctx){
 	let currency = currencyUTF8ToHex(ctx.parameters.currency)
 	let issuer = ctx.parameters.issuer
