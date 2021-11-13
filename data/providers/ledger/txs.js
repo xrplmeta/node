@@ -14,18 +14,22 @@ export default class extends BaseProvider{
 
 	async run(){
 		while(true){
-			let currentLedger = await this.nodes.getCurrentLedger()
-			let i = currentLedger.ledger_index
+			try{
+				let currentLedger = await this.nodes.getCurrentLedger()
+				let i = currentLedger.ledger_index
 
-			while(i --> 0){
-				if(await this.repo.operations.hasCompleted(`ledger.txs`, `l${i}`))
-					continue
+				while(i --> 0){
+					if(await this.repo.operations.hasCompleted(`ledger.txs`, `l${i}`))
+						continue
 
-				if(await this.repo.operations.hasCompleted(`ledger.live`, `l${i}`))
-					continue
+					if(await this.repo.operations.hasCompleted(`ledger.live`, `l${i}`))
+						continue
 
-				await this.repo.operations.record('ledger.txs', `l${i}`, this.sift(i))
-				break
+					await this.repo.operations.record('ledger.txs', `l${i}`, this.sift(i))
+					break
+				}
+			}catch(e){
+				this.log(`failed to obtain ledger: ${e.message}`)
 			}
 		}
 	}
@@ -54,7 +58,7 @@ export default class extends BaseProvider{
 			}
 		}
 
-		this.log(`found ${exchanges.length} exchanges`)
+		this.log(`found ${exchanges.length} exchanges (${ledger.close_time_human})`)
 
 		await this.repo.exchanges.insert(exchanges.map(exchange => ({
 			...exchange,
