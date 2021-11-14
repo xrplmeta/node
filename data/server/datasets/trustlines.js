@@ -1,14 +1,13 @@
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
 import { log } from '../../lib/logging.js'
-import { subscribe } from '../../core/updates.js'
 
 
 export default class{
 	constructor(ctx){
 		this.ctx = ctx
 		this.data = []
-		this.log = log.for('server.currencies', 'green')
+		this.log = log.for('server.trustlines', 'green')
 	}
 
 	async init(){
@@ -18,7 +17,7 @@ export default class{
 
 		this.log(`built list           `)
 
-		subscribe(this.ctx.repo, this.handleUpdates.bind(this))
+		this.ctx.repo.updates.subscribe(this.handleUpdates.bind(this))
 	}
 
 	async get(){

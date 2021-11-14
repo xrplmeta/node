@@ -52,8 +52,16 @@ export async function set(t, trustlines, replaceAfter){
 	)
 }
 
-export async function get(trustline, start, end){
-	return 0
+export async function get(trustline){
+	trustline = await this.trustlines.getOne(trustline)
+
+	return await this.db.all(
+		`SELECT *
+		FROM Stats
+		WHERE trustline = ?
+		ORDER BY date ASC`,
+		trustline.id
+	)
 }
 
 

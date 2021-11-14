@@ -1,6 +1,18 @@
-import { wait } from '../../common/time.js'
+import { wait } from '../../../common/time.js'
 
-export async function subscribe(repo, callback){
+const subscriptions = []
+
+
+export async function subscribe(callback){
+	if(subscriptions.length === 0)
+		loop(this)
+
+	subscriptions.push(callback)
+}
+
+
+
+async function loop(repo){
 	let heads = await repo.getTableHeads()
 
 	while(true){
@@ -66,6 +78,13 @@ export async function subscribe(repo, callback){
 		// updates still need to be made unique to save performance
 
 		heads = nextHeads
-		callback(updates)
+	
+		for(let callback of subscriptions){
+			try{
+				callback(updates)
+			}catch{
+				continue
+			}
+		}
 	}
 }

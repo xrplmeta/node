@@ -31,6 +31,17 @@ export default class extends Router{
 		)
 
 		this.get(
+			'/trustline/:trustline/history', 
+			this.wrappedProcedure(
+				'trustline_history', 
+				parameters => ({
+					...parameters,
+					...parsePairURIComponent(parameters.trustline)
+				})
+			)
+		)
+
+		this.get(
 			'/exchanges/:base/:quote/:format', 
 			this.wrappedProcedure(
 				'exchanges', 

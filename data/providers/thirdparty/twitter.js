@@ -84,8 +84,10 @@ export default class extends RestProvider{
 
 				if(profile){
 					meta.name = profile.name || null
-					meta.icon = profile.profile_image_url || null
 					meta.description = profile.description || null
+					meta.icon = profile.profile_image_url
+						? profile.profile_image_url.replace('_normal', '')
+						: null
 
 					if(profile.entities?.url?.urls){
 						meta.domain = profile.entities.url.urls[0].expanded_url

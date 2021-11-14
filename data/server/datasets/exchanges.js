@@ -2,7 +2,6 @@ import { log } from '../../lib/logging.js'
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import { createURI as createPairURI } from '../../../common/pair.js'
 import Decimal from '../../../common/decimal.js'
-import { subscribe } from '../../core/updates.js'
 
 const candlestickIntervals = {
 	'5m': 60 * 5,
@@ -34,7 +33,7 @@ export default class{
 
 		this.log(`built cache           `)
 
-		subscribe(this.ctx.repo, this.handleUpdates.bind(this))
+		this.ctx.repo.updates.subscribe(this.handleUpdates.bind(this))
 	}
 
 	async get(base, quote, interval){

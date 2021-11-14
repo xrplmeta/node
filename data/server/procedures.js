@@ -98,14 +98,6 @@ export async function currency_stats(ctx){
 	return stats
 }
 
-export async function stats_history(ctx){
-	let currency = currencyUTF8ToHex(ctx.parameters.currency)
-	let issuer = ctx.parameters.issuer
-	let start = ctx.parameters.start || 0
-	let end = ctx.parameters.start || unixNow()
-
-	return await ctx.repo.stats.get({currency, issuer}, start, end)
-}
 
 export async function trustline(ctx){
 	let currency = currencyUTF8ToHex(ctx.parameters.currency)
@@ -121,6 +113,16 @@ export async function trustline(ctx){
 	let formatted = await formatTrustline(ctx, enriched)
 
 	return formatted
+}
+
+export async function trustline_history(ctx){
+	let currency = currencyUTF8ToHex(ctx.parameters.currency)
+	let issuer = ctx.parameters.issuer
+	let start = ctx.parameters.start || 0
+	let end = ctx.parameters.start || unixNow()
+	let historicals = ctx.datasets.historicals.get({currency, issuer})
+
+	return historicals
 }
 
 export async function exchanges(ctx){
@@ -156,6 +158,10 @@ export async function exchanges(ctx){
 		else
 			return candles
 	}
+}
+
+async function selectedTrustline({currency, issuer}){
+
 }
 
 async function enrichTrustline(ctx, trustline){

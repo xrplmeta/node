@@ -2,7 +2,7 @@ import Koa from 'koa'
 import websocket from 'koa-easy-ws'
 import HTTPRouter from './http.js'
 import WSManager from './ws.js'
-import * as datasets from './datasets/index.js'
+import datasets from './datasets/index.js'
 import { log } from '../lib/logging.js'
 
 export default class Server{
@@ -16,7 +16,7 @@ export default class Server{
 		this.log = log.for('server', 'green')
 
 		for(let [key, datasetClass] of Object.entries(datasets)){
-			this.datasets[key] = new datasetClass({repo, config})
+			this.datasets[key] = new datasetClass({repo, config, datasets: this.datasets})
 		}
 	}
 

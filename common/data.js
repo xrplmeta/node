@@ -75,6 +75,37 @@ export function batched(items, batchSize){
 }
 
 
+export function leftProximityZip(...blocks){
+	let keyedBlocks = blocks.map(({array, key}) => array.map(item => ({item, key: key(item)})))
+	let zipped = []
+	let indices = Array(keyedBlocks.length).fill(0)
+
+
+	for(let lead of keyedBlocks[0]){
+		let pack = [lead.item]
+
+		for(let k=1; k<keyedBlocks.length; k++){
+			while(indices[k] < keyedBlocks[k].length - 1){
+				let current = keyedBlocks[k][indices[k]].key
+				let next = keyedBlocks[k][indices[k]+1].key
+
+
+				if(Math.abs(lead.key - current) <= Math.abs(lead.key - next))
+					break
+
+				indices[k]++
+			}
+
+			pack.push(keyedBlocks[k][indices[k]]?.item)
+		}
+
+		zipped.push(pack)
+	}
+
+	return zipped
+}
+
+
 export function nestDotNotated(map){
 	let nested = {}
 
