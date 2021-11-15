@@ -16,6 +16,7 @@ export async function currencies(ctx){
 	let limit = ctx.parameters.limit || 100
 	let offset = ctx.parameters.offset || 0
 	let minTrustlines = ctx.parameters.min_trustlines || 100
+	let search = ctx.parameters.search
 	let trustlines = await ctx.datasets.trustlines.get()
 	let stacks = []
 	let total = 0
@@ -23,7 +24,7 @@ export async function currencies(ctx){
 
 	for(let trustline of trustlines){
 		let enriched = await enrichTrustline(ctx, trustline)
-		let formatted = formatTrustline(ctx, enriched)
+		let formatted = formatTrustline(ctx, enriched, true)
 		let stack = stacks.find(stack => stack.currency === formatted.currency)
 
 		if(!stack){
@@ -68,6 +69,13 @@ export async function currencies(ctx){
 			.filter((trustline, i) => i < 3 || trustline.stats.trustlines >= minTrustlines)
 	}
 
+	if(search){
+		stacks = stacks.filter(stack => {
+			if(stack.currency.toLowerCase().startsWith(search.toLowerCase()))
+				return true
+		})
+	}
+
 	total = stacks.length
 
 	if(limit)
@@ -102,6 +110,7 @@ export async function currency_stats(ctx){
 export async function trustline(ctx){
 	let currency = currencyUTF8ToHex(ctx.parameters.currency)
 	let issuer = ctx.parameters.issuer
+	let full = ctx.parameters.full
 	let trustlines = await ctx.datasets.trustlines.get()
 	let trustline = trustlines.find(trustline => trustline.currency === currency && trustline.issuer === issuer)
 	
@@ -110,7 +119,7 @@ export async function trustline(ctx){
 	}
 
 	let enriched = await enrichTrustline(ctx, trustline)
-	let formatted = await formatTrustline(ctx, enriched)
+	let formatted = await formatTrustline(ctx, enriched, !full)
 
 	return formatted
 }
@@ -160,9 +169,6 @@ export async function exchanges(ctx){
 	}
 }
 
-async function selectedTrustline({currency, issuer}){
-
-}
 
 async function enrichTrustline(ctx, trustline){
 	let candles = await exchanges({
@@ -193,17 +199,22 @@ async function enrichTrustline(ctx, trustline){
 	return enriched
 }
 
-function formatTrustline(ctx, trustline){
-	return {
+function formatTrustline(ctx, trustline, minimal){
+	let formatted = {
 		...trustline,
 		currency: currencyHexToUTF8(trustline.currency),
-		meta: {
-			currency: collapseMetas(trustline.meta.currency, ctx.parameters.source_priority),
-			issuer: collapseMetas(trustline.meta.issuer, ctx.parameters.source_priority),
-			emailHash: undefined,
-			socials: undefined
-		}
+		meta: {...trustline.meta}
 	}
+
+	if(minimal){
+		formatted.meta.currency = collapseMetas(trustline.meta.currency, ctx.parameters.source_priority),
+		formatted.meta.issuer = collapseMetas(trustline.meta.issuer, ctx.parameters.source_priority)
+
+		delete formatted.meta.issuer.emailHash
+		delete formatted.meta.issuer.socials
+	}
+
+	return formatted
 }
 
 function collapseMetas(metas, sourcePriority){

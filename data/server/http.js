@@ -25,7 +25,8 @@ export default class extends Router{
 				'trustline', 
 				parameters => ({
 					...parameters,
-					...parsePairURIComponent(parameters.trustline)
+					...parsePairURIComponent(parameters.trustline),
+					full: parameters.hasOwnProperty('full')
 				})
 			)
 		)

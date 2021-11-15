@@ -80,6 +80,9 @@ export default class{
 				let price = exchange.price
 				let volume = exchange.volume
 
+				if(volume < 0.0001)
+					continue
+
 				if(candle && candle.t !== t)
 					pop()
 

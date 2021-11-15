@@ -38,7 +38,14 @@ export default class{
 
 	async handleUpdates(updates){
 		for(let update of updates){
-			
+			if(update.context !== 'stats' || update.context !== 'trustline')
+				continue
+
+			let entry = Object.values(this.data).find(({trustline}) => trustline.id === update.subject)
+
+			if(entry){
+				await this.build(entry.trustline)
+			}
 		}
 	}
 
@@ -71,7 +78,8 @@ export default class{
 		}))
 
 		this.data[this.deriveKey(trustline)] = {
-			historicals
+			historicals,
+			trustline: await ctx.repo.trustlines.getOne(trustline)
 		}
 	}
 

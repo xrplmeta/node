@@ -9,23 +9,39 @@ export default class extends BaseProvider{
 
 		this.repo = repo
 		this.nodes = nodes
+		this.busy = []
 		this.config = config.ledger
 	}
 
 	async run(){
+		let num = this.config.txsConcurrency || 1
+
+		for(let i=0; i<num; i++){
+			this.loop()
+		}
+	}
+
+	async loop(){
 		while(true){
 			try{
 				let currentLedger = await this.nodes.getCurrentLedger()
 				let i = currentLedger.ledger_index
 
 				while(i --> 0){
+					if(this.busy.includes(i))
+						continue
+
 					if(await this.repo.operations.hasCompleted(`ledger.txs`, `l${i}`))
 						continue
 
 					if(await this.repo.operations.hasCompleted(`ledger.live`, `l${i}`))
 						continue
 
+					this.busy.push(i)
+
 					await this.repo.operations.record('ledger.txs', `l${i}`, this.sift(i))
+
+					this.busy = this.busy.filter(ledger => ledger !== i)
 					break
 				}
 			}catch(e){
