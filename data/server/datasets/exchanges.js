@@ -66,12 +66,17 @@ export default class{
 		let exchanges = await ctx.repo.exchanges.get(baseId, quoteId)
 
 
+		this.filterOutliers(exchanges)
+
+
 		for(let [intervalKey, interval] of Object.entries(candlestickIntervals)){
 			let key = this.deriveKey(base, quote, intervalKey)
 			let candles = []
 			let candle = null
+			let lastCandle = null
 			let pop = () => {
 				candles.push(candle)
+				lastCandle = candle
 				candle = null
 			}
 
@@ -79,10 +84,7 @@ export default class{
 				let t = Math.floor(exchange.date / interval) * interval
 				let price = exchange.price
 				let volume = exchange.volume
-
-				if(volume < 0.0001)
-					continue
-
+				
 				if(candle && candle.t !== t)
 					pop()
 
@@ -117,6 +119,36 @@ export default class{
 			}
 
 			this.pairs[`${baseId}/${quoteId}`] = {base, quote}
+		}
+	}
+
+	filterOutliers(exchanges){
+		let select10minAway = (section, t) => 
+			section.find(exchange => Math.abs(exchange.date - t) >= 60*20) 
+			|| section[section.length-1]
+
+		for(let i=1; i<exchanges.length; i++){
+			let current = exchanges[i]
+			let prev = exchanges[i-1]
+
+			//if(new Decimal(current.volume).lt('100'))
+			//	continue
+			
+			if(Decimal.div(current.price, prev.price).gt('1.5')){
+				let slice = exchanges.slice(Math.max(0, i - 25), i + 25)
+				let avg = new Decimal(0)
+				let sum = new Decimal(0)
+
+				for(let ex of slice){
+					avg = avg.plus(ex.price).times(ex.volume)
+					sum = sum.plus(ex.volume)
+				}
+
+				if(avg.div(sum).gt('1.5')){
+					exchanges.splice(i, 1)
+					i--
+				}
+			}
 		}
 	}
 

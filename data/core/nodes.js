@@ -83,10 +83,10 @@ export default class extends EventEmitter{
 				if(bids.length === 0)
 					continue
 
+				job.started()
+
 				this.doJob(bids[0].client, job)
 				this.queue = this.queue.filter(j => j !== job)
-
-				
 			}
 
 			await wait(100)
@@ -141,12 +141,14 @@ export default class extends EventEmitter{
 
 		return new Promise((resolve, reject) => {
 			let insertAt = this.queue.length - 1
+			let timeout = setTimeout(() => reject('no available node'), 30000)
+			let started = () => clearTimeout(timeout)
 
 			while(insertAt > 0 && priority > this.queue[insertAt].priority){
 				insertAt--
 			}
 
-			this.queue.splice(insertAt, 0, {priority, request, resolve, reject})
+			this.queue.splice(insertAt, 0, {priority, request, resolve, reject, started})
 		})
 	}
 

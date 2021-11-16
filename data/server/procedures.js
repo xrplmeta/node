@@ -137,7 +137,7 @@ export async function trustline_history(ctx){
 export async function exchanges(ctx){
 	let { base, quote, format, start, end } = ctx.parameters
 
-
+	end = end || unixNow()
 	base.currency = currencyUTF8ToHex(base.currency)
 	quote.currency = currencyUTF8ToHex(quote.currency)
 
@@ -161,10 +161,15 @@ export async function exchanges(ctx){
 
 		let candles = await ctx.datasets.exchanges.get(base, quote, format)
 
-		if(start && end)
-			return candles
+		if(start && end){
+			let filtered = candles
 				.filter(candle => candle.t >= start && candle.t <= end)
-		else
+
+			if(filtered.length === 0)
+				return candles.slice(-1)
+			else
+				return filtered
+		}else
 			return candles
 	}
 }
@@ -177,8 +182,7 @@ async function enrichTrustline(ctx, trustline){
 			base: {...trustline}, 
 			quote: {currency: 'XRP'}, 
 			format: '1d',
-			start: unixNow - 60*60*24,
-			end: unixNow
+			start: unixNow() - 60*60*24*7
 		}
 	})
 	let enriched = {...trustline}
@@ -190,7 +194,7 @@ async function enrichTrustline(ctx, trustline){
 		enriched.stats = {
 			...enriched.stats,
 			price: lastCandle.c,
-			price_change: Math.round((lastCandle.c / candles[0].c - 1) * 1000)/10,
+			price_change: Math.round((lastCandle.c / lastCandle.o - 1) * 1000)/10,
 			marketcap: Decimal.mul(enriched.stats.supply || 0, lastCandle.c),
 			volume: Decimal.sum(...candles.map(candle => candle.v))
 		}
