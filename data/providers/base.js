@@ -1,15 +1,10 @@
 import fetch from 'node-fetch'
 import Rest from '../lib/rest.js'
-import { log, pretty } from '../lib/logging.js'
 import { wait, unixNow } from '../../common/time.js'
 
 
 
 export class BaseProvider{
-	constructor(name){
-		this.log = log.for(name, 'cyan')
-	}
-
 	async loopOperation(type, entity, interval, execute){
 		while(true){
 			await wait(10)
@@ -46,9 +41,8 @@ export class BaseProvider{
 
 
 export class RestProvider extends BaseProvider{
-	constructor(name, cfg){
-		super(name)
-
+	constructor(cfg){
+		super()
 		this.api = new Rest({fetch, ...cfg})
 	}
 }

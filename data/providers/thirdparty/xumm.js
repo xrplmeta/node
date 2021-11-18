@@ -1,11 +1,11 @@
 import { RestProvider } from '../base.js'
 import { wait } from '../../../common/time.js'
-import { pretty } from '../../lib/logging.js'
+import { log } from '../../lib/log.js'
 
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super('xumm', {
+		super({
 			base: 'https://xumm.app/api/v1/platform', 
 			headers: {
 				'x-api-key': config.xumm.apiKey, 
@@ -43,12 +43,12 @@ export default class extends RestProvider{
 
 
 	async scanAssets(){
-		this.log(`fetching curated asset list...`)
+		log.info(`fetching curated asset list...`)
 
 		let { details } = await this.api.get('curated-assets')
 		let metas = []
 
-		this.log(`got ${Object.values(details).length} issuers`)
+		log.info(`got ${Object.values(details).length} issuers`)
 
 		for(let issuer of Object.values(details)){
 			for(let currency of Object.values(issuer.currencies)){
@@ -75,17 +75,15 @@ export default class extends RestProvider{
 			}
 		}
 
-		this.log(`writing ${pretty(metas.length)} metas to db...`)
+		log.info(`writing`, metas.length, `metas to db...`)
 
 		await this.repo.metas.set(metas)
 
-		this.log(`asset scan complete`)
+		log.info(`asset scan complete`)
 	}
 
 	async checkKYC(issuerId){
 		let issuer = await this.repo.issuers.getOne({id: issuerId})
-
-		this.log(`checking KYC for ${issuer.address}`)
 
 		let { kycApproved } = await this.api.get(`kyc-status/${issuer.address}`)
 		let meta = {kyc: kycApproved ? 'approved' : null}
@@ -96,5 +94,14 @@ export default class extends RestProvider{
 			subject: issuer.id,
 			source: 'xumm.app'
 		})
+
+		if(!this.status){
+			this.status = {checked: 0, start: Date.now()}
+		}else if(Date.now() - this.status.start > 10000){
+			log.info(`checked ${this.status.checked+1} KYCs in 10s`)
+			this.status = null
+		}else{
+			this.status.checked++
+		}
 	}
 }

@@ -1,29 +1,24 @@
 import { Worker, parentPort, workerData } from 'worker_threads'
-import { log as l } from './lib/logging.js'
 import Repo from './core/repo.js'
-import Nodes from './core/nodes.js'
+import { Client } from './core/xrpl.mt.js'
 import Server from './server/server.js'
 import providers from './providers/index.js'
 
-const { config, task } = workerData
-
+const { task, config } = workerData
 
 const repo = new Repo(config)
-const nodes = new Nodes(config)
+const xrpl = new Client(parentPort)
 
 
 ;(async () => {
 	await repo.open()
 
+
 	if(task === 'server'){
-		new Server({repo, nodes, config})
+		new Server({repo, config})
 			.start()
 	}else{
-		
-	}
-
-	for(let [key, provider] of activeProviders){
-		new providers[key]({repo, nodes, config: config})
+		new providers[task]({repo, xrpl, config: config})
 			.run()
 	}
 })()

@@ -6,6 +6,10 @@ export default class{
 		this.con = new Adapter(config.file)
 	}
 
+	pragma(sql){
+		return this.con.pragma(sql)
+	}
+
 	exec(sql){
 		return this.con.exec(sql)
 	}

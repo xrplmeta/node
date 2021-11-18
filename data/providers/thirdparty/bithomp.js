@@ -1,12 +1,12 @@
 import { RestProvider } from '../base.js'
+import { log } from '../../lib/log.js'
 import { wait } from '../../../common/time.js'
-import { pretty } from '../../lib/logging.js'
 
 
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super('bithomp', {
+		super({
 			base: 'https://bithomp.com/api/v2', 
 			headers: {'x-bithomp-token': config.bithomp.apiKey}}
 		)
@@ -26,13 +26,13 @@ export default class extends RestProvider{
 	}
 
 	async refresh(){
-		this.log(`fetching services list...`)
+		log.info(`fetching services list...`)
 
 		let result = await this.api.get('services')
 		let services = result.services
 		let metas = []
 
-		this.log(`got ${services.length} services`)
+		log.info(`got`, services.length, `services`)
 
 		for(let service of services){
 			let meta = {
@@ -57,10 +57,10 @@ export default class extends RestProvider{
 			}
 		}
 
-		this.log(`writing ${pretty(metas.length)} metas to db...`)
+		log.info(`writing`, metas.length, `metas to db...`)
 
 		await this.repo.metas.set(metas)
 
-		this.log(`asset scan complete`)
+		log.info(`asset scan complete`)
 	}
 }

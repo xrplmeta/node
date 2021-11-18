@@ -1,3 +1,4 @@
+import { log } from '../../lib/log.js'
 import { wait, unixNow } from '../../../common/time.js'
 
 
@@ -61,9 +62,11 @@ export async function record(type, subject, promise){
 		result = 'success'
 	}catch(error){
 		if(subject)
-			this.log(`operation "${type}/${subject}" failed: ${error.toString()}`)
+			log.error(`operation "${type}/${subject}" failed:`)
 		else
-			this.log(`operation "${type}" failed: ${error.toString()}`)
+			log.error(`operation "${type}" failed:`)
+
+		log.error(error)
 
 		await wait(3000)
 

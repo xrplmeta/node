@@ -12,7 +12,7 @@ export default [
 			})
 		],
 		output: {
-			file: './dist/cli.js',
+			file: './dist/xrplmeta.js',
 			format: 'esm',
 			name: 'bundle'
 		}

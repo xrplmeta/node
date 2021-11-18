@@ -1,4 +1,3 @@
-import { log } from '../../lib/logging.js'
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import { createURI as createPairURI } from '../../../common/pair.js'
 import Decimal from '../../../common/decimal.js'
@@ -18,20 +17,16 @@ export default class{
 		this.ctx = ctx
 		this.data = {}
 		this.pairs = {}
-		this.log = log.for('server.exchanges', 'green')
 	}
 
-	async init(){
+	async init(progress){
 		let trustlines = await this.ctx.repo.trustlines.get()
 		let i = 0
 
 		for(let trustline of trustlines){
 			await this.build(trustline, {currency: 'XRP'})
-
-			this.log.replace(`building cache (${Math.round((i++ / trustlines.length) * 100)}%)`)
+			progress(i++ / trustlines.length)
 		}
-
-		this.log(`built cache           `)
 
 		this.ctx.repo.updates.subscribe(this.handleUpdates.bind(this))
 	}

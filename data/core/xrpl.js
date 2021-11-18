@@ -1,14 +1,14 @@
 import xrpl from 'xrpl'
 import EventEmitter from '../../common/events.js'
 import { wait } from '../../common/time.js'
-import { log } from '../lib/logging.js'
+import { Logger } from '../lib/log.js'
 
 
 export default class extends EventEmitter{
 	constructor(config){
 		super()
 
-		this.log = log.for('nodes', 'yellow')
+		this.log = new Logger({name: 'xrpl', color: 'yellow'})
 		this.queue = []
 		this.clients = []
 		this.seen = []
@@ -50,7 +50,7 @@ export default class extends EventEmitter{
 					this.relentlesslyConnect(client)
 				})
 				client.on('error', error => {
-					this.log(`${client.spec.url} error: ${error}`)
+					this.log.error(`${client.spec.url} error: ${error}`)
 				})
 				
 
@@ -178,6 +178,6 @@ export default class extends EventEmitter{
 	printConnections(recent){
 		let online = this.clients.filter(client => client.isConnected()).length
 
-		this.log(`${online} / ${this.clients.length} clients online ${recent ? `(${recent})` : ''}`)
+		this.log.info(`${online} / ${this.clients.length} clients online ${recent ? `(${recent})` : ''}`)
 	}
 }

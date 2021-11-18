@@ -1,4 +1,4 @@
-import { log } from '../lib/logging.js'
+import { log } from '../lib/log.js'
 import * as procedures from './procedures.js'
 
 
@@ -7,7 +7,6 @@ export default class{
 		this.ctx = ctx
 		this.clients = []
 		this.counter = 0
-		this.log = log.for('server.ws', 'green')
 	}
 
 	register(socket){
@@ -21,7 +20,7 @@ export default class{
 			try{
 				var request = JSON.parse(message)
 			}catch{
-				this.log(`client #${client.id} sent malformed request - dropping them`)
+				log.info(`client #${client.id} sent malformed request - dropping them`)
 				socket.close()
 			}
 
@@ -38,7 +37,7 @@ export default class{
 				}
 
 				if(!response){
-					this.log(`internal server error while serving client #${client.id}: ${error}`)
+					log.info(`internal server error while serving client #${client.id}: ${error}`)
 					response = {message: 'internal server error'}
 				}
 
@@ -48,11 +47,11 @@ export default class{
 
 		socket.on('close', () => {
 			this.clients.splice(this.clients.indexOf(client))
-			this.log(`client #${client.id} disconnected`)
+			log.info(`client #${client.id} disconnected`)
 		})
 
 		this.clients.push(client)
-		this.log(`new connection (#${client.id})`)
+		log.info(`new connection (#${client.id})`)
 	}
 
 	async serveRequest(client, request){

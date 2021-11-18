@@ -1,14 +1,15 @@
 import { BaseProvider } from '../base.js'
-import { rippleToUnix } from '../../../common/time.js'
+import { log } from '../../lib/log.js'
+import { wait, rippleToUnix } from '../../../common/time.js'
 import { deriveExchanges } from '../../../common/xrpl.js'
 
 
 export default class extends BaseProvider{
-	constructor({repo, nodes, config}){
-		super('ledger.txs')
+	constructor({repo, xrpl, config}){
+		super()
 
 		this.repo = repo
-		this.nodes = nodes
+		this.xrpl = xrpl
 		this.busy = []
 		this.config = config.ledger
 	}
@@ -24,7 +25,8 @@ export default class extends BaseProvider{
 	async loop(){
 		while(true){
 			try{
-				let currentLedger = await this.nodes.getCurrentLedger()
+				let result = await this.xrpl.request({command: 'ledger'})
+				let currentLedger = result.ledger || result.closed.ledger
 				let i = currentLedger.ledger_index
 
 				while(i --> 0){
@@ -45,16 +47,19 @@ export default class extends BaseProvider{
 					break
 				}
 			}catch(e){
-				this.log(`failed to obtain ledger: ${e.message}`)
+				log.error(`failed to obtain ledger:`)
+				log.error(e)
+
+				await wait(1000)
 			}
 		}
 	}
 
 	async sift(ledgerIndex){
-		this.log(`sifting through ledger #${ledgerIndex}`)
+		log.debug(`sifting through ledger #${ledgerIndex}`)
 
 		let exchanges = []
-		let { ledger } = await this.nodes.request({
+		let { ledger } = await this.xrpl.request({
 			command: 'ledger',
 			ledger_index: ledgerIndex,
 			transactions: true,
@@ -74,7 +79,7 @@ export default class extends BaseProvider{
 			}
 		}
 
-		this.log(`found ${exchanges.length} exchanges (${ledger.close_time_human})`)
+		log.info(`found ${exchanges.length} exchanges (${ledger.close_time_human})`)
 
 		await this.repo.exchanges.insert(exchanges.map(exchange => ({
 			...exchange,

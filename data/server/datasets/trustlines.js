@@ -1,21 +1,15 @@
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
-import { log } from '../../lib/logging.js'
 
 
 export default class{
 	constructor(ctx){
 		this.ctx = ctx
 		this.data = []
-		this.log = log.for('server.trustlines', 'green')
 	}
 
-	async init(){
-		await this.buildAll(progress => 
-			this.log.replace(`building list (${Math.round(progress * 100)}%)`)
-		)
-
-		this.log(`built list           `)
+	async init(progress){
+		await this.buildAll(p => progress(p))
 
 		this.ctx.repo.updates.subscribe(this.handleUpdates.bind(this))
 	}

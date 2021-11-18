@@ -1,17 +1,17 @@
 import { BaseProvider } from '../base.js'
+import { log } from '../../lib/log.js'
 import { wait, unixNow } from '../../../common/time.js'
-import { pretty } from '../../lib/logging.js'
 import { keySort, decimalCompare } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
 
 
 
 export default class extends BaseProvider{
-	constructor({repo, nodes, config}){
-		super('ledger.states')
+	constructor({repo, xrpl, config}){
+		super()
 
 		this.repo = repo
-		this.nodes = nodes
+		this.xrpl = xrpl
 		this.config = config.ledger
 	}
 
@@ -60,11 +60,11 @@ export default class extends BaseProvider{
 		let accounts = {}
 		let lastMarker
 
-		this.log(`scanning ledger #${ledgerIndex} (${new Date(t*1000).toISOString()})`)
+		log.info(`scanning ledger #${ledgerIndex} (${new Date(t*1000).toISOString()})`)
 
 		while(true){
 			try{
-				var result = await this.nodes.request({
+				var result = await this.xrpl.request({
 					command: 'ledger_data',
 					ledger_index: ledgerIndex,
 					marker: lastMarker,
@@ -72,7 +72,8 @@ export default class extends BaseProvider{
 					priority: 100
 				})
 			}catch(error){
-				this.log(`could not fetch ledger data: ${error.toString()}`)
+				log.error(`could not fetch ledger data:`)
+				log.error(error)
 				await wait(1000)
 				continue
 			}
@@ -141,7 +142,7 @@ export default class extends BaseProvider{
 
 			scanned += result.state.length
 
-			this.log(`scanned ${pretty(scanned)} entries: ${pretty(Object.keys(balances).length)} trustlines`)
+			log.info(`scanned`, scanned, `entries:`, Object.keys(balances).length, `trustlines`)
 
 			lastMarker = result.marker
 			
@@ -149,7 +150,7 @@ export default class extends BaseProvider{
 				break
 		}
 
-		this.log(`computing distrubutions & liquidities`)
+		log.info(`computing distrubutions & liquidities`)
 
 		let trustlines = Object.entries(balances)
 			.map(([key, balances]) => {
@@ -208,7 +209,7 @@ export default class extends BaseProvider{
 
 
 
-		this.log(`writing ${trustlines.length} trustline stats to db`)
+		log.info(`writing ${trustlines.length} trustline stats to db`)
 
 		await this.repo.stats.set(
 			t, 
@@ -218,7 +219,7 @@ export default class extends BaseProvider{
 
 
 		if(full){
-			this.log(`writing metas, whales & distrubutions to db`)
+			log.info(`writing metas, whales & distrubutions to db`)
 
 			await this.repo.metas.set(trustlines.map(({stat}) => ({
 				meta: accounts[stat.issuer],
@@ -238,14 +239,14 @@ export default class extends BaseProvider{
 			}
 		}
 
-		this.log(`scan complete`)
+		log.info(`scan complete`)
 	}
 
 	async findLedgerIndexAtTime(t){
 		let index = undefined
 
 		while(true){
-			let result = await this.nodes.request({
+			let result = await this.xrpl.request({
 				command: 'ledger',
 				ledger_index: index
 			})

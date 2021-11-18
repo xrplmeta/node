@@ -1,11 +1,11 @@
-import { pretty } from '../../lib/logging.js'
 import { batched } from '../../../common/data.js'
 import { RestProvider } from '../base.js'
+import { log } from '../../lib/log.js'
 
 
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
-		super('twitter', {
+		super({
 			base: 'https://api.twitter.com/2',
 			headers: {
 				authorization: `Bearer ${config.twitter.bearerToken}`
@@ -35,7 +35,7 @@ export default class extends RestProvider{
 
 
 	async cycle(){
-		this.log(`collecting targets`)
+		log.info(`collecting targets`)
 
 		let targets = {}
 
@@ -57,10 +57,10 @@ export default class extends RestProvider{
 		let targetBatches = batched(targetTodo, 100)
 		let i = 0
 
-		this.log(`got ${pretty(targetTodo.length)} twitter pages to scrape (${targetBatches.length} batches)`)
+		log.info(`got`, targetTodo.length, `twitter pages to scrape (${targetBatches.length} batches)`)
 
 		for(let batch of targetBatches){
-			this.log(`scraping batch ${i} of ${targetBatches.length}`)
+			log.info(`scraping batch ${i} of ${targetBatches.length}`)
 
 			let { data, error } = await this.api.get(`users/by`, {
 				usernames: batch
@@ -69,8 +69,8 @@ export default class extends RestProvider{
 				'user.fields': 'name,profile_image_url,description,entities'
 			})
 
-			this.log(`got ${data.length} profiles`)
-			this.log(`writing metas to db`)
+			log.info(`got`, data.length, `profiles`)
+			log.info(`writing metas to db`)
 
 
 			for(let {twitter, issuers} of batch){
@@ -116,6 +116,6 @@ export default class extends RestProvider{
 			i++
 		}
 
-		this.log(`cycle complete`)
+		log.info(`cycle complete`)
 	}
 }
