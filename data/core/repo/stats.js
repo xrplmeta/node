@@ -1,6 +1,6 @@
 export async function set(t, trustlines, replaceAfter){
 	for(let trustline of trustlines){
-		Object.assign(trustline, await this.trustlines.getOne(trustline))
+		Object.assign(trustline, await this.trustlines.getOne(trustline, true))
 	}
 
 	if(replaceAfter){
