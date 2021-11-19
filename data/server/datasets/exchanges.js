@@ -1,6 +1,8 @@
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import { createURI as createPairURI } from '../../../common/pair.js'
+import { wait } from '../../../common/time.js'
 import Decimal from '../../../common/decimal.js'
+import { log } from '../../lib/log.js'
 
 const candlestickIntervals = {
 	'5m': 60 * 5,
@@ -47,9 +49,12 @@ export default class{
 
 			for(let pair of Object.values(this.pairs)){
 				if(pair.base.id === update.subject || pair.quote.id === update.subject){
+					log.debug(`rebuilding ${pair.base.currency} (update ${updates.indexOf(update)+1} of ${updates.length})`)
 					await this.build(pair.base, pair.quote)
 				}
 			}
+
+			await wait(1)
 		}
 	}
 

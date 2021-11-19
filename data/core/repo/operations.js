@@ -57,8 +57,8 @@ export async function record(type, subject, promise){
 	let start = unixNow()
 	let result
 
-	try{
 		await promise
+	try{
 		result = 'success'
 	}catch(error){
 		if(subject)
@@ -66,7 +66,7 @@ export async function record(type, subject, promise){
 		else
 			log.error(`operation "${type}" failed:`)
 
-		log.error(error)
+		log.error(typeof error === 'string' ? error : error.message)
 
 		await wait(3000)
 

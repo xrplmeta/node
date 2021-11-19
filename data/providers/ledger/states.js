@@ -42,18 +42,35 @@ export default class extends BaseProvider{
 				continue
 			}
 
+			try{
+				var ledgerIndex = await this.findLedgerIndexAtTime(next)
+			}catch{
+				log.error(`could not get ledger index for time ${next}`)
+				await wait(1000)
+				continue
+			}
+
+			if(!full && this.config.scanHistoryOnlyAdmin){
+				let specs = await this.xrpl.getNodesHavingLedger(ledgerIndex)
+
+				if(!specs.some(spec => spec.admin)){
+					log.info(`skipping history scan of ledger #${ledgerIndex} (no admin node available)`)
+					await wait(10000)
+					continue
+				}
+			}
+
 
 			await this.repo.operations.record(
 				'ledger.states', 
 				`t${next}`, 
-				this.scan(next, full, historyHead)
+				this.scan(next, ledgerIndex, full, historyHead)
 			)
 		}
 	}
 
 
-	async scan(t, full, lastHistory){
-		let ledgerIndex = await this.findLedgerIndexAtTime(t)
+	async scan(t, ledgerIndex, full, lastHistory){
 		let scanned = 0
 		let books = {}
 		let balances = {}

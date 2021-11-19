@@ -105,7 +105,7 @@ export default class{
 								data
 							)
 						}else{
-							return
+							return existing
 						}
 					}
 				}

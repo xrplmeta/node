@@ -1,27 +1,10 @@
 export async function set(t, trustlines, replaceAfter){
-	let issuerRows = await this.db.insert(
-		'Issuers',
-		trustlines.map(trustline => ({
-			address: trustline.issuer
-		})),
-		{
-			duplicate: {ignore: true}
-		}
-	)
-
-	let trustlineRows = await this.db.insert(
-		'Trustlines',
-		trustlines.map((trustline, i) => ({
-			currency: trustline.currency,
-			issuer: issuerRows[i].id
-		})),
-		{
-			duplicate: {ignore: true}
-		}
-	)
+	for(let trustline of trustlines){
+		Object.assign(trustline, await this.trustlines.getOne(trustline))
+	}
 
 	if(replaceAfter){
-		for(let {id} of trustlineRows){
+		for(let { id } of trustlines){
 			await this.db.run(
 				`DELETE FROM Stats
 				WHERE trustline = ?
@@ -36,7 +19,7 @@ export async function set(t, trustlines, replaceAfter){
 		'Stats',
 		trustlines.map((trustline, i) => ({
 			date: t,
-			trustline: trustlineRows[i].id,
+			trustline: trustline.id,
 			accounts: trustline.accounts,
 			supply: trustline.supply,
 			buy: trustline.buy,

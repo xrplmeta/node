@@ -14,10 +14,10 @@ export class Host{
 		this.workers.push(worker)
 		worker.on('message', ({type, payload}) => {
 			switch(type){
-				case 'xrpl.request':
-					this.xrpl.request(...payload.args)
-						.then(data => worker.postMessage({type: 'xrpl.request', payload: {id: payload.id, data}}))
-						.catch(error => worker.postMessage({type: 'xrpl.request', payload: {id: payload.id, error}}))
+				case 'xrpl.invoke':
+					this.xrpl[payload.method](...payload.args)
+						.then(data => worker.postMessage({type: 'xrpl.invoke', payload: {id: payload.id, data}}))
+						.catch(error => worker.postMessage({type: 'xrpl.invoke', payload: {id: payload.id, error}}))
 					break
 
 			}
@@ -47,7 +47,7 @@ export class Client extends EventEmitter{
 					this.emit(payload.event, payload.data)
 					break
 
-				case 'xrpl.request':
+				case 'xrpl.invoke':
 					let req = this.requests.find(r => r.id === payload.id)
 
 					if(req){
@@ -69,7 +69,17 @@ export class Client extends EventEmitter{
 			let id = this.counter++
 
 			this.requests.push({id, resolve, reject})
-			this.port.postMessage({type: 'xrpl.request', payload: {id, args}})
+			this.port.postMessage({type: 'xrpl.invoke', payload: {id, method: 'request', args}})
+
+		})
+	}
+
+	async getNodesHavingLedger(...args){
+		return await new Promise((resolve, reject) => {
+			let id = this.counter++
+
+			this.requests.push({id, resolve, reject})
+			this.port.postMessage({type: 'xrpl.invoke', payload: {id, method: 'getNodesHavingLedger', args}})
 
 		})
 	}

@@ -152,6 +152,13 @@ export default class extends EventEmitter{
 		})
 	}
 
+	async getNodesHavingLedger(ledger){
+		return this.clients
+			.filter(client => client.spec.ledgers && client.spec.ledgers
+				.some(([start, end]) => ledger >= start && ledger <= end))
+			.map(client => client.spec)
+	}
+
 	async getCurrentLedger(){
 		let result = await this.request({command: 'ledger'})
 

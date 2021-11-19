@@ -75,7 +75,14 @@ async function loop(repo){
 			continue
 		}
 
-		// updates still need to be made unique to save performance
+		updates = updates.filter((update, i) => {
+			let index = updates.findIndex(u => true
+				&& u.context === update.context
+				&& u.type === update.type
+				&& u.subject === update.subject)
+
+			return index === i
+		})
 
 		heads = nextHeads
 	
