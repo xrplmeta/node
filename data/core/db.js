@@ -1,4 +1,5 @@
 import Adapter from 'better-sqlite3'
+import { wait } from '../../common/time.js'
 
 export default class{
 	constructor(config){
@@ -42,8 +43,18 @@ export default class{
 		return rows.map(row => row[key])
 	}
 
-	run(sql, ...params){
-		return this.prepare(sql).run(...params)
+	async run(sql, ...params){
+		while(true){
+			try{
+				return this.prepare(sql).run(...params)
+			}catch(e){
+				if(e.code !== 'SQLITE_BUSY' && e.code !== 'SQLITE_BUSY_SNAPSHOT'){
+					throw e
+				}
+
+				await wait(100)
+			}
+		}
 	}
 
 	async insert(table, data, options){

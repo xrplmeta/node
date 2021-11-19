@@ -42,7 +42,6 @@ export class Client extends EventEmitter{
 		this.requests = []
 		this.counter = 0
 		this.port.on('message', ({type, payload}) => {
-
 			switch(type){
 				case 'xrpl.event':
 					this.emit(payload.event, payload.data)
@@ -56,9 +55,11 @@ export class Client extends EventEmitter{
 							req.resolve(payload.data)
 						else
 							req.reject(payload.error)
-					}
-					break
 
+						this.requests.splice(this.requests.indexOf(req), 1)
+					}
+
+					break
 			}
 		})
 	}

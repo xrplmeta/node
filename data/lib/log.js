@@ -1,4 +1,4 @@
-import { isMainThread, parentPort } from 'worker_threads'
+import { isMainThread, parentPort } from './worker_threads.polyfill.js'
 
 const logColors = {
 	red: '31m',

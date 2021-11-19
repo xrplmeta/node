@@ -63,8 +63,10 @@ export default class extends BaseProvider{
 		log.info(`scanning ledger #${ledgerIndex} (${new Date(t*1000).toISOString()})`)
 
 		while(true){
+			let result
+
 			try{
-				var result = await this.xrpl.request({
+				result = await this.xrpl.request({
 					command: 'ledger_data',
 					ledger_index: ledgerIndex,
 					marker: lastMarker,
@@ -145,6 +147,7 @@ export default class extends BaseProvider{
 			log.info(`scanned`, scanned, `entries:`, Object.keys(balances).length, `trustlines`)
 
 			lastMarker = result.marker
+			result = null
 			
 			if(!lastMarker)
 				break

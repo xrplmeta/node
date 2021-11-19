@@ -34,6 +34,14 @@ export default class Repo extends EventEmitter{
 
 		log.info(`opened database: ${file}`)
 	}
+
+	async flushWAL(){
+		log.info(`force flushing WAL file...`)
+
+		this.db.pragma(`wal_checkpoint(TRUNCATE)`)
+
+		log.info(`WAL flushed`)
+	}
 	
 
 	async getTableHeads(){
