@@ -1,5 +1,6 @@
 import { keySort, mapMultiKey, nestDotNotated } from '../../../common/data.js'
 import Decimal from '../../../common/decimal.js'
+import { log } from '../../lib/log.js'
 
 
 export default class{
@@ -38,7 +39,11 @@ export default class{
 			if(!entry)
 				continue
 
-			await this.build(entry.data)
+			await this.build({
+				currency: entry.data.currency,
+				id: entry.ids.trustline,
+				issuer: entry.ids.issuer,
+			})
 		}
 	}
 
