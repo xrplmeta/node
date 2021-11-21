@@ -60,7 +60,7 @@ export default class{
 			},
 			{
 				array: exchanges,
-				key: exchange => Math.floor(exchange.date / (60*60*4)),
+				key: exchange => Math.floor(exchange.t / (60*60*4)),
 			}
 		)
 
