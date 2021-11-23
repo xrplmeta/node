@@ -48,7 +48,7 @@ export default class extends BaseProvider{
 				}
 			}catch(e){
 				log.error(`failed to obtain ledger:`)
-				log.error(e)
+				log.error(e.message)
 
 				await wait(1000)
 			}

@@ -6,7 +6,7 @@ import { log } from '../../lib/log.js'
 export default class extends RestProvider{
 	constructor({repo, nodes, config}){
 		super({
-			base: 'https://xumm.app/api/v1/platform', 
+			base: 'https://xumm.app', 
 			headers: {
 				'x-api-key': config.xumm.apiKey, 
 				'x-api-secret': config.xumm.apiSecret
@@ -38,6 +38,13 @@ export default class extends RestProvider{
 			this.config.refreshIntervalKyc,
 			this.checkKYC.bind(this)
 		)
+
+		this.loopOperation(
+			'xumm.icon', 
+			'issuer', 
+			this.config.refreshIntervalIcon,
+			this.checkIcon.bind(this)
+		)
 	}
 
 
@@ -45,7 +52,7 @@ export default class extends RestProvider{
 	async scanAssets(){
 		log.info(`fetching curated asset list...`)
 
-		let { details } = await this.api.get('curated-assets')
+		let { details } = await this.api.get('api/v1/platform/curated-assets')
 		let metas = []
 
 		log.info(`got ${Object.values(details).length} issuers`)
@@ -85,7 +92,7 @@ export default class extends RestProvider{
 	async checkKYC(issuerId){
 		let issuer = await this.repo.issuers.getOne({id: issuerId})
 
-		let { kycApproved } = await this.api.get(`kyc-status/${issuer.address}`)
+		let { kycApproved } = await this.api.get(`/api/v1/platform/kyc-status/${issuer.address}`)
 		let meta = {kyc: kycApproved ? 'approved' : null}
 
 		this.repo.metas.setOne({
@@ -99,6 +106,33 @@ export default class extends RestProvider{
 			this.status = {checked: 0, start: Date.now()}
 		}else if(Date.now() - this.status.start > 10000){
 			log.info(`checked ${this.status.checked+1} KYCs in 10s`)
+			this.status = null
+		}else{
+			this.status.checked++
+		}
+	}
+
+	async checkIcon(issuerId){
+		let issuer = await this.repo.issuers.getOne({id: issuerId})
+		let res = await this.api.get(`/avatar/${issuer.address}.png`, null, {raw: true, redirect: 'manual'})
+		let meta = {icon: null}
+
+
+		if(res.headers.get('location')){
+			meta.icon = res.headers.get('location').split('?')[0]
+		}
+
+		this.repo.metas.setOne({
+			meta,
+			type: 'issuer',
+			subject: issuer.id,
+			source: 'xumm.app'
+		})
+
+		if(!this.status){
+			this.status = {checked: 0, start: Date.now()}
+		}else if(Date.now() - this.status.start > 10000){
+			log.info(`checked ${this.status.checked+1} icons in 10s`)
 			this.status = null
 		}else{
 			this.status.checked++

@@ -69,13 +69,8 @@ if(isMainThread){
 
 		log.info(`all threads up`)
 
-		/*;(async () => {
-			await repo.open()
-
-			new Server({repo, config})
-				.start()
-		
-		})()*/
+		repo.open()
+			.then(() => repo.monitorWAL(60000, 100000000))
 	}
 }else{
 	const { task, config } = workerData

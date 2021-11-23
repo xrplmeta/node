@@ -89,7 +89,7 @@ export default class{
 							.filter(key => !duplicateKeys.includes(key))
 							.map(key => `\`${key}\`=@${key}`)
 
-						this.run(
+						await this.run(
 							`UPDATE ${table} 
 							SET ${updates} 
 							WHERE ${compare.join(` AND `)}`,
@@ -111,7 +111,7 @@ export default class{
 				}
 			}
 
-			let info = this.run(
+			let info = await this.run(
 				`INSERT INTO ${table}
 				(${Object.keys(data).map(key => `\`${key}\``).join(',')})
 				VALUES

@@ -164,17 +164,18 @@ export function currencyHexToUTF8(code){
 	if(code.length === 3)
 		return code
 
-	let readable = ''
+	return new TextDecoder()
+		.decode(hexToBytes(code))
+}
 
-	for (let i = 0; i < code.length; i += 2) {
-		readable += String.fromCharCode(parseInt(code.substr(i, 2), 16))
+function hexToBytes(hex){
+	let bytes = new Uint8Array(hex.length / 2)
+
+	for (let i = 0; i !== bytes.length; i++){
+		bytes[i] = parseInt(hex.substr(i * 2, 2), 16)
 	}
 
-	try{
-		return decodeURIComponent(escape(readable)).replace(/\u0000/g, '')
-	}catch{
-		return code
-	}
+	return bytes
 }
 
 export function currencyUTF8ToHex(code){

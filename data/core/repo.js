@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import Database from './db.js'
 import { log } from '../lib/log.js'
@@ -33,6 +34,29 @@ export default class Repo extends EventEmitter{
 		this.structure.ensure()
 
 		log.info(`opened database: ${file}`)
+	}
+
+	async monitorWAL(interval, maxSize){
+		log.info(`monitoring WAL file`)
+
+		let file = path.join(this.config.data.dir, 'meta.db-wal')
+
+		while(true){
+			await wait(interval)
+
+			try{
+				let stat = fs.statSync(file)
+
+				log.debug(`WAL file is ${stat.size} bytes`)
+
+				if(stat.size > maxSize){
+					log.info(`WAL file exceeds max size of ${maxSize}`)
+					await this.flushWAL()
+				}
+			}catch(e){
+				log.error(`could not check WAL file:\n`, e)
+			}
+		}
 	}
 
 	async flushWAL(){

@@ -13,7 +13,7 @@ export default class{
 		 let client = {
 			id: ++this.counter,
 			socket, 
-			//ip: request.socket.remoteAddress
+			subscriptions: []
 		}
 
 		socket.on('message', async message => {
@@ -25,9 +25,17 @@ export default class{
 			}
 
 			try{
-				let data = await this.serveRequest(client, request.payload)
-
-				socket.send(JSON.stringify({request: request.id, data}))
+				if(request.command === 'subscribe'){
+					socket.send(JSON.stringify({
+						request: request.id, 
+						data: await this.subscribe(client, request.payload)
+					}))
+				}else{
+					socket.send(JSON.stringify({
+						request: request.id, 
+						data: await this.serveRequest(client, request.payload)
+					}))
+				}
 			}catch(error){
 				let response = null
 
@@ -63,5 +71,9 @@ export default class{
 			...this.ctx,
 			parameters: request
 		})
+	}
+
+	async subscribe(client, request){
+		
 	}
 }

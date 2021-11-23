@@ -48,6 +48,14 @@ export default class Rest{
 			)
 		}
 
+		for(let key of ['redirect']){
+			if(!options[key])
+				continue
+
+			req[key] = options[key]
+		}
+
+
 		if(method === 'get'){
 			let query = new URLSearchParams(data).toString()
 
