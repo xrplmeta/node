@@ -71,43 +71,24 @@ export default class{
 			issuerId = (await ctx.repo.issuers.getOne({address: issuer})).id
 		}
 		
-		let currentStats = await ctx.repo.stats.getRecent(trustline)
 		let currencyMetas = await ctx.repo.metas.get('trustline', trustline.id)
 		let issuerMetas = await ctx.repo.metas.get('issuer', issuerId)
-		let yesterdayStats
-		let trustlinesCount
-		let meta = {}
-		let stats = {}
-
-
-		meta.currency = this.sortMetas(
-			nestDotNotated(mapMultiKey(currencyMetas, 'key', true)),
-			ctx.config.api.defaultSourcePriority
-		)
-
-		meta.issuer = this.sortMetas(
-			nestDotNotated(mapMultiKey(issuerMetas, 'key', true)),
-			ctx.config.api.defaultSourcePriority
-		)
-
-		if(currentStats){
-			stats.trustlines = currentStats.accounts
-			stats.supply = currentStats.supply
-			stats.liquidity = Decimal.sum(currentStats.buy, currentStats.sell).toString()
-
-			yesterdayStats = await ctx.repo.stats.getRecent(trustline, currentStats.date - 60*60*24)
-
-			if(yesterdayStats){
-				stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
-			}
+		let meta = {
+			currency: this.sortMetas(
+				nestDotNotated(mapMultiKey(currencyMetas, 'key', true)),
+				ctx.config.api.defaultSourcePriority
+			),
+			issuer: this.sortMetas(
+				nestDotNotated(mapMultiKey(issuerMetas, 'key', true)),
+				ctx.config.api.defaultSourcePriority
+			)
 		}
 
-		let data = {
+		let data = await this.enrich({
 			currency, 
 			issuer,
-			meta,
-			stats,
-		}
+			meta
+		})
 
 		let existing = this.data.find(({data}) => 
 			data.currency === currency 
@@ -125,6 +106,46 @@ export default class{
 				}
 			})
 		}
+	}
+
+	async enrich(trustline){
+		let currentStats = await this.ctx.repo.stats.getRecent(trustline)
+		let yesterdayStats
+		let candles = await this.ctx.datasets.exchanges.get(trustline, {currency: 'XRP'}, '1d')
+		let enriched = {
+			...trustline,
+			stats: []
+		}
+
+		if(currentStats){
+			stats.trustlines = currentStats.accounts
+			stats.supply = currentStats.supply
+			stats.liquidity = Decimal.sum(currentStats.buy, currentStats.sell).toString()
+
+			yesterdayStats = await this.ctx.repo.stats.getRecent(trustline, currentStats.date - 60*60*24)
+
+			if(yesterdayStats){
+				stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
+			}
+		}
+
+		if(candles.length > 0){
+			let newestCandle = candles[candles.length - 1]
+			let lastWeeksCandle = candles.find(candle => candle.t >= newestCandle.t - 60*60*24*7)
+
+			enriched.stats = {
+				...enriched.stats,
+				price: newestCandle.c,
+				price_change: Math.round((newestCandle.c / newestCandle.o - 1) * 1000)/10,
+				marketcap: Decimal.mul(enriched.stats.supply || 0, newestCandle.c),
+				volume: Decimal.sum(...candles
+					.slice(candles.indexOf(lastWeeksCandle))
+					.map(candle => candle.v)
+				)
+			}
+		}
+
+		return enriched
 	}
 
 	sortMetas(metas, sourcePriority){

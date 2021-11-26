@@ -1,7 +1,7 @@
 import { Worker, isMainThread, parentPort, workerData } from './lib/worker_threads.polyfill.js'
 import { fileURLToPath } from 'url'
 import minimist from 'minimist'
-import { Logger } from './lib/log.js'
+import { Logger, log as defaultLogger } from './lib/log.js'
 import { load as loadConfig } from './core/config.js'
 import Repo from './core/repo.js'
 import { Host, Client } from './core/xrpl.mt.js'
@@ -10,9 +10,11 @@ import providers from './providers/index.js'
 
 
 if(isMainThread){
-	const log = new Logger({name: 'main', color: 'yellow', level: 'info'})
 	const args = minimist(process.argv.slice(2))
+	const log = new Logger({name: 'main', color: 'yellow', level: args.log || 'info'})
 	const configPath = args.config || 'config.toml'
+	
+	defaultLogger.level = log.level
 	
 	log.info(`starting with config "${configPath}"`)
 

@@ -1,5 +1,6 @@
 import Adapter from 'better-sqlite3'
 import { wait } from '../../common/time.js'
+import { log } from '../lib/log.js'
 
 export default class{
 	constructor(config){
@@ -8,10 +9,12 @@ export default class{
 	}
 
 	pragma(sql){
+		log.debug(`sql pragma: ${sql}`)
 		return this.con.pragma(sql)
 	}
 
 	exec(sql){
+		log.debug(`sql exec: ${sql}`)
 		return this.con.exec(sql)
 	}
 
@@ -20,19 +23,23 @@ export default class{
 	}
 
 	get(sql, ...params){
+		log.debug(`sql get: ${sql}`, params)
 		return this.prepare(sql).get(...params)
 	}
 
 	getv(sql, ...params){
+		log.debug(`sql getv: ${sql}`, params)
 		let res = this.prepare(sql).get(...params)
 		return res[Object.keys(res)[0]]
 	}
 
 	all(sql, ...params){
+		log.debug(`sql all: ${sql}`, params)
 		return this.prepare(sql).all(...params)
 	}
 
 	allv(sql, ...params){
+		log.debug(`sql allv: ${sql}`, params)
 		let rows = this.prepare(sql).all(...params)
 			
 		if(rows.length === 0)
@@ -43,18 +50,9 @@ export default class{
 		return rows.map(row => row[key])
 	}
 
-	async run(sql, ...params){
-		while(true){
-			try{
-				return this.prepare(sql).run(...params)
-			}catch(e){
-				if(e.code !== 'SQLITE_BUSY' && e.code !== 'SQLITE_BUSY_SNAPSHOT'){
-					throw e
-				}
-
-				await wait(100)
-			}
-		}
+	run(sql, ...params){
+		log.debug(`sql run: ${sql}`, params)
+		return this.prepare(sql).run(...params)
 	}
 
 	async insert(table, data, options){
@@ -89,7 +87,7 @@ export default class{
 							.filter(key => !duplicateKeys.includes(key))
 							.map(key => `\`${key}\`=@${key}`)
 
-						await this.run(
+						this.run(
 							`UPDATE ${table} 
 							SET ${updates} 
 							WHERE ${compare.join(` AND `)}`,
@@ -99,7 +97,7 @@ export default class{
 						return {...existing, ...data}
 					}else if(options.duplicate.replace){
 						if(Object.entries(data).some(([k, v]) => existing[k] !== v)){
-							await this.run(
+							this.run(
 								`DELETE FROM ${table}
 								WHERE ${compare.join(` AND `)}`,
 								data
@@ -111,7 +109,7 @@ export default class{
 				}
 			}
 
-			let info = await this.run(
+			let info = this.run(
 				`INSERT INTO ${table}
 				(${Object.keys(data).map(key => `\`${key}\``).join(',')})
 				VALUES
@@ -128,14 +126,38 @@ export default class{
 	}
 
 	async tx(func){
-		this.con.exec('BEGIN')
+		if(this.inTx)
+			return await func()
 
+		log.debug(`sql tx begin`)
+
+		while(true){
+			try{
+				this.con.exec('BEGIN IMMEDIATE')
+				this.inTx = true
+				break
+			}catch(e){
+				if(e.code !== 'SQLITE_BUSY' && e.code !== 'SQLITE_BUSY_SNAPSHOT'){
+					throw e
+				}
+
+				log.info(`sql busy`)
+				await wait(3000)
+			}
+		}
+		
 		try{
 			var ret = await func()
+
+			log.debug(`sql tx commit`)
 			this.con.exec('COMMIT')
 		}catch(error){
+			log.debug(`sql tx begin`)
 			this.con.exec('ROLLBACK')
+
 			throw error
+		}finally{
+			this.inTx = false
 		}
 
 		return ret

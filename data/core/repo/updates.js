@@ -88,7 +88,7 @@ async function loop(repo){
 	
 		for(let callback of subscriptions){
 			try{
-				callback(updates)
+				await callback(updates)
 			}catch{
 				continue
 			}

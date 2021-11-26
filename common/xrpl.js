@@ -164,8 +164,14 @@ export function currencyHexToUTF8(code){
 	if(code.length === 3)
 		return code
 
-	return new TextDecoder()
+	let decoded = new TextDecoder()
 		.decode(hexToBytes(code))
+	let firstNull = decoded.indexOf('\0')
+
+	if(firstNull > 0)
+		decoded = decoded.slice(0, firstNull)
+
+	return decoded
 }
 
 function hexToBytes(hex){

@@ -24,6 +24,7 @@ export default class extends EventEmitter{
 
 				//yes
 				client.spec = spec
+
 				client.on('transaction', tx => {
 					if(!this.hasSeen(`tx${tx.transaction.hash}`))
 						this.emit('transaction', tx)
@@ -68,24 +69,25 @@ export default class extends EventEmitter{
 
 		this.seen.push(key)
 
-		if(this.seen.length > 10000)
+		if(this.seen.length > 1000)
 			this.seen.shift()
 	}
 
 	async loop(){
 		while(true){
 			for(let job of this.queue){
-				let bids = this.clients
-					.map(client => this.bidForJob(client, job))
-					.filter(bid => bid)
+				let bidders = this.clients
+					.map(client => ({client, bid: this.bidForJob(client, job)}))
+					.filter(({bid}) => bid)
 					.sort((a, b) => b.bid - a.bid)
+					.map(({client}) => client)
 
-				if(bids.length === 0)
+				if(bidders.length === 0)
 					continue
 
 				job.started()
 
-				this.doJob(bids[0].client, job)
+				this.doJob(bidders[0], job)
 				this.queue = this.queue.filter(j => j !== job)
 			}
 
@@ -100,25 +102,23 @@ export default class extends EventEmitter{
 		if(client.spec.busy)
 			return null
 
-		let bid = 1
+		let bid = 1 - this.clients.indexOf(client) * 0.001
 		let index = job.request.ledger_index
 
 		if(index){
 			if(!client.spec.ledgers)
-				return null
+				return 0
 
 			let has = client.spec.ledgers
 				.some(([start, end]) => index >= start && index <= end)
 
 			if(!has)
-				return null
-			
+				return 0
 		}
 
-		if(client.spec.admin)
-			bid++
+		// todo: take latency and node health into account
 
-		return {client, bid}
+		return bid
 	}
 
 	async doJob(client, job){
@@ -140,8 +140,23 @@ export default class extends EventEmitter{
 		priority = priority || 0
 
 		return new Promise((resolve, reject) => {
+			let potentialNodes = this.clients
+				.map(client => client.spec)
+				.filter(spec => !spec.allowedCommands || spec.allowedCommands.includes(request.command))
+
+			if(request.ledger_index){
+				potentialNodes = potentialNodes.filter(spec => spec.ledgers 
+					&& spec.ledgers.some(([start, end]) => 
+						request.ledger_index >= start && request.ledger_index <= end))
+			}
+
+			if(potentialNodes.length === 0){
+				setTimeout(() => reject('REQUEST_UNFULLFILLABLE'), 30000)
+				return
+			}
+
 			let insertAt = this.queue.length - 1
-			let timeout = setTimeout(() => reject('no available node'), 30000)
+			let timeout = setTimeout(() => reject('NO_NODE_AVAILABLE'), 30000)
 			let started = () => clearTimeout(timeout)
 
 			while(insertAt > 0 && priority > this.queue[insertAt].priority){
@@ -152,13 +167,6 @@ export default class extends EventEmitter{
 		})
 	}
 
-	async getNodesHavingLedger(ledger){
-		return this.clients
-			.filter(client => client.spec.ledgers && client.spec.ledgers
-				.some(([start, end]) => ledger >= start && ledger <= end))
-			.map(client => client.spec)
-	}
-
 	async getCurrentLedger(){
 		let result = await this.request({command: 'ledger'})
 
@@ -166,6 +174,9 @@ export default class extends EventEmitter{
 	}
 
 	async subscribeClient(client){
+		if(client.spec.allowedCommands && !client.spec.allowedCommands.includes('subscribe'))
+			return
+
 		let result = await client.request({
 			command: 'subscribe',
 			streams: ['ledger', 'transactions']

@@ -71,7 +71,7 @@ export async function record(type, subject, promise){
 		if(error.stack)
 			log.error(error.stack)
 
-		await wait(3000)
+		await wait(10000)
 
 		result = `error: ${error.toString()}`
 	}

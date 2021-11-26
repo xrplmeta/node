@@ -12,6 +12,7 @@ export default class extends BaseProvider{
 		this.xrpl = xrpl
 		this.busy = []
 		this.config = config.ledger
+		this.known = {head: 0, tail: Infinity}
 	}
 
 	async run(){
@@ -33,24 +34,32 @@ export default class extends BaseProvider{
 					if(this.busy.includes(i))
 						continue
 
-					if(await this.repo.operations.hasCompleted(`ledger.txs`, `l${i}`))
+					if(i <= this.known.head && i>= this.known.tail)
 						continue
 
-					if(await this.repo.operations.hasCompleted(`ledger.live`, `l${i}`))
+					if(await this.repo.operations.hasCompleted(`ledger.txs`, `l${i}`)){
+						this.know(i)
 						continue
+					}
+
+					if(await this.repo.operations.hasCompleted(`ledger.live`, `l${i}`)){
+						this.know(i)
+						continue
+					}
 
 					this.busy.push(i)
 
 					await this.repo.operations.record('ledger.txs', `l${i}`, this.sift(i))
 
 					this.busy = this.busy.filter(ledger => ledger !== i)
+					this.know(i)
 					break
 				}
 			}catch(e){
 				log.error(`failed to obtain ledger:`)
-				log.error(e.message)
+				log.error(e)
 
-				await wait(1000)
+				await wait(10000)
 			}
 		}
 	}
@@ -85,5 +94,10 @@ export default class extends BaseProvider{
 			...exchange,
 			date: rippleToUnix(ledger.close_time)
 		})))
+	}
+
+	know(i){
+		this.known.head = Math.max(this.known.head, i)
+		this.known.tail = Math.min(this.known.tail, i)
 	}
 }

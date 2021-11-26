@@ -16,8 +16,14 @@ export class Host{
 			switch(type){
 				case 'xrpl.invoke':
 					this.xrpl[payload.method](...payload.args)
-						.then(data => worker.postMessage({type: 'xrpl.invoke', payload: {id: payload.id, data}}))
-						.catch(error => worker.postMessage({type: 'xrpl.invoke', payload: {id: payload.id, error}}))
+						.then(data => worker.postMessage({
+							type: 'xrpl.invoke', 
+							payload: {id: payload.id, data}
+						}))
+						.catch(error => worker.postMessage({
+							type: 'xrpl.invoke', 
+							payload: {id: payload.id, error}
+						}))
 					break
 
 			}
@@ -70,16 +76,6 @@ export class Client extends EventEmitter{
 
 			this.requests.push({id, resolve, reject})
 			this.port.postMessage({type: 'xrpl.invoke', payload: {id, method: 'request', args}})
-
-		})
-	}
-
-	async getNodesHavingLedger(...args){
-		return await new Promise((resolve, reject) => {
-			let id = this.counter++
-
-			this.requests.push({id, resolve, reject})
-			this.port.postMessage({type: 'xrpl.invoke', payload: {id, method: 'getNodesHavingLedger', args}})
 
 		})
 	}

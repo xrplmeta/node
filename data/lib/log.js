@@ -75,4 +75,8 @@ const log = {
 	error: defaultLogger.error.bind(defaultLogger),
 }
 
+Object.defineProperty(log, 'level', {
+	set: level => defaultLogger.level = level
+})
+
 export { Logger, log }

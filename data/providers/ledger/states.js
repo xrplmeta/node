@@ -36,7 +36,6 @@ export default class extends BaseProvider{
 				}
 			}
 
-
 			if(!next){
 				await wait(1000)
 				continue
@@ -44,20 +43,11 @@ export default class extends BaseProvider{
 
 			try{
 				var ledgerIndex = await this.findLedgerIndexAtTime(next)
-			}catch{
-				log.error(`could not get ledger index for time ${next}`)
-				await wait(1000)
+			}catch(e){
+				log.error(`could not get ledger index for time ${next}:`)
+				log.error(e)
+				await wait(3000)
 				continue
-			}
-
-			if(!full && this.config.scanHistoryOnlyAdmin){
-				let specs = await this.xrpl.getNodesHavingLedger(ledgerIndex)
-
-				if(!specs.some(spec => spec.admin)){
-					log.info(`skipping history scan of ledger #${ledgerIndex} (no admin node available)`)
-					await wait(10000)
-					continue
-				}
 			}
 
 
@@ -228,44 +218,46 @@ export default class extends BaseProvider{
 			.filter(row => row)
 
 
+		await this.repo.db.tx(async () => {
+			log.info(`writing ${trustlines.length} trustline stats to db`)
 
-		log.info(`writing ${trustlines.length} trustline stats to db`)
-
-		await this.repo.stats.set(
-			t, 
-			trustlines.map(({stat}) => stat), 
-			full ? lastHistory : null
-		)
+			await this.repo.stats.set(
+				t, 
+				trustlines.map(({stat}) => stat), 
+				full ? lastHistory : null
+			)
 
 
-		if(full){
-			log.info(`writing metas, whales & distrubutions to db`)
+			if(full){
+				log.info(`writing metas, whales & distrubutions to db`)
 
-			await this.repo.metas.set(trustlines.map(({stat}) => ({
-				meta: accounts[stat.issuer],
-				type: 'issuer',
-				subject: stat.issuer,
-				source: 'ledger'
-			})))
+				await this.repo.metas.set(trustlines.map(({stat}) => ({
+					meta: accounts[stat.issuer],
+					type: 'issuer',
+					subject: stat.issuer,
+					source: 'ledger'
+				})))
 
-			for(let {stat, whales, distributions} of trustlines){
-				await this.repo.whales.set(stat, whales)
-				await this.repo.distributions.set(
-					t, 
-					stat, 
-					distributions, 
-					full ? lastHistory : null
-				)
+				for(let {stat, whales, distributions} of trustlines){
+					await this.repo.whales.set(stat, whales)
+					await this.repo.distributions.set(
+						t, 
+						stat, 
+						distributions, 
+						full ? lastHistory : null
+					)
+				}
 			}
-		}
+		})
 
 		log.info(`scan complete`)
 	}
 
 	async findLedgerIndexAtTime(t){
 		let index = undefined
+		let attempts = 20
 
-		while(true){
+		while(attempts --> 0){
 			let result = await this.xrpl.request({
 				command: 'ledger',
 				ledger_index: index
@@ -283,5 +275,7 @@ export default class extends BaseProvider{
 
 			index += stride
 		}
+
+		throw 'took too long'
 	}
 }

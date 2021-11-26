@@ -23,8 +23,7 @@ export async function currencies(ctx){
 	let now = unixNow()
 
 	for(let trustline of trustlines){
-		let enriched = await enrichTrustline(ctx, trustline)
-		let formatted = formatTrustline(ctx, enriched, true)
+		let formatted = formatTrustline(ctx, trustline, true)
 		let stack = stacks.find(stack => stack.currency === formatted.currency)
 
 		if(!stack){
@@ -43,9 +42,9 @@ export async function currencies(ctx){
 
 		stack.trustlines.push(formatted)
 
-		stack.stats.volume = stack.stats.volume.plus(enriched.stats.volume || 0)
-		stack.stats.marketcap = stack.stats.marketcap.plus(enriched.stats.marketcap || 0)
-		stack.stats.liquidity = stack.stats.liquidity.plus(enriched.stats.liquidity || 0)
+		stack.stats.volume = stack.stats.volume.plus(trustline.stats.volume || 0)
+		stack.stats.marketcap = stack.stats.marketcap.plus(trustline.stats.marketcap || 0)
+		stack.stats.liquidity = stack.stats.liquidity.plus(trustline.stats.liquidity || 0)
 	}
 
 	stacks = keySort(
@@ -66,7 +65,8 @@ export async function currencies(ctx){
 			decimalCompare
 		)
 			.reverse()
-			.filter((trustline, i) => i < 3 || trustline.stats.trustlines >= minTrustlines)
+			.filter((trustline, i) => i < 3 
+				|| trustline.stats.trustlines >= minTrustlines)
 	}
 
 	if(search){
@@ -88,7 +88,8 @@ export async function currencies(ctx){
 export async function currency_stats(ctx){
 	let currency = currencyUTF8ToHex(ctx.parameters.currency)
 	let trustlines = await ctx.datasets.trustlines.get()
-	let selectedTrustlines = trustlines.filter(trustline => trustline.currency === currency)
+	let selectedTrustlines = trustlines
+		.filter(trustline => trustline.currency === currency)
 	let stats = {
 		volume: new Decimal(0),
 		marketcap: new Decimal(0),
@@ -96,11 +97,9 @@ export async function currency_stats(ctx){
 	}
 
 	for(let trustline of selectedTrustlines){
-		let enriched = await enrichTrustline(ctx, trustline)
-
-		stats.volume = stats.volume.plus(enriched.stats.volume || 0)
-		stats.marketcap = stats.marketcap.plus(enriched.stats.marketcap || 0)
-		stats.liquidity = stats.liquidity.plus(enriched.stats.liquidity || 0)
+		stats.volume = stats.volume.plus(trustline.stats.volume || 0)
+		stats.marketcap = stats.marketcap.plus(trustline.stats.marketcap || 0)
+		stats.liquidity = stats.liquidity.plus(trustline.stats.liquidity || 0)
 	}
 
 	return stats
@@ -118,10 +117,7 @@ export async function trustline(ctx){
 		throw {message: 'trustline not listed', expose: true}
 	}
 
-	let enriched = await enrichTrustline(ctx, trustline)
-	let formatted = await formatTrustline(ctx, enriched, !full)
-
-	return formatted
+	return formatTrustline(ctx, trustline, !full)
 }
 
 export async function trustline_history(ctx){
@@ -174,34 +170,6 @@ export async function exchanges(ctx){
 	}
 }
 
-
-async function enrichTrustline(ctx, trustline){
-	let candles = await exchanges({
-		...ctx,
-		parameters: {
-			base: {...trustline}, 
-			quote: {currency: 'XRP'}, 
-			format: '1d',
-			start: unixNow() - 60*60*24*7
-		}
-	})
-	let enriched = {...trustline}
-
-
-	if(candles.length > 0){
-		let lastCandle = candles[candles.length - 1]
-
-		enriched.stats = {
-			...enriched.stats,
-			price: lastCandle.c,
-			price_change: Math.round((lastCandle.c / lastCandle.o - 1) * 1000)/10,
-			marketcap: Decimal.mul(enriched.stats.supply || 0, lastCandle.c),
-			volume: Decimal.sum(...candles.map(candle => candle.v))
-		}
-	}
-
-	return enriched
-}
 
 function formatTrustline(ctx, trustline, minimal){
 	let formatted = {
