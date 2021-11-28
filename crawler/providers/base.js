@@ -5,6 +5,11 @@ import { wait, unixNow } from '../../common/lib/time.js'
 
 
 export class BaseProvider{
+	constructor({repo, config}){
+		this.repo = repo
+		
+	}
+
 	async loopOperation(type, entity, interval, execute){
 		while(true){
 			await wait(10)
@@ -47,3 +52,17 @@ export class RestProvider extends BaseProvider{
 	}
 }
 
+
+export class SparseLedgerProvider extends BaseProvider{
+	constructor(cfg){
+		super()
+		
+	}
+}
+
+export class DenseLedgerProvider extends BaseProvider{
+	constructor(cfg){
+		super()
+		
+	}
+}

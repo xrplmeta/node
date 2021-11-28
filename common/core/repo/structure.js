@@ -52,7 +52,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Trustlines-C+I" ON "Trustlines" (
 );
 
 
-CREATE TABLE IF NOT EXISTS "TStats" (
+CREATE TABLE IF NOT EXISTS "Stats" (
 	"id"		INTEGER NOT NULL UNIQUE,
 	"trustline"	INTEGER NOT NULL,
 	"date"		INTEGER NOT NULL,
@@ -63,11 +63,11 @@ CREATE TABLE IF NOT EXISTS "TStats" (
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 
-CREATE INDEX IF NOT EXISTS "TStats-T" ON "TStats" (
+CREATE INDEX IF NOT EXISTS "Stats-T" ON "Stats" (
 	"trustline"
 );
 
-CREATE INDEX IF NOT EXISTS "TStats-D" ON "TStats" (
+CREATE INDEX IF NOT EXISTS "Stats-D" ON "Stats" (
 	"date"
 );
 
@@ -118,6 +118,32 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Exchanges-T" ON "Exchanges" (
 CREATE INDEX IF NOT EXISTS "Exchanges-F+T" ON "Exchanges" (
 	"from",
 	"to"
+);
+
+
+CREATE TABLE IF NOT EXISTS "Ledgers" (
+	"id"		INTEGER NOT NULL UNIQUE,
+	"index" 	INTEGER NOT NULL UNIQUE,
+	"date"		INTEGER NOT NULL,
+	"accounts"	INTEGER NOT NULL,
+	"txs"		INTEGER NOT NULL,
+	"payments"	INTEGER NOT NULL,
+	"trusts"	INTEGER NOT NULL,
+	"offers"	INTEGER NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+CREATE INDEX IF NOT EXISTS "Ledgers-I" ON "Ledgers" (
+	"index"
+);
+
+
+CREATE TABLE IF NOT EXISTS "Coverages" (
+	"id"			INTEGER NOT NULL UNIQUE,
+	"subject"		TEXT,
+	"head"			INTEGER,
+	"tail"			INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `
 

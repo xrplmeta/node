@@ -1,14 +1,22 @@
-import { BaseProvider } from '../base.js'
+import { LedgerProvider } from '../base.js'
 import { log } from '../../../common/lib/log.js'
 import { wait, unixNow } from '../../../common/lib/time.js'
 import { keySort, decimalCompare } from '../../../common/lib/data.js'
 import Decimal from '../../../common/lib/decimal.js'
 
 
+export default ({repo, config, xrpl}) => ({
+	operation: 'ledger.states',
+	intervalLedgers: config.stateInterval,
+	backfillLedgers: config.stateHistory
+})
 
-export default class extends BaseProvider{
+
+export default class extends LedgerProvider{
 	constructor({repo, xrpl, config}){
-		super()
+		super({
+			interval: this.config.stateInterval
+		})
 
 		this.repo = repo
 		this.xrpl = xrpl
