@@ -22,8 +22,18 @@ export function init(){
 }
 
 
-export function insert({ledger, trustline, ...stats}){
+export function insert({ledger, trustline, replaceAfter, ...stats}){
 	let trustlineId = this.trustlines.require(trustline)
+
+	if(replaceAfter){
+		this.run(
+			`DELETE FROM Stats
+			WHERE trustline = ?
+			AND ledger > ?`,
+			trustlineId,
+			replaceAfter
+		)
+	}
 
 	return this.insert(
 		'Stats',

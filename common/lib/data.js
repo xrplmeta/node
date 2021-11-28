@@ -63,6 +63,9 @@ export function decimalCompare(a, b){
 		return 0
 }
 
+decimalCompare.ASC = decimalCompare
+decimalCompare.DESC = (a, b) => decimalCompare(b, a)
+
 
 export function batched(items, batchSize){
 	let batches = []

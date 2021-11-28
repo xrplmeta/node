@@ -14,13 +14,18 @@ export function init(){
 	)
 }
 
-export function require({currency, issuer}){
-	let issuerId = this.accounts.require(issuer)
+export function require(trustline){
+	if(typeof trustline === 'number')
+		return trustline
 
-	let { id } = this.insert(
+	if(trustline.id)
+		return trustline.id
+
+	let issuerId = this.accounts.require(trustline.issuer)
+	let row = this.insert(
 		'Trustlines',
 		{
-			currency,
+			currency: trustline.currency,
 			issuer: issuerId
 		},
 		{
@@ -31,7 +36,7 @@ export function require({currency, issuer}){
 		}
 	)
 
-	return id
+	return row.id
 }
 
 export async function get(){

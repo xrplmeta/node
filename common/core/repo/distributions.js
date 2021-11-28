@@ -2,41 +2,43 @@ export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Distributions" (
 			"id"		INTEGER NOT NULL UNIQUE,
+			"ledger"	INTEGER NOT NULL,
 			"trustline"	INTEGER NOT NULL,
-			"date"		INTEGER NOT NULL,
 			"percent"	REAL NOT NULL,
 			"share"		REAL NOT NULL,
 			PRIMARY KEY("id" AUTOINCREMENT)
 		);
-		CREATE INDEX IF NOT EXISTS "Distributions-T" ON "Distributions" ("trustline");`
+
+		CREATE INDEX IF NOT EXISTS 
+		"distributionsTrustline" ON "Distributions" 
+		("trustline");`
 	)
 }
 
 
-export async function insert(t, {currency, issuer}, distributions, replaceAfter){
-	let trustline = await this.trustlines.get({currency, issuer})
+export function insert({ledger, trustline, percenters, replaceAfter}){
+	let trustlineId = this.trustlines.require(trustline)
 
 	if(replaceAfter){
-		await this.run(
+		this.run(
 			`DELETE FROM Distributions
 			WHERE trustline = ?
-			AND date > ?`,
-			trustline.id,
+			AND ledger > ?`,
+			trustlineId,
 			replaceAfter
 		)
 	}
 
-	await this.insert(
+	this.insert(
 		'Distributions',
-		distributions.map(distribution => ({
-			trustline: trustline.id,
-			date: t,
-			percent: distribution.percent,
-			share: distribution.share
+		percenters.map(data => ({
+			ledger,
+			trustline: trustlineId,
+			...data
 		})),
 		{
 			duplicate: {
-				keys: ['trustline', 'date', 'percent'],
+				keys: ['ledger', 'trustline', 'percent'],
 				update: true
 			}
 		}

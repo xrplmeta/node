@@ -17,6 +17,11 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			backfillInterval: config.ledger.stateHistoryInterval,
 		},
 		async (index, isBackfill) => {
+			let replaceAfter = isBackfill
+				? null
+				: Math.floor(index / config.ledger.stateHistoryInterval) 
+					* config.ledger.stateHistoryInterval
+
 			log.info(`starting ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index}`)
 
 			let scandbFile = config.ledger.stateProcessInMemory
@@ -133,32 +138,32 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let relevantTrustlines = scandb.iterate(
 				`SELECT 
 					Trustlines.id, 
-					currency, 
-					count, 
+					currency,  
 					address as issuer,
 					domain as issuerDomain,
 					emailHash as issuerEmailHash
 				FROM 
 					Trustlines 
-					INNER JOIN Accounts ON (Accounts.id = Trustlines.issuer)
-				WHERE count > ?`,
-				config.ledger.minTrustlines
+					INNER JOIN Accounts ON (Accounts.id = Trustlines.issuer)`
 			)
 
 			for(let trustline of relevantTrustlines){
-				let balances = scandb.balances.all({trustline: trustline.id})
+				let balances = scandb.balances.all({trustline})
 				let nonZeroBalances = keySort(
 					balances.filter(({balance}) => balance !== '0'),
 					({balance}) => new Decimal(balance),
 					decimalCompare.DESC
 				)
 
+				if(nonZeroBalances.length < config.ledger.minTrustlines)
+					continue
+
 				let count = balances.length
 				let holders = nonZeroBalances.length
 				let bid = new Decimal(0)
 				let ask = new Decimal(0)
 				let supply = nonZeroBalances
-					.reduce((sum, balance) => sum.plus(balance.value), new Decimal(0))
+					.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
 
 				let distributions = config.ledger.topPercenters
 					.map(percent => {
@@ -183,11 +188,17 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					)
 
 					if(offers.length > 0){
-						let xrpBalance = scandb.balances.get({account, trustline: null}).balance
-
 						for(let offer of offers){
-							bid = bid.plus(Decimal.min(offer.gets, balance))
-							ask = ask.plus(Decimal.min(offer.pays, xrpBalance))
+							if(offer.quote === trustline.id){
+								ask = ask.plus(Decimal.min(offer.pays, balance))
+							}else if(offer.quote === null){
+								let { balance: xrp } = scandb.balances.get({
+									account, 
+									trustline: null
+								})
+
+								bid = bid.plus(Decimal.min(offer.pays, xrp))
+							}
 						}
 					}
 				}
@@ -200,6 +211,10 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 						repo.balances.insert({
 							account: address,
+							trustline: {
+								currency: trustline.currency,
+								issuer: trustline.issuer
+							},
 							balance
 						})
 					}
@@ -213,17 +228,25 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 				repo.stats.insert({
 					ledger: index,
-					trustline,
-					count: trustline.count,
+					trustline: {
+						currency: trustline.currency,
+						issuer: trustline.issuer
+					},
+					count,
 					supply: supply.toString(),
 					bid: bid.toString(),
 					ask: ask.toString(),
+					replaceAfter
 				})
 
 				repo.distributions.insert({
 					ledger: index,
-					trustline,
-					percenters: distributions
+					trustline: {
+						currency: trustline.currency,
+						issuer: trustline.issuer
+					},
+					percenters: distributions,
+					replaceAfter
 				})
 			}
 		}

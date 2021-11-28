@@ -36,6 +36,21 @@ export function require(address){
 	).id
 }
 
+export function get(by){
+	if(by.id){
+		return this.get(
+			`SELECT * FROM Accounts
+			WHERE id = ?`,
+			by.id
+		)
+	}else if(by.address){
+		return this.get(
+			`SELECT * FROM Accounts
+			WHERE address = ?`,
+			by.address
+		)
+	}
+}
 
 export function insert({address, domain, emailHash}){
 	return this.insert(
