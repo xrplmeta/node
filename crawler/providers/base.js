@@ -4,6 +4,19 @@ import { wait, unixNow } from '../../common/lib/time.js'
 
 
 
+export async function loopLedgerTask(repo, specs, task){
+	while(true){
+		let now = unixNow()
+		let head = Math.floor(now / specs.interval) * specs.interval
+		let covered = await repo.coverage.getAt(head)
+
+		if(!covered){
+			
+		}
+	}
+}
+
+
 export class BaseProvider{
 	constructor({repo, config}){
 		this.repo = repo

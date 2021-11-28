@@ -51,12 +51,12 @@ export function currencyHexToUTF8(code){
 
 	let decoded = new TextDecoder()
 		.decode(hexToBytes(code))
-	let firstNull = decoded.indexOf('\0')
+	let padNull = decoded.length
 
-	if(firstNull > 0)
-		decoded = decoded.slice(0, firstNull)
+	while(decoded.charAt(padNull-1) === '\0')
+		padNull--
 
-	return decoded
+	return decoded.slice(0, padNull)
 }
 
 function hexToBytes(hex){

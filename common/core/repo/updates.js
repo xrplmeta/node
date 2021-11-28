@@ -95,3 +95,22 @@ async function loop(repo){
 		}
 	}
 }
+
+
+async function getTableHeads(repo){
+	return {
+		Trustlines: await repo.getv(`SELECT MAX(id) FROM Trustlines`),
+		Stats: await repo.getv(`SELECT MAX(id) FROM Stats`),
+		Metas: await repo.getv(`SELECT MAX(id) FROM Metas`),
+		Exchanges: await repo.getv(`SELECT MAX(id) FROM Exchanges`),
+	}
+}
+
+async function getTableEntriesAfter(repo, table, id){
+	return await repo.all(
+		`SELECT *
+		FROM ${table}
+		WHERE id > ?`,
+		id
+	)
+}

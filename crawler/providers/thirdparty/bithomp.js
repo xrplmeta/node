@@ -1,4 +1,5 @@
-import { RestProvider } from '../base.js'
+import { loopOperation } from '../base.js'
+import Rest from '../../lib/rest.js'
 import { log } from '../../../common/lib/log.js'
 import { wait } from '../../../common/lib/time.js'
 
@@ -9,10 +10,12 @@ export default ({repo, config}) => {
 		headers: {'x-bithomp-token': config.apiKey}
 	})
 
-	return {
-		operation: 'bithomp.assets',
-		intervalSeconds: config.refreshInterval,
-		run: async () => {
+	loopTimeTask(
+		{
+			task: 'bithomp.assets',
+			interval: config.refreshInterval
+		},
+		async t => {
 			log.info(`fetching services list...`)
 
 			let result = await api.get('services')
@@ -48,7 +51,7 @@ export default ({repo, config}) => {
 
 			log.info(`asset scan complete`)
 		}
-	}
+	)
 }
 
 

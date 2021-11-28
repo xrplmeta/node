@@ -1,7 +1,22 @@
 import { wait } from '../../lib/time.js'
 
-export async function get(type, subject){
-	return await this.db.all(
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Metas" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"type"		TEXT NOT NULL,
+			"subject"	INTEGER NOT NULL,
+			"key"		TEXT NOT NULL,
+			"value"		TEXT,
+			"source"	TEXT NOT NULL,
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE INDEX IF NOT EXISTS "Metas-T+S" ON "Metas" ("type","subject");`
+	)
+}
+
+export async function all(type, subject){
+	return await this.all(
 		`SELECT key, value, source
 		FROM Metas
 		WHERE type = ? AND subject = ? AND value NOT NULL`,
@@ -9,8 +24,8 @@ export async function get(type, subject){
 	)
 }
 
-export async function getOne(type, subject, key, source){
-	let metas = await this.db.all(
+export async function get(type, subject, key, source){
+	let metas = await this.all(
 		`SELECT value, source
 		FROM Metas
 		WHERE type = ? AND subject = ? AND key = ?`,
@@ -26,11 +41,7 @@ export async function getOne(type, subject, key, source){
 	return metas[0].value
 }
 
-export async function setOne(meta){
-	await this.metas.set([meta])
-}
-
-export async function set(metas){
+export async function insert(metas){
 	let rows = []
 
 	for(let meta of metas){
@@ -40,10 +51,10 @@ export async function set(metas){
 		if(typeof meta.subject !== 'number'){
 			switch(meta.type){
 				case 'issuer':
-					meta.subject = (await this.issuers.getOne({address: meta.subject}, true)).id
+					meta.subject = this.issuers.get({address: meta.subject}, true).id
 					break
 				case 'trustline':
-					meta.subject = (await this.trustlines.getOne(meta.subject, true)).id
+					meta.subject = this.trustlines.get(meta.subject, true).id
 					break
 			}
 		}
@@ -59,7 +70,7 @@ export async function set(metas){
 		}
 	}
 
-	await this.db.insert(
+	await this.insert(
 		'Metas',
 		rows,
 		{

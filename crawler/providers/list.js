@@ -1,4 +1,4 @@
-import ledgerLive from './ledger/live.js'
+/*import ledgerLive from './ledger/live.js'
 import ledgerStates from './ledger/states.js'
 import ledgerTxs from './ledger/txs.js'
 import xumm from './thirdparty/xumm.js'
@@ -16,4 +16,10 @@ export default {
 	'xrpscan': xrpscan,
 	'twitter': twitter,
 	'gravatar': gravatar
+}*/
+
+import ledgerStates from './ledger/states.js'
+
+export default {
+	'ledger.states': ledgerStates
 }

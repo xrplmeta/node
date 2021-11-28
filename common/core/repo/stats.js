@@ -1,44 +1,49 @@
-export async function set(t, trustlines, replaceAfter){
-	for(let trustline of trustlines){
-		Object.assign(trustline, await this.trustlines.getOne(trustline, true))
-	}
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Stats" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"trustline"	INTEGER NOT NULL,
+			"ledger"	INTEGER NOT NULL,
+			"count"		INTEGER NOT NULL,
+			"supply"	TEXT NOT NULL,
+			"bid"		TEXT NOT NULL,
+			"ask"		TEXT NOT NULL,
+			PRIMARY KEY ("id" AUTOINCREMENT)
+		);
 
-	if(replaceAfter){
-		for(let { id } of trustlines){
-			await this.db.run(
-				`DELETE FROM Stats
-				WHERE trustline = ?
-				AND date > ?`,
-				id,
-				replaceAfter
-			)
-		}
-	}
+		CREATE INDEX IF NOT EXISTS 
+		"statsTrustline" ON "Stats" 
+		("trustline");
 
-	await this.db.insert(
-		'Stats',
-		trustlines.map((trustline, i) => ({
-			date: t,
-			trustline: trustline.id,
-			accounts: trustline.accounts,
-			supply: trustline.supply,
-			buy: trustline.buy,
-			sell: trustline.sell,
-		})),
-		{
-			duplicate: {
-				keys: ['trustline', 'date'], 
-				update: true
-			}
-		}
-
+		CREATE INDEX IF NOT EXISTS 
+		"statsLedger" ON "Stats" 
+		("ledger");`
 	)
 }
 
-export async function get(trustline){
-	trustline = await this.trustlines.getOne(trustline)
 
-	return await this.db.all(
+export function insert({ledger, trustline, ...stats}){
+	let trustlineId = this.trustlines.require(trustline)
+
+	return this.insert(
+		'Stats',
+		{
+			ledger,
+			trustline: trustlineId,
+			...stats
+		},
+		{
+			keys: ['ledger', 'trustline'],
+			update: true
+		}
+	)
+}
+
+
+export async function all(trustline){
+	trustline = await this.trustlines.get(trustline)
+
+	return await this.all(
 		`SELECT *
 		FROM Stats
 		WHERE trustline = ?
@@ -50,7 +55,7 @@ export async function get(trustline){
 
 export async function getRecent(trustline, t){
 	if(t === undefined){
-		return await this.db.get(
+		return await this.get(
 			`SELECT *
 			FROM Stats
 			WHERE trustline = ?
@@ -58,7 +63,7 @@ export async function getRecent(trustline, t){
 			trustline.id
 		)
 	}else{
-		return await this.db.get(
+		return await this.get(
 			`SELECT *
 			FROM Stats
 			WHERE trustline = ?

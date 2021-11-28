@@ -1,11 +1,30 @@
+import fs from 'fs'
 import Adapter from 'better-sqlite3'
 import { wait } from '../lib/time.js'
 import { log } from '../lib/log.js'
 
+
 export default class{
 	constructor(config){
-		this.cfg = config
+		this.file = config.file
 		this.con = new Adapter(config.file)
+
+		if(config.wal)
+			this.pragma(`journal_mode=WAL`)
+
+		for(let [key, mod] of Object.entries(config.modules)){
+			this[key] = Object.entries(mod)
+				.reduce(
+					(methods, [key, method]) => ({
+						...methods, 
+						[key]: method.bind(this)
+					}),
+					{}
+				)
+
+			if(this[key].init)
+				this[key].init()
+		}
 	}
 
 	pragma(sql){
@@ -20,6 +39,11 @@ export default class{
 
 	prepare(sql){
 		return this.con.prepare(sql)
+	}
+
+	iterate(sql, ...params){
+		log.debug(`sql iter: ${sql}`, params)
+		return this.prepare(sql).iterate(...params)
 	}
 
 	get(sql, ...params){
@@ -55,13 +79,13 @@ export default class{
 		return this.prepare(sql).run(...params)
 	}
 
-	async insert(table, data, options){
+	insert(table, data, options){
 		if(Array.isArray(data)){
-			return await this.tx(async () => {
+			return this.tx(() => {
 				let rows = []
 
 				for(let item of data){
-					rows.push(await this.insert(table, item, options))
+					rows.push(this.insert(table, item, options))
 				}
 
 				return rows
@@ -82,6 +106,9 @@ export default class{
 					if(options.duplicate.ignore)
 						return existing
 
+					if(Object.entries(data).some(([k, v]) => existing[k] !== v))
+						return existing
+
 					if(options.duplicate.update){
 						let updates = Object.keys(data)
 							.filter(key => !duplicateKeys.includes(key))
@@ -96,7 +123,7 @@ export default class{
 
 						return {...existing, ...data}
 					}else if(options.duplicate.replace){
-						if(Object.entries(data).some(([k, v]) => existing[k] !== v)){
+						if(changed){
 							this.run(
 								`DELETE FROM ${table}
 								WHERE ${compare.join(` AND `)}`,
@@ -161,5 +188,34 @@ export default class{
 		}
 
 		return ret
+	}
+
+	async monitorWAL(interval, maxSize){
+		log.info(`monitoring WAL file`)
+
+		while(true){
+			await wait(interval)
+
+			try{
+				let stat = fs.statSync(`${this.file}-wal`)
+
+				log.debug(`WAL file is ${stat.size} bytes`)
+
+				if(stat.size > maxSize){
+					log.info(`WAL file exceeds max size of ${maxSize}`)
+					await this.flushWAL()
+				}
+			}catch(e){
+				log.error(`could not check WAL file:\n`, e)
+			}
+		}
+	}
+
+	flushWAL(){
+		log.info(`force flushing WAL file...`)
+
+		this.pragma(`wal_checkpoint(TRUNCATE)`)
+
+		log.info(`WAL flushed`)
 	}
 }

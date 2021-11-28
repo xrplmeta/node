@@ -1,17 +1,236 @@
-import { LedgerProvider } from '../base.js'
 import { log } from '../../../common/lib/log.js'
 import { wait, unixNow } from '../../../common/lib/time.js'
 import { keySort, decimalCompare } from '../../../common/lib/data.js'
+import { currencyHexToUTF8 } from '../../../common/lib/xrpl.js'
 import Decimal from '../../../common/lib/decimal.js'
+import initScanDB from '../../ledger/scandb.js'
+import codec from 'ripple-binary-codec'
 
 
-export default ({repo, config, xrpl}) => ({
-	operation: 'ledger.states',
-	intervalLedgers: config.stateInterval,
-	backfillLedgers: config.stateHistory
-})
 
+export default ({repo, config, xrpl, loopLedgerTask}) => {
+	loopLedgerTask(
+		{
+			task: 'ledger.states',
+			interval: config.ledger.stateInterval,
+			backfillLedgers: config.ledger.stateHistoryLedgers,
+			backfillInterval: config.ledger.stateHistoryInterval,
+		},
+		async (index, isBackfill) => {
+			log.info(`starting ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index}`)
 
+			let scandbFile = config.ledger.stateProcessInMemory
+				? `:memory:`
+				: `${config.data.dir}/scan.db`
+
+			let scandb = initScanDB(scandbFile)
+			let scanned = 0
+			let ledgerData
+			let lastMarker
+
+			while(true){
+				try{
+					ledgerData = await xrpl.request({
+						command: 'ledger_data',
+						ledger_index: index,
+						marker: lastMarker,
+						limit: 100000,
+						binary: true,
+						priority: 100
+					})
+				}catch(e){
+					log.info(`could not obtain ledger data:\n`, e)
+					await wait(1000)
+					continue
+				}
+
+				await scandb.tx(async () => {
+					for(let { data } of ledgerData.state){
+						let state = codec.decode(data)
+
+						if(state.LedgerEntryType === 'RippleState'){
+							let currency = currencyHexToUTF8(state.HighLimit.currency)
+							let issuer = state.HighLimit.value === '0' ? state.HighLimit.issuer : state.LowLimit.issuer
+							let holder = state.HighLimit.value !== '0' ? state.HighLimit.issuer : state.LowLimit.issuer
+
+							scandb.balances.insert({
+								account: holder,
+								trustline: {currency, issuer},
+								balance: state.Balance.value.replace('-', '')
+							})
+						}else if(state.LedgerEntryType === 'AccountRoot'){
+							scandb.accounts.insert({
+								address: state.Account,
+								emailHash: state.EmailHash || null,
+								domain: state.Domain 
+									? Buffer.from(state.Domain, 'hex')
+										.toString()
+										.replace(/^https?:\/\//, '')
+										.replace(/\/$/, '')
+									: null
+							})
+
+							scandb.balances.insert({
+								account: state.Account,
+								trustline: null,
+								balance: new Decimal(state.Balance)
+									.div('1000000')
+									.toString()
+							})
+						}else if(state.LedgerEntryType === 'Offer'){
+							let base
+							let quote
+							let gets
+							let pays
+
+							if(typeof state.TakerGets === 'string'){
+								base = null
+								gets = new Decimal(state.TakerGets)
+									.div('1000000')
+									.toString()
+							}else{
+								base = {
+									currency: currencyHexToUTF8(state.TakerGets.currency),
+									issuer: state.TakerGets.issuer
+								}
+								gets = state.TakerGets.value
+							}
+
+							if(typeof state.TakerPays === 'string'){
+								quote = null
+								pays = new Decimal(state.TakerPays)
+									.div('1000000')
+									.toString()
+							}else{
+								quote = {
+									currency: currencyHexToUTF8(state.TakerPays.currency),
+									issuer: state.TakerPays.issuer
+								}
+								pays = state.TakerPays.value
+							}
+
+							scandb.offers.insert({
+								account: state.Account,
+								base,
+								quote,
+								gets,
+								pays
+							})
+						}
+					}
+				})
+				
+
+				scanned += ledgerData.state.length
+				lastMarker = ledgerData.marker
+
+				log.info(`scanned`, scanned, `entries`)
+
+				//if(!lastMarker)
+					break
+			}
+
+			let relevantTrustlines = scandb.iterate(
+				`SELECT 
+					Trustlines.id, 
+					currency, 
+					count, 
+					address as issuer,
+					domain as issuerDomain,
+					emailHash as issuerEmailHash
+				FROM 
+					Trustlines 
+					INNER JOIN Accounts ON (Accounts.id = Trustlines.issuer)
+				WHERE count > ?`,
+				config.ledger.minTrustlines
+			)
+
+			for(let trustline of relevantTrustlines){
+				let balances = scandb.balances.all({trustline: trustline.id})
+				let nonZeroBalances = keySort(
+					balances.filter(({balance}) => balance !== '0'),
+					({balance}) => new Decimal(balance),
+					decimalCompare.DESC
+				)
+
+				let count = balances.length
+				let holders = nonZeroBalances.length
+				let bid = new Decimal(0)
+				let ask = new Decimal(0)
+				let supply = nonZeroBalances
+					.reduce((sum, balance) => sum.plus(balance.value), new Decimal(0))
+
+				let distributions = config.ledger.topPercenters
+					.map(percent => {
+						let group = nonZeroBalances.slice(0, Math.ceil(holders * percent / 100))
+						let wealth = group.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
+						let share = wealth.div(supply).times(100)
+
+						return {
+							percent,
+							share: share.valueOf()
+						}
+					})
+				
+				for(let { account, balance } of balances){
+					let offers = scandb.all(
+						`SELECT * FROM Offers
+						WHERE account = ?
+						AND (base = ? OR quote = ?)`,
+						account,
+						trustline.id,
+						trustline.id,
+					)
+
+					if(offers.length > 0){
+						let xrpBalance = scandb.balances.get({account, trustline: null}).balance
+
+						for(let offer of offers){
+							bid = bid.plus(Decimal.min(offer.gets, balance))
+							ask = ask.plus(Decimal.min(offer.pays, xrpBalance))
+						}
+					}
+				}
+
+				if(!isBackfill){
+					let whales = nonZeroBalances.slice(0, config.ledger.captureWhales)
+
+					for(let { account, balance } of whales){
+						let { address } = scandb.accounts.get({id: account})
+
+						repo.balances.insert({
+							account: address,
+							balance
+						})
+					}
+
+					repo.accounts.insert({
+						address: trustline.issuer,
+						domain: trustline.issuerDomain,
+						emailHash: trustline.issuerEmailHash
+					})
+				}
+
+				repo.stats.insert({
+					ledger: index,
+					trustline,
+					count: trustline.count,
+					supply: supply.toString(),
+					bid: bid.toString(),
+					ask: ask.toString(),
+				})
+
+				repo.distributions.insert({
+					ledger: index,
+					trustline,
+					percenters: distributions
+				})
+			}
+		}
+	)
+}
+
+/*
 export default class extends LedgerProvider{
 	constructor({repo, xrpl, config}){
 		super({
@@ -287,3 +506,4 @@ export default class extends LedgerProvider{
 		throw 'took too long'
 	}
 }
+*/

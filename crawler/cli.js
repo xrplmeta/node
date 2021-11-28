@@ -3,9 +3,10 @@ import { fileURLToPath } from 'url'
 import minimist from 'minimist'
 import { Logger, log as defaultLogger } from '../common/lib/log.js'
 import { load as loadConfig } from '../common/core/config.js'
-import Repo from '../common/core/repo.js'
+import initRepo from '../common/core/repo.js'
 import { Host, Client } from './nodes/adapter.js'
-import providers from './providers/index.js'
+import context from './providers/context.js'
+import providers from './providers/list.js'
 
 
 if(isMainThread){
@@ -18,7 +19,7 @@ if(isMainThread){
 	log.info(`starting with config "${configPath}"`)
 
 	const config = loadConfig(configPath)
-	const repo = new Repo(config)
+	const repo = initRepo(config)
 
 	if(args._[0] === 'flush-wal'){
 		log.info(`one-time flushing database WAL file...`)
@@ -71,17 +72,17 @@ if(isMainThread){
 
 		log.info(`all threads up`)
 
-		repo.open()
-			.then(() => repo.monitorWAL(60000, 100000000))
+		repo.monitorWAL(60000, 100000000)
 	}
 }else{
 	const { task, config } = workerData
 
-	const repo = new Repo(config)
+	const repo = initRepo(config)
 	const xrpl = new Client(parentPort)
 
-	repo.open()
-		.then(() => new providers[task]({repo, xrpl, config: config}))
-		.then(provider => provider.run())
+
+	providers[task](
+		context({config, repo, xrpl})
+	)
 }
 

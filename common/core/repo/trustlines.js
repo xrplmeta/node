@@ -1,3 +1,39 @@
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Trustlines" (
+			"id"			INTEGER NOT NULL UNIQUE,
+			"currency"		TEXT NOT NULL,
+			"issuer"		INTEGER NOT NULL,
+			"inception"		INTEGER,
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		
+		CREATE UNIQUE INDEX IF NOT EXISTS 
+		"trustlineCurrencyIssuer" ON "Trustlines" 
+		("currency","issuer");`
+	)
+}
+
+export function require({currency, issuer}){
+	let issuerId = this.accounts.require(issuer)
+
+	let { id } = this.insert(
+		'Trustlines',
+		{
+			currency,
+			issuer: issuerId
+		},
+		{
+			duplicate: {
+				keys: ['currency', 'issuer'],
+				ignore: true
+			}
+		}
+	)
+
+	return id
+}
+
 export async function get(){
 	return this.db.all(
 		`SELECT 

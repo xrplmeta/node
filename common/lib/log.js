@@ -14,6 +14,16 @@ const levelCascades = {
 	E: ['debug', 'info', 'error'],
 }
 
+const formatContent = arg => {
+	if(typeof arg === 'number')
+		return arg.toLocaleString('en-US')
+
+	if(arg.stack)
+		return arg.stack
+
+	return arg
+}
+
 class Logger{
 	constructor({name, color, level}){
 		this.name = name
@@ -40,17 +50,11 @@ class Logger{
 			let color = level === 'E'
 				? 'red'
 				: this.color
-			let contents = args
-				.map(arg => {
-					if(typeof arg === 'number')
-						return arg.toLocaleString('en-US')
-
-					return arg
-				})
+			let contents = args.map(formatContent)
 
 			func(`${new Date().toISOString().slice(0,19).replace('T', ' ')} ${level} [\x1b[${logColors[color]}${this.name}\x1b[0m]`, ...contents)
 		}else{
-			parentPort.postMessage({type: 'log', level, args})
+			parentPort.postMessage({type: 'log', level, args: args.map(formatContent)})
 		}
 	}
 

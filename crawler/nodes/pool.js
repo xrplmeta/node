@@ -76,7 +76,21 @@ export default class extends EventEmitter{
 	async loop(){
 		while(true){
 			for(let job of this.queue){
-				let bidders = this.clients
+				let { request } = job
+
+				let potentialNodes = this.clients
+					.filter(({spec}) => false
+						|| !spec.allowedCommands 
+						|| spec.allowedCommands.includes(request.command)
+					)
+
+				if(request.ledger_index){
+					potentialNodes = potentialNodes.filter(({spec}) => spec.ledgers 
+						&& spec.ledgers.some(([start, end]) => 
+							request.ledger_index >= start && request.ledger_index <= end))
+				}
+
+				let bidders = potentialNodes
 					.map(client => ({client, bid: this.bidForJob(client, job)}))
 					.filter(({bid}) => bid)
 					.sort((a, b) => b.bid - a.bid)
@@ -103,18 +117,6 @@ export default class extends EventEmitter{
 			return null
 
 		let bid = 1 - this.clients.indexOf(client) * 0.001
-		let index = job.request.ledger_index
-
-		if(index){
-			if(!client.spec.ledgers)
-				return 0
-
-			let has = client.spec.ledgers
-				.some(([start, end]) => index >= start && index <= end)
-
-			if(!has)
-				return 0
-		}
 
 		// todo: take latency and node health into account
 
@@ -140,21 +142,6 @@ export default class extends EventEmitter{
 		priority = priority || 0
 
 		return new Promise((resolve, reject) => {
-			let potentialNodes = this.clients
-				.map(client => client.spec)
-				.filter(spec => !spec.allowedCommands || spec.allowedCommands.includes(request.command))
-
-			if(request.ledger_index){
-				potentialNodes = potentialNodes.filter(spec => spec.ledgers 
-					&& spec.ledgers.some(([start, end]) => 
-						request.ledger_index >= start && request.ledger_index <= end))
-			}
-
-			if(potentialNodes.length === 0){
-				setTimeout(() => reject('REQUEST_UNFULLFILLABLE'), 30000)
-				return
-			}
-
 			let insertAt = this.queue.length - 1
 			let timeout = setTimeout(() => reject('NO_NODE_AVAILABLE'), 30000)
 			let started = () => clearTimeout(timeout)

@@ -7,6 +7,7 @@
     "limiter": "^2.0.1",
     "minimist": "^1.2.5",
     "node-fetch": "^3.0.0",
+    "ripple-binary-codec": "^1.2.0",
     "xrpl": "^2.0.0"
   },
   "devDependencies": {

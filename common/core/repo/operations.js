@@ -1,11 +1,25 @@
 import { log } from '../../lib/log.js'
 import { wait, unixNow } from '../../lib/time.js'
 
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Operations" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"task"		TEXT NOT NULL,
+			"subject"	TEXT,
+			"start"		INTEGER NOT NULL,
+			"end"		INTEGER NOT NULL,
+			"result"	TEXT NOT NULL,
+			PRIMARY KEY("id" AUTOINCREMENT)
+		);
+		CREATE INDEX IF NOT EXISTS "Operations-T+S" ON "Operations" ("task","subject");`
+	)
+}
 
 export async function getNext(type, entity){
 	let table = 'Issuers'
 
-	return await this.db.get(
+	return await this.get(
 		`SELECT
 			Operations.*, ${table}.id as entity
 		FROM
@@ -35,7 +49,7 @@ export async function hasCompleted(type, subject){
 
 export async function getMostRecent(type, subject){
 	if(subject){
-		return await this.db.get(
+		return await this.get(
 			`SELECT * 
 			FROM Operations 
 			WHERE type=? AND subject=?
@@ -43,7 +57,7 @@ export async function getMostRecent(type, subject){
 			type, subject
 		)
 	}else{
-		return await this.db.get(
+		return await this.get(
 			`SELECT * 
 			FROM Operations 
 			WHERE type=?
@@ -79,7 +93,7 @@ export async function record(type, subject, promise){
 	let mostRecent = await this.operations.getMostRecent(type, subject)
 
 	if(mostRecent){
-		await this.db.run(
+		await this.run(
 			`DELETE FROM Operations
 			WHERE id = ?`,
 			mostRecent.id
@@ -90,7 +104,7 @@ export async function record(type, subject, promise){
 }
 
 export async function mark(type, subject, start, result){
-	await this.db.insert('Operations', {
+	await this.insert('Operations', {
 		type,
 		subject,
 		start,

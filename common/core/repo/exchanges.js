@@ -1,6 +1,24 @@
 import Decimal from '../../lib/decimal.js'
 
 
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Exchanges" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"tx"		BLOB NOT NULL UNIQUE,
+			"date"		INTEGER NOT NULL,
+			"base"		INTEGER NOT NULL,
+			"quote"		INTEGER NOT NULL,
+			"price"		REAL NOT NULL,
+			"volume"	REAL NOT NULL,
+			"maker"		BLOB NOT NULL,
+			PRIMARY KEY("id")
+		);
+		CREATE UNIQUE INDEX IF NOT EXISTS "Exchanges-T" ON "Exchanges" ("tx");
+		CREATE INDEX IF NOT EXISTS "Exchanges-B+Q" ON "Exchanges" ("base","quote");`
+	)
+}
+
 
 export async function insert(exchanges){
 	for(let exchange of exchanges){
@@ -9,7 +27,7 @@ export async function insert(exchanges){
 		let to = await this.trustlines.idFromCurrency(exchange.to)
 
 
-		await this.db.insert(
+		await this.insert(
 			'Exchanges',
 			{
 				tx,
@@ -31,11 +49,11 @@ export async function insert(exchanges){
 }
 
 
-export async function get(base, quote, after){
+export async function all(base, quote, after){
 	let baseId = typeof base === 'number' ? base : await this.trustlines.idFromCurrency(base)
 	let quoteId = typeof quote === 'number' ? quote : await this.trustlines.idFromCurrency(quote)
 
-	let rows = await this.db.all(
+	let rows = await this.all(
 		`SELECT *
 		FROM Exchanges 
 		WHERE 

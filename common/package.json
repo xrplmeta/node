@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "better-sqlite3": "^7.4.5",
+    "ripple-address-codec": "^4.2.0",
     "toml": "^3.0.0"
   }
 }
