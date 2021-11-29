@@ -7,8 +7,8 @@ export function init(){
 			"id"		INTEGER NOT NULL UNIQUE,
 			"tx"		BLOB NOT NULL UNIQUE,
 			"date"		INTEGER NOT NULL,
-			"base"		INTEGER NOT NULL,
-			"quote"		INTEGER NOT NULL,
+			"base"		INTEGER,
+			"quote"		INTEGER,
 			"price"		REAL NOT NULL,
 			"volume"	REAL NOT NULL,
 			"maker"		BLOB NOT NULL,
@@ -21,46 +21,45 @@ export function init(){
 
 
 export async function insert(exchanges){
-	for(let exchange of exchanges){
-		let tx = Buffer.from(exchange.tx, 'hex')
-		let from = await this.trustlines.idFromCurrency(exchange.from)
-		let to = await this.trustlines.idFromCurrency(exchange.to)
+	await this.insert(
+		'Exchanges',
+		exchanges.map(exchange => {
+			let tx = Buffer.from(exchange.tx, 'hex')
+			let base = this.trustlines.require(exchange.base)
+			let quote = this.trustlines.require(exchange.quote)
 
-
-		await this.insert(
-			'Exchanges',
-			{
+			return {
 				tx,
 				date: exchange.date,
-				from,
-				to,
-				price: exchange.price,
-				volume: exchange.volume,
+				base,
+				quote,
+				price: exchange.price.toString(),
+				volume: exchange.volume.toString(),
 				maker: exchange.maker.slice(1, 6)
-			},
-			{
-				duplicate: {
-					keys: ['tx'], 
-					ignore: true
-				}
 			}
-		)
-	}
+		}),
+		{
+			duplicate: {
+				keys: ['tx'], 
+				ignore: true
+			}
+		}
+	)
 }
 
 
 export async function all(base, quote, after){
-	let baseId = typeof base === 'number' ? base : await this.trustlines.idFromCurrency(base)
-	let quoteId = typeof quote === 'number' ? quote : await this.trustlines.idFromCurrency(quote)
-
+	let baseId = this.trustlines.require(base)
+	let quoteId = this.trustlines.require(quote)
+	
 	let rows = await this.all(
 		`SELECT *
 		FROM Exchanges 
 		WHERE 
 		(
-			(\`from\` = @base AND \`to\` = @quote)
+			(\`base\` = @base AND \`quote\` = @quote)
 			OR
-			(\`from\` = @quote AND \`to\` = @base)
+			(\`base\` = @quote AND \`quote\` = @base)
 		)
 		AND
 		id > @after
@@ -73,7 +72,7 @@ export async function all(base, quote, after){
 	)
 
 	return rows.map(exchange => {
-		if(exchange.from === baseId){
+		if(exchange.base === baseId){
 			return {
 				id: exchange.id,
 				date: exchange.date,

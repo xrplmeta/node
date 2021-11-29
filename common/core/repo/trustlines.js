@@ -21,6 +21,9 @@ export function require(trustline){
 	if(trustline.id)
 		return trustline.id
 
+	if(!trustline.issuer)
+		return null
+
 	let issuerId = this.accounts.require(trustline.issuer)
 	let row = this.insert(
 		'Trustlines',

@@ -12,6 +12,7 @@ export class Host{
 
 	register(worker){
 		this.workers.push(worker)
+
 		worker.on('message', ({type, payload}) => {
 			switch(type){
 				case 'xrpl.invoke':

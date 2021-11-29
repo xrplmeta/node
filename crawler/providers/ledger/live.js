@@ -2,65 +2,56 @@ import { BaseProvider } from '../base.js'
 import { log } from '../../../common/lib/log.js'
 import { rippleToUnix, unixNow } from '../../../common/lib/time.js'
 import { deriveExchanges } from '../../../common/lib/xrpl.js'
+import { fromTxs as summarize } from '../../ledger/summary.js'
 
+export default ({repo, config, xrpl, loopLedgerTask}) => {
+	let open = null
+	let commit = () => {
+		let exchanges = []
 
-export default class extends BaseProvider{
-	constructor({repo, xrpl, config}){
-		super()
-
-		this.repo = repo
-		this.xrpl = xrpl
-		this.config = config.ledger
-		this.numExchanges = 0
-		this.currentLedger = {}
-	}
-
-	run(){
-		this.xrpl.on('ledger', ledger => {
-			this.currentLedger = {
-				index: ledger.ledger_index,
-				expecting: ledger.txn_count,
-				time: unixNow()
-			}
-
-			if(this.numExchanges > 0){
-				log.info(`${this.numExchanges} new exchange(s)`)
-				this.numExchanges = 0
-			}
-		})
-
-		this.xrpl.on('transaction', tx => {
-			this.currentLedger.expecting--
-
-			if(this.currentLedger.expecting === 0){
-				this.repo.operations.mark(
-					'ledger.txs', 
-					`l${this.currentLedger.index}`, 
-					this.currentLedger.time, 
-					'success'
-				)
-			}
-
+		for(let tx of open.txs){
 			if(tx.engine_result !== 'tesSUCCESS')
-				return
+				continue
 
 			if(['OfferCreate', 'Payment'].includes(tx.transaction.TransactionType)){
 				try{
-					var exchanges = deriveExchanges(tx)
-				}catch{
-					return
+					exchanges.push(...deriveExchanges(tx))
+				}catch(e){
+					log.info(`failed to parse exchanges:\n`, e)
+					continue
 				}
-
-				if(exchanges.length === 0)
-					return
-
-				this.numExchanges += exchanges.length
-
-				this.repo.exchanges.insert(exchanges.map(exchange => ({
-					...exchange,
-					date: rippleToUnix(tx.transaction.date)
-				})))
 			}
-		})
+		}
+
+		log.info(`recorded ${exchanges.length} exchange(s)`)
+
+		repo.exchanges.insert(exchanges.map(exchange => ({...exchange, date: open.time})))
+		repo.ledgers.insert({index: open.index, date: open.time, ...summarize(open.txs)})
+		repo.coverages.extend('ledger.txs', open.index)
+
+		open = null
 	}
+
+	xrpl.on('ledger', ledger => {
+		if(open){
+			log.info(`ledger #${open.index} was incomplete (${open.txs.length} txs gone to waste)`)
+		}
+
+		open = {
+			index: ledger.ledger_index,
+			expecting: ledger.txn_count,
+			time: rippleToUnix(ledger.ledger_time),
+			txs: []
+		}
+	})
+
+	xrpl.on('transaction', tx => {
+		if(!open)
+			return
+
+		open.txs.push(tx)
+
+		if(open.txs.length >= open.expecting)
+			commit()
+	})
 }

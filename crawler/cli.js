@@ -6,7 +6,7 @@ import { load as loadConfig } from '../common/core/config.js'
 import initRepo from '../common/core/repo.js'
 import { Host, Client } from './nodes/adapter.js'
 import context from './providers/context.js'
-import providers from './providers/list.js'
+import providers from './providers/index.js'
 
 
 if(isMainThread){

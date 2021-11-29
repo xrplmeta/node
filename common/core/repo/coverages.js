@@ -19,7 +19,7 @@ export async function get(task, index){
 	return this.get(
 		 `SELECT * FROM Coverages
 		 WHERE task = ? 
-		 AND head <= ? AND tail >= ?`,
+		 AND head >= ? AND tail <= ?`,
 		 task,
 		 index,
 		 index
@@ -47,7 +47,7 @@ export async function extend(task, head, tail){
 	}
 
 	for(let seg of intersecting){
-		await this.run(`DELETE FROM Coverage WHERE id=?`, seg.id)
+		await this.run(`DELETE FROM Coverages WHERE id=?`, seg.id)
 	}
 
 	await this.insert(
