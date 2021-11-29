@@ -8,9 +8,13 @@ export default class{
 	constructor(config){
 		this.file = config.file
 		this.con = new Adapter(config.file)
+		this.statementCache = {}
 
-		if(config.wal)
-			this.pragma(`journal_mode=WAL`)
+		if(config.journalMode)
+			this.pragma(`journal_mode=${config.journalMode}`)
+
+		if(config.cacheSize)
+			this.pragma(`cache_size=${config.cacheSize}`)
 
 		for(let [key, mod] of Object.entries(config.modules)){
 			this[key] = Object.entries(mod)
@@ -38,7 +42,10 @@ export default class{
 	}
 
 	prepare(sql){
-		return this.con.prepare(sql)
+		if(this.statementCache[sql])
+			return this.statementCache[sql]
+
+		return this.statementCache[sql] = this.con.prepare(sql)
 	}
 
 	iterate(sql, ...params){

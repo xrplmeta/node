@@ -6,6 +6,7 @@ export function init(){
 			"balance"	TEXT NOT NULL,
 			"rank"		INTEGER
 		);
+		
 		CREATE INDEX IF NOT EXISTS 
 		"balanceAccount" ON "Balances" 
 		("account");`

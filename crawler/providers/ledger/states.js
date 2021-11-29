@@ -4,7 +4,6 @@ import { keySort, decimalCompare } from '../../../common/lib/data.js'
 import { currencyHexToUTF8 } from '../../../common/lib/xrpl.js'
 import Decimal from '../../../common/lib/decimal.js'
 import initScanDB from '../../ledger/scandb.js'
-import codec from 'ripple-binary-codec'
 
 
 
@@ -29,30 +28,14 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				: `${config.data.dir}/scan.db`
 
 			let scandb = initScanDB(scandbFile)
+			let queue = fillStateQueue(xrpl, index)
 			let scanned = 0
-			let ledgerData
-			let lastMarker
 
-			while(true){
-				try{
-					ledgerData = await xrpl.request({
-						command: 'ledger_data',
-						ledger_index: index,
-						marker: lastMarker,
-						limit: 100000,
-						binary: true,
-						priority: 100
-					})
-				}catch(e){
-					log.info(`could not obtain ledger data:\n`, e)
-					await wait(1000)
-					continue
-				}
+			while(!queue.done){
+				let chunk = await queue.next()
 
 				await scandb.tx(async () => {
-					for(let { data } of ledgerData.state){
-						let state = codec.decode(data)
-
+					for(let state of chunk){
 						if(state.LedgerEntryType === 'RippleState'){
 							let currency = currencyHexToUTF8(state.HighLimit.currency)
 							let issuer = state.HighLimit.value === '0' ? state.HighLimit.issuer : state.LowLimit.issuer
@@ -126,14 +109,11 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				})
 				
 
-				scanned += ledgerData.state.length
-				lastMarker = ledgerData.marker
-
+				scanned += chunk.length
 				log.info(`scanned`, scanned, `entries`)
-
-				//if(!lastMarker)
-					break
 			}
+
+			log.info(`computing and inserting metadata`)
 
 			let relevantTrustlines = scandb.iterate(
 				`SELECT 
@@ -249,8 +229,57 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					replaceAfter
 				})
 			}
+
+			log.info(`complete`)
 		}
 	)
+}
+
+
+function fillStateQueue(xrpl, index){
+	let chunkSize = 100000
+	let ledgerData
+	let lastMarker
+	let queue = []
+	let handle = {
+		done: false,
+		next: async () => {
+			while(queue.length === 0)
+				await wait(100)
+
+			return queue.shift()
+		}
+	}
+
+	;(async () => {
+		while(true){
+			while(queue.length >= chunkSize * 3)
+				await wait(100)
+
+			try{
+				ledgerData = await xrpl.request({
+					command: 'ledger_data',
+					ledger_index: index,
+					marker: lastMarker,
+					limit: 100000,
+					priority: 100
+				})
+			}catch(e){
+				log.info(`could not obtain ledger data:\n`, e)
+				await wait(1000)
+				continue
+			}
+
+			queue.push(ledgerData.state)
+
+			lastMarker = ledgerData.marker
+
+			if(!lastMarker)
+				break
+		}
+	})()
+
+	return handle
 }
 
 /*

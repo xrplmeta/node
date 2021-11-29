@@ -6,6 +6,6 @@ export default config => {
 	return new DB({
 		file: `${config.data.dir}/meta.db`,
 		modules,
-		wal: true
+		journalMode: 'WAL'
 	})
 }
