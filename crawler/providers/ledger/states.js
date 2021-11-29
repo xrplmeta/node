@@ -27,9 +27,11 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				? `:memory:`
 				: `${config.data.dir}/scan.db`
 
+
 			let scandb = initScanDB(scandbFile)
 			let queue = fillStateQueue(xrpl, index)
 			let scanned = 0
+			let start = Date.now()
 
 			while(!queue.done){
 				let chunk = await queue.next()
@@ -230,7 +232,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				})
 			}
 
-			log.info(`complete`)
+			log.info(`scan complete (${(Math.ceil((Date.now() - start) / (1000 * 60 * 60)) * 10) / 10} minutes)`)
 		}
 	)
 }
