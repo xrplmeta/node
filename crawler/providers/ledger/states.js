@@ -34,6 +34,9 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let scanned = 0
 			let start = Date.now()
 
+			//if(log.level === 'debug')
+				scandb.enableQueryProfiling()
+
 			log.time(`states.collect`)
 
 			while(chunk = await queue()){
@@ -288,7 +291,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 
 function fillStateQueue(xrpl, index){
-	let chunkSize = 100000
+	let chunkSize = 10000
 	let ledgerData
 	let lastMarker
 	let queue = []

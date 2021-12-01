@@ -34,12 +34,10 @@ export default class{
 	}
 
 	pragma(sql){
-		log.debug(`sql pragma: ${sql}`)
 		return this.con.pragma(sql)
 	}
 
 	exec(sql){
-		log.debug(`sql exec: ${sql}`)
 		return this.con.exec(sql)
 	}
 
@@ -51,12 +49,10 @@ export default class{
 	}
 
 	iterate(sql, ...params){
-		log.debug(`sql iter: ${sql}`, params)
 		return this.prepare(sql).iterate(...params)
 	}
 
 	get(sql, ...params){
-		log.debug(`sql get: ${sql}`, params)
 		return this.prepare(sql).get(...params)
 	}
 
@@ -66,7 +62,6 @@ export default class{
 	}
 
 	all(sql, ...params){
-		log.debug(`sql all: ${sql}`, params)
 		return this.prepare(sql).all(...params)
 	}
 
@@ -82,7 +77,6 @@ export default class{
 	}
 
 	run(sql, ...params){
-		log.debug(`sql run: ${sql}`, params)
 		return this.prepare(sql).run(...params)
 	}
 
@@ -223,7 +217,7 @@ export default class{
 				let timeInMs = (time[0] * 1000000000 + time[1]) / 1000000
 				let formatted = sql.replace(/(\s{2,})|(\n)/g, ' ').slice(0, 100)
 
-				log.info(`${this.fileName} query (${timeInMs}ms): ${formatted}`)
+				log.debug(`${this.fileName} query (${timeInMs}ms): ${formatted}`)
 
 				return res
 			}
