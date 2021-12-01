@@ -98,24 +98,27 @@ export default class{
 				return rows
 			})
 		}else{
-			duplicate = (duplicate || 'fail').toUpperCase()
-
-			if(duplicate === 'REPLACE'){
+			let modifier = (duplicate || 'fail').toUpperCase()
+			let getExisting = () => {
 				let compares = Object.keys(data)
 					.map(key => `\`${key}\` IS @${key}`)
 
-				let existing = this.get(
+				return this.get(
 					`SELECT * FROM ${table}
 					WHERE ${compares.join(` AND `)}`,
 					data
 				)
+			}
+
+			if(modifier === 'REPLACE'){
+				let existing = getExisting()
 
 				if(existing)
 					return existing
 			}
 
 
-			if(duplicate === 'UPDATE'){
+			if(modifier === 'UPDATE'){
 				var info = this.run(
 					`INSERT INTO ${table}
 					(${Object.keys(data).map(key => `\`${key}\``).join(',')})
@@ -127,7 +130,7 @@ export default class{
 				)
 			}else{
 				var info = this.run(
-					`INSERT OR ${duplicate} INTO ${table}
+					`INSERT OR ${modifier} INTO ${table}
 					(${Object.keys(data).map(key => `\`${key}\``).join(',')})
 					VALUES
 					(${Object.keys(data).map(key => `@${key}`).join(',')})`,
@@ -136,11 +139,15 @@ export default class{
 			}
 
 			if(returnRow){
-				return this.get(
-					`SELECT * FROM ${table} 
-					WHERE rowid = ?`, 
-					info.lastInsertRowid
-				)
+				if(info && info.lastInsertRowid){
+					return this.get(
+						`SELECT * FROM ${table} 
+						WHERE rowid = ?`, 
+						info.lastInsertRowid
+					)
+				}else{
+					return getExisting()
+				}
 			}
 		}
 	}
