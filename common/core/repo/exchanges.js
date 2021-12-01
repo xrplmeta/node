@@ -14,16 +14,18 @@ export function init(){
 			"maker"		BLOB NOT NULL,
 			PRIMARY KEY("id")
 		);
-		CREATE UNIQUE INDEX IF NOT EXISTS "Exchanges-T" ON "Exchanges" ("tx");
-		CREATE INDEX IF NOT EXISTS "Exchanges-B+Q" ON "Exchanges" ("base","quote");`
+
+		CREATE INDEX IF NOT EXISTS 
+		"ExchangesBaseQuote" ON "Exchanges" 
+		("base","quote");`
 	)
 }
 
 
 export async function insert(exchanges){
-	await this.insert(
-		'Exchanges',
-		exchanges.map(exchange => {
+	await this.insert({
+		table: 'Exchanges',
+		data: exchanges.map(exchange => {
 			let tx = Buffer.from(exchange.tx, 'hex')
 			let base = this.trustlines.require(exchange.base)
 			let quote = this.trustlines.require(exchange.quote)
@@ -38,13 +40,8 @@ export async function insert(exchanges){
 				maker: exchange.maker.slice(1, 6)
 			}
 		}),
-		{
-			duplicate: {
-				keys: ['tx'], 
-				ignore: true
-			}
-		}
-	)
+		duplicate: 'ignore'
+	})
 }
 
 
@@ -57,9 +54,9 @@ export async function all(base, quote, after){
 		FROM Exchanges 
 		WHERE 
 		(
-			(\`base\` = @base AND \`quote\` = @quote)
+			(\`base\` IS @base AND \`quote\` IS @quote)
 			OR
-			(\`base\` = @quote AND \`quote\` = @base)
+			(\`base\` IS @quote AND \`quote\` IS @base)
 		)
 		AND
 		id > @after

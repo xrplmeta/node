@@ -1,7 +1,7 @@
 import { BaseProvider } from '../base.js'
-import { log } from '../../../common/lib/log.js'
-import { rippleToUnix, unixNow } from '../../../common/lib/time.js'
-import { deriveExchanges } from '../../../common/lib/xrpl.js'
+import { log } from '@xrplmeta/common/lib/log.js'
+import { rippleToUnix, unixNow } from '@xrplmeta/common/lib/time.js'
+import { deriveExchanges } from '@xrplmeta/common/lib/xrpl.js'
 import { fromTxs as summarize } from '../../ledger/summary.js'
 
 export default ({repo, config, xrpl, loopLedgerTask}) => {
@@ -23,12 +23,16 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			}
 		}
 
-		log.info(`recorded ${exchanges.length} exchange(s)`)
+		try{
+			repo.exchanges.insert(exchanges.map(exchange => ({...exchange, date: open.time})))
+			repo.ledgers.insert({index: open.index, date: open.time, ...summarize(open.txs)})
+			repo.coverages.extend('ledger.txs', open.index)
 
-		repo.exchanges.insert(exchanges.map(exchange => ({...exchange, date: open.time})))
-		repo.ledgers.insert({index: open.index, date: open.time, ...summarize(open.txs)})
-		repo.coverages.extend('ledger.txs', open.index)
-
+			log.info(`recorded ${exchanges.length} exchange(s)`)
+		}catch(e){
+			log.info(`failed to record ${exchanges.length} exchange(s):\n`, e)
+		}
+		
 		open = null
 	}
 

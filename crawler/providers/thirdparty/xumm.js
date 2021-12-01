@@ -1,5 +1,5 @@
 import { RestProvider } from '../base.js'
-import { log } from '../../../common/lib/log.js'
+import { log } from '@xrplmeta/common/lib/log.js'
 
 
 export default class extends RestProvider{

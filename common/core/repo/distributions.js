@@ -6,11 +6,12 @@ export function init(){
 			"trustline"	INTEGER NOT NULL,
 			"percent"	REAL NOT NULL,
 			"share"		REAL NOT NULL,
-			PRIMARY KEY("id" AUTOINCREMENT)
+			PRIMARY KEY("id" AUTOINCREMENT),
+			UNIQUE ("ledger", "trustline", "percent")
 		);
 
 		CREATE INDEX IF NOT EXISTS 
-		"distributionsTrustline" ON "Distributions" 
+		"DistributionsTrustline" ON "Distributions" 
 		("trustline");`
 	)
 }
@@ -29,18 +30,13 @@ export function insert({ledger, trustline, percenters, replaceAfter}){
 		)
 	}
 
-	this.insert(
-		'Distributions',
-		percenters.map(data => ({
+	this.insert({
+		table: 'Distributions',
+		data: percenters.map(data => ({
 			ledger,
 			trustline: trustlineId,
 			...data
 		})),
-		{
-			duplicate: {
-				keys: ['ledger', 'trustline', 'percent'],
-				update: true
-			}
-		}
-	)
+		duplicate: 'update'
+	})
 }

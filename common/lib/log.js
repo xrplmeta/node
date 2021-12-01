@@ -1,4 +1,5 @@
 import { isMainThread, parentPort } from './worker_threads.polyfill.js'
+import { humanDuration } from './time.js'
 
 const logColors = {
 	red: '31m',
@@ -18,7 +19,7 @@ const formatContent = arg => {
 	if(typeof arg === 'number')
 		return arg.toLocaleString('en-US')
 
-	if(arg.stack)
+	if(arg && arg.stack)
 		return arg.stack
 
 	return arg
@@ -29,6 +30,7 @@ class Logger{
 		this.name = name
 		this.color = color
 		this.level = level || 'debug'
+		this.timings = {}
 	}
 
 	registerWorker(worker, config){
@@ -69,6 +71,25 @@ class Logger{
 	error(...contents){
 		this.log('E', ...contents)
 	}
+
+	// todo: make this utilize high resolution time
+	time(key, ...contents){
+		if(this.timings[key]){
+			let passed = Date.now() - this.timings[key]
+			let duration = humanDuration(passed, 1)
+
+			this.info(...contents.map(arg => typeof arg === 'string'
+				? arg.replace('%', duration)
+				: arg))
+
+			delete this.timings[key]
+		}else{
+			this.timings[key] = Date.now()
+
+			if(contents.length > 0)
+				this.info(...contents)
+		}
+	}
 }
 
 
@@ -77,6 +98,7 @@ const log = {
 	debug: defaultLogger.debug.bind(defaultLogger),
 	info: defaultLogger.info.bind(defaultLogger),
 	error: defaultLogger.error.bind(defaultLogger),
+	time: defaultLogger.time.bind(defaultLogger),
 }
 
 Object.defineProperty(log, 'level', {

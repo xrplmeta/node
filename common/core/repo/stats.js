@@ -8,16 +8,13 @@ export function init(){
 			"supply"	TEXT NOT NULL,
 			"bid"		TEXT NOT NULL,
 			"ask"		TEXT NOT NULL,
-			PRIMARY KEY ("id" AUTOINCREMENT)
+			PRIMARY KEY ("id" AUTOINCREMENT),
+			UNIQUE ("ledger", "trustline")
 		);
 
 		CREATE INDEX IF NOT EXISTS 
-		"statsTrustline" ON "Stats" 
-		("trustline");
-
-		CREATE INDEX IF NOT EXISTS 
-		"statsLedger" ON "Stats" 
-		("ledger");`
+		"StatsTrustline" ON "Stats" 
+		("trustline");`
 	)
 }
 
@@ -35,18 +32,15 @@ export function insert({ledger, trustline, replaceAfter, ...stats}){
 		)
 	}
 
-	return this.insert(
-		'Stats',
-		{
+	return this.insert({
+		table: 'Stats',
+		data: {
 			ledger,
 			trustline: trustlineId,
 			...stats
 		},
-		{
-			keys: ['ledger', 'trustline'],
-			update: true
-		}
-	)
+		duplicate: 'update'
+	})
 }
 
 

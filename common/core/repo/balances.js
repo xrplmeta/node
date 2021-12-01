@@ -4,12 +4,12 @@ export function init(){
 			"account"	INTEGER NOT NULL,
 			"trustline"	INTEGER,
 			"balance"	TEXT NOT NULL,
-			"rank"		INTEGER
+			UNIQUE ("account", "trustline")
 		);
-		
+
 		CREATE INDEX IF NOT EXISTS 
-		"balanceAccount" ON "Balances" 
-		("account");`
+		"BalancesTrustline" ON "Balances" 
+		("trustline");`
 	)
 }
 
@@ -17,7 +17,7 @@ export function get({account, trustline}){
 	return this.get(
 		`SELECT * FROM Balances
 		WHERE account = ?
-		AND trustline = ?`,
+		AND trustline IS ?`,
 		this.accounts.require(account),
 		trustline
 			? this.trustlines.require(trustline)
@@ -41,19 +41,17 @@ export function insert({account, trustline, balance}){
 		? this.trustlines.require(trustline)
 		: null
 
-
-	return this.insert(
-		'Balances',
-		{
+	return this.insert({
+		table: 'Balances',
+		data: {
 			account: accountId,
 			trustline: trustlineId,
 			balance
 		},
-		{
-			duplicate: {
-				keys: ['account', 'trustline'],
-				update: true
-			}
-		}
-	)
+		duplicate: 'update'
+	})
+}
+
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Balances`)
 }

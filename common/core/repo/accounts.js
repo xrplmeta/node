@@ -1,4 +1,4 @@
-import codec from 'ripple-address-codec'
+import { decodeAddress } from '../../lib/xrpl.js'
 
 export function init(){
 	this.exec(
@@ -7,66 +7,62 @@ export function init(){
 			"address"	BLOB NOT NULL UNIQUE,
 			"domain"	TEXT,
 			"emailHash"	TEXT,
-			PRIMARY KEY("id" AUTOINCREMENT)
+			PRIMARY KEY ("id" AUTOINCREMENT)
 		);
 
 		CREATE UNIQUE INDEX IF NOT EXISTS 
-		"accountAddress" ON "Accounts" 
+		"AccountsAddress" ON "Accounts" 
 		("address");`
 	)
 }
 
-export function require(address){
+export function require(address, create=true){
 	if(typeof address === 'number')
 		return address
 
-	return this.insert(
-		'Accounts',
-		{
-			address: typeof address === 'string'
-				? codec.decodeAccountID(address)
-				: address,
-		},
-		{
-			duplicate: {
-				keys: ['address'],
-				ignore: true
-			}
-		}
-	).id
+	return this.accounts.get({address})?.id 
+		|| (create ? this.accounts.insert({address}).id : null)
 }
 
-export function get(by){
-	if(by.id){
+export function get({id, address}){
+	if(id){
 		return this.get(
 			`SELECT * FROM Accounts
 			WHERE id = ?`,
-			by.id
+			id
 		)
-	}else if(by.address){
+	}else if(address){
 		return this.get(
 			`SELECT * FROM Accounts
 			WHERE address = ?`,
-			by.address
+			typeof address === 'string'
+				? decodeAddress(address)
+				: address
 		)
 	}
 }
 
+export function all(){
+	return this.all(
+		`SELECT * FROM Accounts`
+	)
+}
+
 export function insert({address, domain, emailHash}){
-	return this.insert(
-		'Accounts',
-		{
+	return this.insert({
+		table: 'Accounts',
+		data: {
 			address: typeof address === 'string'
-				? codec.decodeAccountID(address)
+				? decodeAddress(address)
 				: address,
 			domain,
 			emailHash
 		},
-		{
-			duplicate: {
-				keys: ['address'],
-				update: true
-			}
-		}
-	)
+		duplicate: 'update',
+		returnRow: true
+	})
+}
+
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Accounts`)
 }

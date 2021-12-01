@@ -1,5 +1,5 @@
 import Pool from './pool.js'
-import EventEmitter from '../../common/lib/events.js'
+import EventEmitter from '@xrplmeta/common/lib/events.js'
 
 
 export class Host{

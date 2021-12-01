@@ -1,6 +1,6 @@
-import { log } from '../../../common/lib/log.js'
-import { wait, rippleToUnix } from '../../../common/lib/time.js'
-import { deriveExchanges } from '../../../common/lib/xrpl.js'
+import { log } from '@xrplmeta/common/lib/log.js'
+import { wait, rippleToUnix } from '@xrplmeta/common/lib/time.js'
+import { deriveExchanges } from '@xrplmeta/common/lib/xrpl.js'
 import { fromTxs as summarize } from '../../ledger/summary.js'
 
 export default ({repo, config, xrpl, loopLedgerTask}) => {

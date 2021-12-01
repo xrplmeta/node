@@ -7,8 +7,10 @@ export function init(){
 			"base"		INTEGER,
 			"quote"		INTEGER,
 			"gets"		TEXT NOT NULL,
-			"pays"		TEXT NOT NULL
+			"pays"		TEXT NOT NULL,
+			UNIQUE ("account", "base", "quote")
 		);
+
 		CREATE INDEX IF NOT EXISTS 
 		"offerAccount" ON "Offers" 
 		("account");`
@@ -25,21 +27,19 @@ export function insert({account, base, quote, gets, pays}){
 		? this.trustlines.require(quote)
 		: null
 
-
-	return this.insert(
-		'Offers',
-		{
+	return this.insert({
+		table: 'Offers',
+		data: {
 			account: accountId,
 			base: baseId,
 			quote: quoteId,
 			gets,
 			pays
 		},
-		{
-			duplicate: {
-				keys: ['account', 'base', 'quote'],
-				update: true
-			}
-		}
-	)
+		duplicate: 'update'
+	})
+}
+
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Offers`)
 }

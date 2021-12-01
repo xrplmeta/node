@@ -1,6 +1,6 @@
 import fs from 'fs'
-import DB from '../../common/lib/db.js'
-import { log } from '../../common/lib/log.js'
+import DB from '@xrplmeta/common/lib/db.js'
+import { log } from '@xrplmeta/common/lib/log.js'
 import * as modules from './scandb/index.js'
 
 
@@ -12,7 +12,7 @@ export default (file, inMemory) => {
 	return new DB({
 		file, 
 		modules, 
-		journalMode: 'OFF',
+		journalMode: 'MEMORY',
 		cacheSize: 10000
 	})
 }

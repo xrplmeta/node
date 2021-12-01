@@ -1,19 +1,18 @@
-import { loopOperation } from '../base.js'
 import Rest from '../../lib/rest.js'
-import { log } from '../../../common/lib/log.js'
-import { wait } from '../../../common/lib/time.js'
+import { log } from '@xrplmeta/common/lib/log.js'
+import { wait } from '@xrplmeta/common/lib/time.js'
 
 
 export default ({repo, config, loopTimeTask}) => {
 	let api = new Rest({
 		base: 'https://bithomp.com/api/v2', 
-		headers: {'x-bithomp-token': config.apiKey}
+		headers: {'x-bithomp-token': config.bithomp.apiKey}
 	})
 
 	loopTimeTask(
 		{
 			task: 'bithomp.assets',
-			interval: config.refreshInterval
+			interval: config.bithomp.refreshInterval
 		},
 		async t => {
 			log.info(`fetching services list...`)
@@ -38,7 +37,7 @@ export default ({repo, config, loopTimeTask}) => {
 
 				for(let { address } of service.addresses){
 					metas.push({
-						issuer: address,
+						account: address,
 						meta,
 						source: 'bithomp.com'
 					})
@@ -47,7 +46,7 @@ export default ({repo, config, loopTimeTask}) => {
 
 			log.info(`writing`, metas.length, `metas to db...`)
 
-			await repo.metas.set(metas)
+			await repo.metas.insert(metas)
 
 			log.info(`asset scan complete`)
 		}

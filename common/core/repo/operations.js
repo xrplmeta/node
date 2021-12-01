@@ -10,14 +10,16 @@ export function init(){
 			"start"		INTEGER NOT NULL,
 			"end"		INTEGER NOT NULL,
 			"result"	TEXT NOT NULL,
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		CREATE INDEX IF NOT EXISTS "Operations-T+S" ON "Operations" ("task","subject");`
+			PRIMARY KEY ("id" AUTOINCREMENT),
+			UNIQUE ("task", "subject")
+		);`
 	)
 }
 
-export async function getNext(type, entity){
-	let table = 'Issuers'
+export async function getNext(task, entity){
+	let table = entity === 'A'
+		? 'Accounts'
+		: 'Trustlines'
 
 	return await this.get(
 		`SELECT
@@ -26,20 +28,20 @@ export async function getNext(type, entity){
 			${table}
 			LEFT JOIN Operations
 				ON 
-					Operations.type = ?
+					Operations.task = ?
 					AND
-					Operations.subject = (? || ':' || ${table}.id)
+					Operations.subject = (? || ${table}.id)
 		GROUP BY
 			Operations.subject
 		ORDER BY
 			(CASE WHEN start IS NULL THEN 1 ELSE 0 END) DESC,
 			MAX(start) ASC`,
-		type, entity
+		task, entity
 	)
 }
 
-export async function hasCompleted(type, subject){
-	let operation = await this.operations.getMostRecent(type, subject)
+export async function hasCompleted(task, subject){
+	let operation = await this.operations.getMostRecent(task, subject)
 
 	if(operation && operation.result === 'success')
 		return true
@@ -47,27 +49,18 @@ export async function hasCompleted(type, subject){
 	return false
 }
 
-export async function getMostRecent(type, subject){
-	if(subject){
-		return await this.get(
-			`SELECT * 
-			FROM Operations 
-			WHERE type=? AND subject=?
-			ORDER BY start DESC`, 
-			type, subject
-		)
-	}else{
-		return await this.get(
-			`SELECT * 
-			FROM Operations 
-			WHERE type=?
-			ORDER BY start DESC`, 
-			type
-		)
-	}
+export async function getMostRecent(task, subject){
+	return await this.get(
+		`SELECT * 
+		FROM Operations 
+		WHERE task = ? AND subject IS ?
+		ORDER BY start DESC`, 
+		task, 
+		subject || null
+	)
 }
 
-export async function record(type, subject, promise){
+export async function record(task, subject, promise){
 	let start = unixNow()
 	let result
 
@@ -76,39 +69,28 @@ export async function record(type, subject, promise){
 		result = 'success'
 	}catch(error){
 		if(subject)
-			log.error(`operation "${type}/${subject}" failed:`)
+			log.error(`operation "${task}/${subject}" failed:\n`, error)
 		else
-			log.error(`operation "${type}" failed:`)
-
-		log.error(typeof error === 'string' ? error : error.message)
-
-		if(error.stack)
-			log.error(error.stack)
-
-		await wait(10000)
+			log.error(`operation "${task}" failed:\n`, error)
 
 		result = `error: ${error.toString()}`
+
+		await wait(10000)
 	}
 
-	let mostRecent = await this.operations.getMostRecent(type, subject)
-
-	if(mostRecent){
-		await this.run(
-			`DELETE FROM Operations
-			WHERE id = ?`,
-			mostRecent.id
-		)
-	}
-
-	await this.operations.mark(type, subject, start, result)
+	await this.operations.mark(task, subject, start, result)
 }
 
-export async function mark(type, subject, start, result){
-	await this.insert('Operations', {
-		type,
-		subject,
-		start,
-		end: unixNow(),
-		result
+export async function mark(task, subject, start, result){
+	await this.insert({
+		table: 'Operations',
+		data: {
+			task,
+			subject,
+			start,
+			end: unixNow(),
+			result
+		},
+		duplicate: 'replace'
 	})
 }

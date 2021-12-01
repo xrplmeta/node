@@ -1,4 +1,5 @@
 import Decimal from './decimal.js'
+import codec from 'ripple-address-codec'
 
 
 export function deriveExchanges(tx){
@@ -34,8 +35,8 @@ export function deriveExchanges(tx){
 		exchanges.push({
 			tx: hash,
 			maker: account,
-			base: {currency: takerGot.currency, issuer: takerGot.issuer},
-			quote: {currency: takerPaid.currency, issuer: takerPaid.issuer},
+			base: {currency: currencyHexToUTF8(takerGot.currency), issuer: takerGot.issuer},
+			quote: {currency: currencyHexToUTF8(takerPaid.currency), issuer: takerPaid.issuer},
 			price: takerPaid.value.div(takerGot.value),
 			volume: takerPaid.value
 		})
@@ -112,4 +113,8 @@ export function toLedgerAmount(amount){
 		issuer: amount.issuer,
 		value: amount.value.toString()
 	}
+}
+
+export function decodeAddress(address){
+	return codec.decodeAccountID(address)
 }

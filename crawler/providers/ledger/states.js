@@ -1,8 +1,8 @@
-import { log } from '../../../common/lib/log.js'
-import { wait, unixNow } from '../../../common/lib/time.js'
-import { keySort, decimalCompare } from '../../../common/lib/data.js'
-import { currencyHexToUTF8 } from '../../../common/lib/xrpl.js'
-import Decimal from '../../../common/lib/decimal.js'
+import { log } from '@xrplmeta/common/lib/log.js'
+import { wait, unixNow } from '@xrplmeta/common/lib/time.js'
+import { keySort, decimalCompare } from '@xrplmeta/common/lib/data.js'
+import { currencyHexToUTF8 } from '@xrplmeta/common/lib/xrpl.js'
+import Decimal from '@xrplmeta/common/lib/decimal.js'
 import initScanDB from '../../ledger/scandb.js'
 
 
@@ -21,7 +21,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				: Math.floor(index / config.ledger.stateHistoryInterval) 
 					* config.ledger.stateHistoryInterval
 
-			log.info(`starting ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index}`)
+			log.time(`states.scan`, `starting ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index}`)
 
 			let scandbFile = config.ledger.stateProcessInMemory
 				? `:memory:`
@@ -30,14 +30,18 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 			let scandb = initScanDB(scandbFile)
 			let queue = fillStateQueue(xrpl, index)
+			let chunk
 			let scanned = 0
 			let start = Date.now()
 
-			while(!queue.done){
-				let chunk = await queue.next()
+			log.time(`states.collect`)
+
+			while(chunk = await queue()){
+				log.time(`states.chunk`)
 
 				await scandb.tx(async () => {
 					for(let state of chunk){
+
 						if(state.LedgerEntryType === 'RippleState'){
 							let currency = currencyHexToUTF8(state.HighLimit.currency)
 							let issuer = state.HighLimit.value === '0' ? state.HighLimit.issuer : state.LowLimit.issuer
@@ -110,12 +114,18 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					}
 				})
 				
-
 				scanned += chunk.length
-				log.info(`scanned`, scanned, `entries`)
+				log.time(`states.chunk`, `scanned`, scanned, `entries (chunk took %)`)
 			}
 
-			log.info(`computing and inserting metadata`)
+			log.time(`states.collect`, `collected all ledger states in %`)
+			log.time(`states.compute`, `computing metadata`)
+
+			let accounts = []
+			let balances = []
+			let stats = []
+			let distributions = []
+			let liquidity = new Decimal(0)
 
 			let relevantTrustlines = scandb.iterate(
 				`SELECT 
@@ -171,15 +181,26 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 					if(offers.length > 0){
 						for(let offer of offers){
+							let xrpBalance = scandb.balances.get({
+								account, 
+								trustline: null
+							})
+
+							if(xrpBalance){
+								if(offer.quote === null){
+									let amount = Decimal.min(offer.pays, xrpBalance.balance)
+
+									bid = bid.plus(amount)
+									liquidity = liquidity.plus(amount)
+								}else if(offer.base === null){
+									let amount = Decimal.min(offer.gets, xrpBalance.balance)
+
+									liquidity = liquidity.plus(amount)
+								}
+							}
+
 							if(offer.quote === trustline.id){
 								ask = ask.plus(Decimal.min(offer.pays, balance))
-							}else if(offer.quote === null){
-								let { balance: xrp } = scandb.balances.get({
-									account, 
-									trustline: null
-								})
-
-								bid = bid.plus(Decimal.min(offer.pays, xrp))
 							}
 						}
 					}
@@ -191,7 +212,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					for(let { account, balance } of whales){
 						let { address } = scandb.accounts.get({id: account})
 
-						repo.balances.insert({
+						balances.push({
 							account: address,
 							trustline: {
 								currency: trustline.currency,
@@ -201,14 +222,14 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						})
 					}
 
-					repo.accounts.insert({
+					accounts.push({
 						address: trustline.issuer,
 						domain: trustline.issuerDomain,
 						emailHash: trustline.issuerEmailHash
 					})
 				}
 
-				repo.stats.insert({
+				stats.push({
 					ledger: index,
 					trustline: {
 						currency: trustline.currency,
@@ -221,7 +242,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					replaceAfter
 				})
 
-				repo.distributions.insert({
+				distributions.push({
 					ledger: index,
 					trustline: {
 						currency: trustline.currency,
@@ -231,8 +252,36 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					replaceAfter
 				})
 			}
+			
+			log.time(`states.compute`, `computed metadata in %`)
 
-			log.info(`scan complete (${(Math.ceil((Date.now() - start) / (1000 * 60 * 60)) * 10) / 10} minutes)`)
+			log.time(`states.insert`,
+				`inserting:`,
+				accounts.length, `accounts,`,
+				balances.length, `balances,`,
+				stats.length, `stats,`,
+				distributions.length, `distributions`
+			)
+
+			repo.tx(() => {
+				accounts.forEach(x => repo.accounts.insert(x))
+				balances.forEach(x => repo.balances.insert(x))
+				stats.forEach(x => repo.stats.insert(x))
+				distributions.forEach(x => repo.distributions.insert(x))
+			})
+
+			log.time(`states.insert`, `inserted rows in %`)
+
+			repo.states.insert({
+				index,
+				accounts: scandb.accounts.count(),
+				trustlines: scandb.trustlines.count(),
+				balances: scandb.balances.count(),
+				offers: scandb.offers.count(),
+				liquidity: liquidity.toString()
+			})
+
+			log.time(`states.scan`, `completed ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index} in %`)
 		}
 	)
 }
@@ -243,14 +292,17 @@ function fillStateQueue(xrpl, index){
 	let ledgerData
 	let lastMarker
 	let queue = []
-	let handle = {
-		done: false,
-		next: async () => {
-			while(queue.length === 0)
+	let done = false
+	let next = async () => {
+		while(queue.length === 0)
+			if(done)
+				return null
+			else
 				await wait(100)
 
-			return queue.shift()
-		}
+		log.info(`ledger data queue: ${queue.length}/3`)
+
+		return queue.shift()
 	}
 
 	;(async () => {
@@ -273,15 +325,16 @@ function fillStateQueue(xrpl, index){
 			}
 
 			queue.push(ledgerData.state)
-
 			lastMarker = ledgerData.marker
 
-			if(!lastMarker)
+			if(!lastMarker){
+				done = true
 				break
+			}
 		}
 	})()
 
-	return handle
+	return next
 }
 
 /*

@@ -10,8 +10,9 @@ export function init(){
 			"tail"			INTEGER,
 			PRIMARY KEY("id" AUTOINCREMENT)
 		);
-		CREATE INDEX IF NOT EXISTS "Coverages-T" ON "Coverages" ("task");
-		CREATE INDEX IF NOT EXISTS "Coverages-H" ON "Coverages" ("head");`
+
+		CREATE INDEX IF NOT EXISTS "CoveragesTask" ON "Coverages" ("task");
+		CREATE INDEX IF NOT EXISTS "CoveragesHead" ON "Coverages" ("head");`
 	)
 }
 
@@ -47,14 +48,14 @@ export async function extend(task, head, tail){
 	}
 
 	for(let seg of intersecting){
-		await this.run(`DELETE FROM Coverages WHERE id=?`, seg.id)
+		await this.run(`DELETE FROM Coverages WHERE id = ?`, seg.id)
 	}
 
-	await this.insert(
-		'Coverages',
-		{
+	await this.insert({
+		table: 'Coverages',
+		data: {
 			task,
 			...span
 		}
-	)
+	})
 }

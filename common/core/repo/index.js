@@ -1,4 +1,5 @@
 export * as ledgers from './ledgers.js'
+export * as states from './states.js'
 export * as accounts from './accounts.js'
 export * as trustlines from './trustlines.js'
 export * as balances from './balances.js'

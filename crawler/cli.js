@@ -1,9 +1,9 @@
-import { Worker, isMainThread, parentPort, workerData } from '../common/lib/worker_threads.polyfill.js'
+import { Worker, isMainThread, parentPort, workerData } from '@xrplmeta/common/lib/worker_threads.polyfill.js'
 import { fileURLToPath } from 'url'
 import minimist from 'minimist'
-import { Logger, log as defaultLogger } from '../common/lib/log.js'
-import { load as loadConfig } from '../common/core/config.js'
-import initRepo from '../common/core/repo.js'
+import { Logger, log as defaultLogger } from '@xrplmeta/common/lib/log.js'
+import { load as loadConfig } from '@xrplmeta/common/core/config.js'
+import initRepo from '@xrplmeta/common/core/repo.js'
 import { Host, Client } from './nodes/adapter.js'
 import context from './providers/context.js'
 import providers from './providers/index.js'
@@ -23,10 +23,8 @@ if(isMainThread){
 
 	if(args._[0] === 'flush-wal'){
 		log.info(`one-time flushing database WAL file...`)
-
-		repo.open()
-			.then(() => repo.flushWAL())
-			.then(() => process.exit(0))
+		repo.flushWAL()
+		process.exit(0)
 	}else{
 		const only = args.only ? args.only.split(',') : null
 		const xrpl = new Host(config)

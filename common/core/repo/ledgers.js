@@ -12,25 +12,16 @@ export function init(){
 			"fees"		INTEGER NOT NULL,
 			"accounts"	INTEGER NOT NULL,
 			PRIMARY KEY ("index")
-		);
-
-		CREATE UNIQUE INDEX IF NOT EXISTS 
-		"ledgerIndex" ON "Ledgers" 
-		("index");`
+		);`
 	)
 }
 
 
 
 export function insert(data){
-	return this.insert(
-		'Ledgers',
+	return this.insert({
+		table: 'Ledgers',
 		data,
-		{
-			duplicate: {
-				keys: ['index'],
-				update: true
-			}
-		}
-	)
+		duplicate: 'update'
+	})
 }

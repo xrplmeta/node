@@ -1,11 +1,16 @@
+import fetch from 'node-fetch'
 import { RateLimiter } from 'limiter'
 
 
 export default class Rest{
 	constructor(config){
 		this.config = config || {}
-		this.limiter = config.ratelimit ? new RateLimiter(config.ratelimit) : null
-		this.fetch = config.fetch || (typeof fetch !== 'undefined' ? fetch.bind(window) : null)
+		this.limiter = config.ratelimit 
+			? new RateLimiter({
+				tokensPerInterval: config.ratelimit, 
+				interval: 'minute'
+			}) 
+			: null
 	}
 
 	extend(props){
@@ -68,7 +73,7 @@ export default class Rest{
 		if(this.limiter)
 			await this.limiter.removeTokens(1)
 
-		return await this.fetch(url, req)
+		return await fetch(url, req)
 			.then(res => {
 				if(options.raw){
 					return res

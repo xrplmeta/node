@@ -1,3 +1,5 @@
+import { log } from '../../lib/log.js'
+
 export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Trustlines" (
@@ -5,16 +7,17 @@ export function init(){
 			"currency"		TEXT NOT NULL,
 			"issuer"		INTEGER NOT NULL,
 			"inception"		INTEGER,
-			PRIMARY KEY("id" AUTOINCREMENT)
+			PRIMARY KEY("id" AUTOINCREMENT),
+			UNIQUE ("issuer", "currency")
 		);
 		
-		CREATE UNIQUE INDEX IF NOT EXISTS 
-		"trustlineCurrencyIssuer" ON "Trustlines" 
-		("currency","issuer");`
+		CREATE INDEX IF NOT EXISTS 
+		"TrustlinesIssuer" ON "Trustlines" 
+		("issuer");`
 	)
 }
 
-export function require(trustline){
+export function require(trustline, create=true){
 	if(typeof trustline === 'number')
 		return trustline
 
@@ -24,72 +27,55 @@ export function require(trustline){
 	if(!trustline.issuer)
 		return null
 
-	let issuerId = this.accounts.require(trustline.issuer)
-	let row = this.insert(
-		'Trustlines',
-		{
-			currency: trustline.currency,
-			issuer: issuerId
-		},
-		{
-			duplicate: {
-				keys: ['currency', 'issuer'],
-				ignore: true
-			}
-		}
-	)
-
-	return row.id
+	return this.trustlines.get(trustline)?.id 
+		|| (create ? this.trustlines.insert(trustline).id : null)
 }
 
-export async function get(){
-	return this.db.all(
-		`SELECT 
-			id,
-			currency, 
-			(SELECT address FROM Issuers WHERE Issuers.id = issuer) as issuer
+
+export function get(by){
+	if(by.id){
+		return this.get(
+			`SELECT * FROM Trustlines
+			WHERE id = ?`,
+			by.id,
+		) 
+	}else if(by.currency){
+		let issuerId = this.accounts.require(by.issuer, false)
+
+		if(!issuerId)
+			return null
+
+		return this.get(
+			`SELECT * FROM Trustlines
+			WHERE issuer = ? AND currency = ?`,
+			issuerId,
+			by.currency, 
+		)
+	}
+}
+
+
+export function all(){
+	return this.all(
+		`SELECT *
 		FROM Trustlines`, 
 	)
 }
 
-export async function has({currency, issuer}){
-	if(currency === 'XRP')
-		return true
 
-	return !!await getOne.call(this, {currency, issuer})
+export function insert(trustline){
+	if(typeof trustline.issuer === 'string')
+		trustline.issuer = this.accounts.require(trustline.issuer)
+
+	return this.insert({
+		table: 'Trustlines',
+		data: trustline,
+		duplicate: 'ignore',
+		returnRow: true
+	})
 }
 
-export async function getOne(by, createIfNonExistent){
-	if(by.currency && by.issuer){
-		let issuer = typeof by.issuer === 'string'
-			? await this.issuers.getOne({address: by.issuer}, createIfNonExistent)
-			: await this.issuers.getOne({id: by.issuer}, createIfNonExistent)
 
-		if(!issuer)
-			return null
-
-		let trustline = this.db.get(
-			`SELECT * 
-			FROM Trustlines 
-			WHERE currency=? AND issuer=?`, 
-			by.currency, issuer.id
-		)
-
-		if(!trustline && createIfNonExistent)
-			trustline = await this.db.insert(
-				'Trustlines',
-				{
-					currency: by.currency, 
-					issuer: issuer.id
-				}
-			)
-
-		return trustline
-	}
-}
-
-export async function idFromCurrency(currency){
-	return currency.currency !== 'XRP' 
-		? (await this.trustlines.getOne.call(this, currency, true)).id
-		: 0
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Trustlines`)
 }

@@ -1,4 +1,5 @@
 import fs from 'fs'
+import path from 'path'
 import Adapter from 'better-sqlite3'
 import { wait } from '../lib/time.js'
 import { log } from '../lib/log.js'
@@ -7,6 +8,7 @@ import { log } from '../lib/log.js'
 export default class{
 	constructor(config){
 		this.file = config.file
+		this.fileName = path.basename(config.file)
 		this.con = new Adapter(config.file)
 		this.statementCache = {}
 
@@ -59,8 +61,7 @@ export default class{
 	}
 
 	getv(sql, ...params){
-		log.debug(`sql getv: ${sql}`, params)
-		let res = this.prepare(sql).get(...params)
+		let res = this.get(sql, ...params)
 		return res[Object.keys(res)[0]]
 	}
 
@@ -70,8 +71,7 @@ export default class{
 	}
 
 	allv(sql, ...params){
-		log.debug(`sql allv: ${sql}`, params)
-		let rows = this.prepare(sql).all(...params)
+		let rows = this.all(sql, ...params)
 			
 		if(rows.length === 0)
 			return []
@@ -86,76 +86,62 @@ export default class{
 		return this.prepare(sql).run(...params)
 	}
 
-	insert(table, data, options){
+	insert({table, data, duplicate, returnRow}){
 		if(Array.isArray(data)){
 			return this.tx(() => {
 				let rows = []
 
 				for(let item of data){
-					rows.push(this.insert(table, item, options))
+					rows.push(this.insert({table, data: item, duplicate, returnRow}))
 				}
 
 				return rows
 			})
 		}else{
-			if(options?.duplicate){
-				let duplicateKeys = options.duplicate.keys || Object.keys(data)
-				let compare = duplicateKeys.map(key => `\`${key}\`=@${key}`)
+			duplicate = (duplicate || 'fail').toUpperCase()
+
+			if(duplicate === 'REPLACE'){
+				let compares = Object.keys(data)
+					.map(key => `\`${key}\` IS @${key}`)
 
 				let existing = this.get(
 					`SELECT * FROM ${table}
-					WHERE ${compare.join(` AND `)}`,
+					WHERE ${compares.join(` AND `)}`,
 					data
 				)
 
-
-				if(existing){
-					if(options.duplicate.ignore)
-						return existing
-
-					if(Object.entries(data).some(([k, v]) => existing[k] !== v))
-						return existing
-
-					if(options.duplicate.update){
-						let updates = Object.keys(data)
-							.filter(key => !duplicateKeys.includes(key))
-							.map(key => `\`${key}\`=@${key}`)
-
-						this.run(
-							`UPDATE ${table} 
-							SET ${updates} 
-							WHERE ${compare.join(` AND `)}`,
-							data
-						)
-
-						return {...existing, ...data}
-					}else if(options.duplicate.replace){
-						if(changed){
-							this.run(
-								`DELETE FROM ${table}
-								WHERE ${compare.join(` AND `)}`,
-								data
-							)
-						}else{
-							return existing
-						}
-					}
-				}
+				if(existing)
+					return existing
 			}
 
-			let info = this.run(
-				`INSERT INTO ${table}
-				(${Object.keys(data).map(key => `\`${key}\``).join(',')})
-				VALUES
-				(${Object.keys(data).map(key => `@${key}`).join(',')})`,
-				data
-			)
 
-			return this.get(
-				`SELECT * FROM ${table} 
-				WHERE rowid = ?`, 
-				info.lastInsertRowid
-			)
+			if(duplicate === 'UPDATE'){
+				var info = this.run(
+					`INSERT INTO ${table}
+					(${Object.keys(data).map(key => `\`${key}\``).join(',')})
+					VALUES
+					(${Object.keys(data).map(key => `@${key}`).join(',')})
+					ON CONFLICT DO UPDATE SET
+					${Object.keys(data).map(key => `\`${key}\`=@${key}`).join(',')}`,
+					data
+				)
+			}else{
+				var info = this.run(
+					`INSERT OR ${duplicate} INTO ${table}
+					(${Object.keys(data).map(key => `\`${key}\``).join(',')})
+					VALUES
+					(${Object.keys(data).map(key => `@${key}`).join(',')})`,
+					data
+				)
+			}
+
+			if(returnRow){
+				return this.get(
+					`SELECT * FROM ${table} 
+					WHERE rowid = ?`, 
+					info.lastInsertRowid
+				)
+			}
 		}
 	}
 
@@ -224,5 +210,23 @@ export default class{
 		this.pragma(`wal_checkpoint(TRUNCATE)`)
 
 		log.info(`WAL flushed`)
+	}
+
+	enableQueryProfiling(){
+		for(let fnName of ['get', 'all', 'run']){
+			let fn = this[fnName]
+
+			this[fnName] = (sql, ...params) => {
+				let start = process.hrtime()
+				let res = fn.call(this, sql, ...params)
+				let time = process.hrtime(start)
+				let timeInMs = (time[0] * 1000000000 + time[1]) / 1000000
+				let formatted = sql.replace(/(\s{2,})|(\n)/g, ' ').slice(0, 100)
+
+				log.info(`${this.fileName} query (${timeInMs}ms): ${formatted}`)
+
+				return res
+			}
+		}
 	}
 }

@@ -9,9 +9,9 @@ export function init(){
 			"key"		TEXT NOT NULL,
 			"value"		TEXT,
 			"source"	TEXT NOT NULL,
-			PRIMARY KEY("id" AUTOINCREMENT)
-		);
-		CREATE INDEX IF NOT EXISTS "Metas-T+S" ON "Metas" ("type","subject");`
+			PRIMARY KEY("id" AUTOINCREMENT),
+			UNIQUE ("type", "subject", "key", "source")
+		);`
 	)
 }
 
@@ -24,7 +24,23 @@ export async function all(type, subject){
 	)
 }
 
-export async function get(type, subject, key, source){
+export async function get({key, source, ...entity}){
+	let type
+	let subject
+
+	// todo: make this not create new entries on lookup with no matches
+
+	if(entity.account){
+		type = 'A'
+		subject = this.accounts.require(entity.account, false)
+	}else if(entity.trustline){
+		type = 'T'
+		subject = this.trustlines.require(entity.trustline, false)
+	}
+
+	if(!subject)
+		return undefined
+
 	let metas = await this.all(
 		`SELECT value, source
 		FROM Metas
@@ -38,46 +54,40 @@ export async function get(type, subject, key, source){
 	if(source)
 		return metas.find(meta => meta.source === source)
 
-	return metas[0].value
+	return metas[0]
 }
 
 export async function insert(metas){
 	let rows = []
 
 	for(let meta of metas){
-		if(!meta.meta)
-			continue
+		let type
+		let subject
 
-		if(typeof meta.subject !== 'number'){
-			switch(meta.type){
-				case 'issuer':
-					meta.subject = this.issuers.get({address: meta.subject}, true).id
-					break
-				case 'trustline':
-					meta.subject = this.trustlines.get(meta.subject, true).id
-					break
-			}
+		if(meta.account){
+			type = 'A'
+			subject = this.accounts.require(meta.account)
+		}else if(meta.trustline){
+			type = 'T'
+			subject = this.trustlines.require(meta.trustline)
+		}else{
+			throw 'unspecified subject'
 		}
 
 		for(let [key, value] of Object.entries(meta.meta)){
 			rows.push({
-				type: meta.type,
-				subject: meta.subject,
-				source: meta.source,
+				type: type,
+				subject: subject,
 				key,
 				value,
+				source: meta.source,
 			})
 		}
 	}
 
-	await this.insert(
-		'Metas',
-		rows,
-		{
-			duplicate: {
-				keys: ['type', 'subject', 'key', 'source'],
-				replace: true
-			}
-		}
-	)
+	await this.insert({
+		table: 'Metas',
+		data: rows,
+		duplicate: 'replace'
+	})
 }

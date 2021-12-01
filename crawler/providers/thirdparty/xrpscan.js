@@ -1,54 +1,50 @@
-import { RestProvider } from '../base.js'
-import { log } from '../../../common/lib/log.js'
+import Rest from '../../lib/rest.js'
+import { log } from '@xrplmeta/common/lib/log.js'
+import { decodeAddress } from '@xrplmeta/common/lib/xrpl.js'
 
 
+export default ({repo, config, loopTimeTask}) => {
+	let api = new Rest({
+		base: 'https://api.xrpscan.com/api/v1'
+	})
 
-export default class extends RestProvider{
-	constructor({repo, nodes, config}){
-		super({
-			base: 'https://api.xrpscan.com/api/v1'
-		})
+	loopTimeTask(
+		{
+			task: 'xrpscan.well-known',
+			interval: config.xrpscan.refreshInterval
+		},
+		async t => {
+			log.info(`fetching well-known list...`)
 
-		this.repo = repo
-		this.nodes = nodes
-		this.config = config.xrpscan
-	}
+			let names = await api.get('names/well-known')
+			let metas = []
 
-	run(){
-		this.loopOperation(
-			'xrpscan.assets', 
-			null,
-			this.config.refreshInterval, 
-			this.refresh.bind(this)
-		)
-	}
+			log.info(`got`, names.length, `names`)
 
-	async refresh(){
-		log.info(`fetching names list...`)
+			for(let {account, name, domain, twitter, verified} of names){
+				try{
+					decodeAddress(account)
+				}catch{
+					continue
+				}
 
-		let names = await this.api.get('names/well-known')
-		let metas = []
+				metas.push({
+					meta: {
+						name,
+						domain,
+						verified: verified ? 'yes' : null,
+						'socials.twitter': twitter,
+					},
+					account,
+					source: 'xrpscan.com'
+				})
+			}
 
-		log.info(`got`, names.length, `names`)
+			log.info(`writing`, metas.length, `metas to db...`)
 
-		for(let {account, name, domain, twitter, verified} of names){
-			metas.push({
-				meta: {
-					name,
-					domain,
-					verified: verified ? 'yes' : null,
-					'socials.twitter': twitter,
-				},
-				type: 'issuer',
-				subject: account,
-				source: 'xrpscan.com'
-			})
+			await repo.metas.insert(metas)
+
+			log.info(`well-known scan complete`)
 		}
-
-		log.info(`writing`, metas.length, `metas to db...`)
-
-		await this.repo.metas.set(metas)
-
-		log.info(`name scan complete`)
-	}
+	)
 }

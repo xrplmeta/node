@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import Rest from '../lib/rest.js'
-import { wait, unixNow } from '../../common/lib/time.js'
-import { log } from '../../common/lib/log.js'
+import { wait, unixNow } from '@xrplmeta/common/lib/time.js'
+import { log } from '@xrplmeta/common/lib/log.js'
 
 
 const leeway = 1
@@ -38,30 +38,28 @@ export default ({config, repo, xrpl}) => ({
 	loopTimeTask: async (specs, task) => {
 		while(true){
 			if(specs.subject){
-				let operation = await this.repo.operations.getNext(type, entity)
+				let operation = await repo.operations.getNext(specs.task, specs.subject)
 
-				if(!operation || (operation.result === 'success' && operation.start + interval > unixNow())){
+				if(!operation || (operation.result === 'success' && operation.start + specs.interval > unixNow())){
 					await wait(1000)
 					continue
 				}
 
-				await this.repo.operations.record(
-					type, 
-					`${entity}:${operation.entity}`, 
-					execute(operation.entity)
+				await repo.operations.record(
+					specs.task, 
+					`${specs.subject}${operation.entity}`, 
+					task(unixNow(), operation.entity)
 				)
 			}else{
-				let recent = await repo.operations.getMostRecent(type)
+				let recent = await repo.operations.getMostRecent(specs.task)
 
 				if(recent && recent.result === 'success' && recent.start + specs.interval > unixNow()){
 					await wait(1000)
 					continue
 				}
 
-				await repo.operations.record(type, null, execute())
+				await repo.operations.record(specs.task, null, task(unixNow()))
 			}
-
-			
 		}
 	}
 })

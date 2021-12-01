@@ -1,7 +1,7 @@
 import xrpl from 'xrpl'
-import EventEmitter from '../../common/lib/events.js'
-import { wait } from '../../common/lib/time.js'
-import { Logger } from '../../common/lib/log.js'
+import EventEmitter from '@xrplmeta/common/lib/events.js'
+import { wait } from '@xrplmeta/common/lib/time.js'
+import { Logger } from '@xrplmeta/common/lib/log.js'
 
 
 export default class extends EventEmitter{

@@ -1,15 +1,16 @@
 {
-  "name": "@xrplmeta/data",
+  "name": "@xrplmeta/crawler",
   "type": "module",
   "version": "2.0.0-alpha",
   "main": "cli.js",
   "dependencies": {
+    "@xrplmeta/common": "file:../common",
     "limiter": "^2.0.1",
     "minimist": "^1.2.5",
     "node-fetch": "^3.0.0",
     "xrpl": "^2.0.0"
   },
-  "devDependencies": {
-    "rollup-plugin-copy": "^3.4.0"
+  "scripts": {
+    "bundle": "node ./node_modules/@xrplmeta/common/build/bundle.js"
   }
 }
