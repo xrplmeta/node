@@ -144,14 +144,15 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 			for(let trustline of relevantTrustlines){
 				let balances = scandb.balances.all({trustline})
+
+				if(balances.length < config.ledger.minTrustlines)
+					continue
+
 				let nonZeroBalances = keySort(
 					balances.filter(({balance}) => balance !== '0'),
 					({balance}) => new Decimal(balance),
 					decimalCompare.DESC
 				)
-
-				if(nonZeroBalances.length < config.ledger.minTrustlines)
-					continue
 
 				let count = balances.length
 				let holders = nonZeroBalances.length
@@ -160,7 +161,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				let supply = nonZeroBalances
 					.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
 
-				let distributions = config.ledger.topPercenters
+				let percenters = config.ledger.topPercenters
 					.map(percent => {
 						let group = nonZeroBalances.slice(0, Math.ceil(holders * percent / 100))
 						let wealth = group.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
@@ -225,11 +226,13 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						})
 					}
 
-					accounts.push({
-						address: trustline.issuer,
-						domain: trustline.issuerDomain,
-						emailHash: trustline.issuerEmailHash
-					})
+					if(!accounts.some(account => account.address === trustline.issuer)){
+						accounts.push({
+							address: trustline.issuer,
+							domain: trustline.issuerDomain,
+							emailHash: trustline.issuerEmailHash
+						})
+					}
 				}
 
 				stats.push({
@@ -251,7 +254,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						currency: trustline.currency,
 						issuer: trustline.issuer
 					},
-					percenters: distributions,
+					percenters,
 					replaceAfter
 				})
 			}
@@ -262,14 +265,20 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				`inserting:`,
 				accounts.length, `accounts,`,
 				balances.length, `balances,`,
-				stats.length, `stats,`,
+				stats.length, `trustlines,`,
 				distributions.length, `distributions`
 			)
 
-			repo.tx(() => {
+			await repo.tx(() => {
 				accounts.forEach(x => repo.accounts.insert(x))
 				balances.forEach(x => repo.balances.insert(x))
-				stats.forEach(x => repo.stats.insert(x))
+				stats.forEach(x => {
+					try{
+						repo.stats.insert(x)
+					}catch(e){
+						log.info(`failed to insert`, x, e)
+					}
+				})
 				distributions.forEach(x => repo.distributions.insert(x))
 			})
 
