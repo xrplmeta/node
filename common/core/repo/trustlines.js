@@ -67,6 +67,7 @@ export function insert({...trustline}){
 	if(typeof trustline.issuer === 'string')
 		trustline.issuer = this.accounts.id(trustline.issuer)
 
+
 	return this.insert({
 		table: 'Trustlines',
 		data: trustline,

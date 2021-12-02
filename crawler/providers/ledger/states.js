@@ -148,6 +148,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				if(balances.length < config.ledger.minTrustlines)
 					continue
 
+
 				let nonZeroBalances = keySort(
 					balances.filter(({balance}) => balance !== '0'),
 					({balance}) => new Decimal(balance),
@@ -198,6 +199,8 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						}
 					}
 				}
+
+
 
 				if(!isBackfill){
 					let whales = nonZeroBalances.slice(0, config.ledger.captureWhales)
@@ -263,7 +266,6 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			}
 			
 			log.time(`states.compute`, `computed metadata in %`)
-
 			log.time(`states.insert`,
 				`inserting:`,
 				accounts.length, `accounts,`,
@@ -271,28 +273,6 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				stats.length, `trustlines,`,
 				distributions.length, `distributions`
 			)
-
-			await repo.tx(() => {
-				accounts.forEach(x => repo.accounts.insert(x))
-				balances.forEach(x => repo.balances.insert(x))
-				stats.forEach(x => {
-					try{
-						repo.stats.insert(x)
-					}catch(e){
-						log.info(`failed to insert stat`, x, e)
-					}
-				})
-				distributions.forEach(x => {
-					try{
-						repo.distributions.insert(x)
-					}catch(e){
-						log.info(`failed to insert distrib`, x, e)
-					}
-				})
-			
-			})
-
-			log.time(`states.insert`, `inserted rows in %`)
 
 			repo.states.insert({
 				index,
@@ -302,6 +282,17 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				offers: scandb.offers.count(),
 				liquidity: liquidity.toString()
 			})
+
+			await repo.tx(() => {
+				accounts.forEach(x => repo.accounts.insert(x))
+				balances.forEach(x => repo.balances.insert(x))
+				stats.forEach(x => repo.stats.insert(x))
+				distributions.forEach(x => repo.distributions.insert(x))
+			})
+
+			log.time(`states.insert`, `inserted rows in %`)
+
+			scandb.close()
 
 			log.time(`states.scan`, `completed ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index} in %`)
 		}
@@ -349,7 +340,7 @@ function fillStateQueue(xrpl, index){
 			queue.push(ledgerData.state)
 			lastMarker = ledgerData.marker
 
-			if(!lastMarker || true){
+			if(!lastMarker){
 				done = true
 				break
 			}

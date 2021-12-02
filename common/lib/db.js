@@ -33,6 +33,10 @@ export default class{
 		}
 	}
 
+	close(){
+		this.con.close()
+	}
+
 	pragma(sql){
 		return this.con.pragma(sql)
 	}
@@ -132,8 +136,10 @@ export default class{
 				)
 			}
 
+
+
 			if(returnRow){
-				if(info && info.lastInsertRowid){
+				if(info && info.changes > 0){
 					return this.get(
 						`SELECT * FROM ${table} 
 						WHERE rowid = ?`, 
