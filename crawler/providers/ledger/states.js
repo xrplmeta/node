@@ -34,7 +34,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let scanned = 0
 			let start = Date.now()
 
-			//if(log.level === 'debug')
+			if(log.level === 'debug')
 				scandb.enableQueryProfiling()
 
 			log.time(`states.collect`)
@@ -161,17 +161,6 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				let supply = nonZeroBalances
 					.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
 
-				let percenters = config.ledger.topPercenters
-					.map(percent => {
-						let group = nonZeroBalances.slice(0, Math.ceil(holders * percent / 100))
-						let wealth = group.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
-						let share = wealth.div(supply).times(100)
-
-						return {
-							percent,
-							share: share.valueOf()
-						}
-					})
 				
 				for(let { account, balance } of balances){
 					let offers = scandb.all(
@@ -248,15 +237,29 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					replaceAfter
 				})
 
-				distributions.push({
-					ledger: index,
-					trustline: {
-						currency: trustline.currency,
-						issuer: trustline.issuer
-					},
-					percenters,
-					replaceAfter
-				})
+				if(supply.gt('0')){
+					let percenters = config.ledger.topPercenters
+						.map(percent => {
+							let group = nonZeroBalances.slice(0, Math.ceil(holders * percent / 100))
+							let wealth = group.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
+							let share = wealth.div(supply).times(100)
+
+							return {
+								percent,
+								share: share.toNumber()
+							}
+						})
+
+					distributions.push({
+						ledger: index,
+						trustline: {
+							currency: trustline.currency,
+							issuer: trustline.issuer
+						},
+						percenters,
+						replaceAfter
+					})
+				}
 			}
 			
 			log.time(`states.compute`, `computed metadata in %`)
@@ -276,10 +279,17 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					try{
 						repo.stats.insert(x)
 					}catch(e){
-						log.info(`failed to insert`, x, e)
+						log.info(`failed to insert stat`, x, e)
 					}
 				})
-				distributions.forEach(x => repo.distributions.insert(x))
+				distributions.forEach(x => {
+					try{
+						repo.distributions.insert(x)
+					}catch(e){
+						log.info(`failed to insert distrib`, x, e)
+					}
+				})
+			
 			})
 
 			log.time(`states.insert`, `inserted rows in %`)
@@ -300,7 +310,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 
 function fillStateQueue(xrpl, index){
-	let chunkSize = 10000
+	let chunkSize = 100000
 	let ledgerData
 	let lastMarker
 	let queue = []
@@ -339,7 +349,7 @@ function fillStateQueue(xrpl, index){
 			queue.push(ledgerData.state)
 			lastMarker = ledgerData.marker
 
-			if(!lastMarker){
+			if(!lastMarker || true){
 				done = true
 				break
 			}

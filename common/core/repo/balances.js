@@ -18,9 +18,9 @@ export function get({account, trustline}){
 		`SELECT * FROM Balances
 		WHERE account = ?
 		AND trustline IS ?`,
-		this.accounts.require(account),
+		this.accounts.id(account),
 		trustline
-			? this.trustlines.require(trustline)
+			? this.trustlines.id(trustline)
 			: null,
 	)
 }
@@ -30,15 +30,15 @@ export function all(by){
 		return this.all(
 			`SELECT * FROM Balances
 			WHERE trustline = ?`,
-			this.trustlines.require(by.trustline)
+			this.trustlines.id(by.trustline)
 		)
 	}
 }
 
 export function insert({account, trustline, balance}){
-	let accountId = this.accounts.require(account)
+	let accountId = this.accounts.id(account)
 	let trustlineId = trustline
-		? this.trustlines.require(trustline)
+		? this.trustlines.id(trustline)
 		: null
 
 	return this.insert({

@@ -17,7 +17,7 @@ export function init(){
 	)
 }
 
-export function require(trustline, create=true){
+export function id(trustline, create=true){
 	if(typeof trustline === 'number')
 		return trustline
 
@@ -40,7 +40,7 @@ export function get(by){
 			by.id,
 		) 
 	}else if(by.currency){
-		let issuerId = this.accounts.require(by.issuer, false)
+		let issuerId = this.accounts.id(by.issuer, false)
 
 		if(!issuerId)
 			return null
@@ -63,9 +63,9 @@ export function all(){
 }
 
 
-export function insert(trustline){
+export function insert({...trustline}){
 	if(typeof trustline.issuer === 'string')
-		trustline.issuer = this.accounts.require(trustline.issuer)
+		trustline.issuer = this.accounts.id(trustline.issuer)
 
 	return this.insert({
 		table: 'Trustlines',

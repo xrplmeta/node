@@ -32,10 +32,10 @@ export async function get({key, source, ...entity}){
 
 	if(entity.account){
 		type = 'A'
-		subject = this.accounts.require(entity.account, false)
+		subject = this.accounts.id(entity.account, false)
 	}else if(entity.trustline){
 		type = 'T'
-		subject = this.trustlines.require(entity.trustline, false)
+		subject = this.trustlines.id(entity.trustline, false)
 	}
 
 	if(!subject)
@@ -66,10 +66,10 @@ export async function insert(metas){
 
 		if(meta.account){
 			type = 'A'
-			subject = this.accounts.require(meta.account)
+			subject = this.accounts.id(meta.account)
 		}else if(meta.trustline){
 			type = 'T'
-			subject = this.trustlines.require(meta.trustline)
+			subject = this.trustlines.id(meta.trustline)
 		}else{
 			throw 'unspecified subject'
 		}

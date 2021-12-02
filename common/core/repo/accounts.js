@@ -16,7 +16,7 @@ export function init(){
 	)
 }
 
-export function require(address, create=true){
+export function id(address, create=true){
 	if(typeof address === 'number')
 		return address
 

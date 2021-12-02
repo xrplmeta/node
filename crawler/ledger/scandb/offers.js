@@ -19,12 +19,12 @@ export function init(){
 
 
 export function insert({account, base, quote, gets, pays}){
-	let accountId = this.accounts.require(account)
+	let accountId = this.accounts.id(account)
 	let baseId = base
-		? this.trustlines.require(base)
+		? this.trustlines.id(base)
 		: null
 	let quoteId = quote
-		? this.trustlines.require(quote)
+		? this.trustlines.id(quote)
 		: null
 
 	return this.insert({

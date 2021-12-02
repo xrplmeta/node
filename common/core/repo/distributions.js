@@ -18,7 +18,7 @@ export function init(){
 
 
 export function insert({ledger, trustline, percenters, replaceAfter}){
-	let trustlineId = this.trustlines.require(trustline)
+	let trustlineId = this.trustlines.id(trustline)
 
 	if(replaceAfter){
 		this.run(

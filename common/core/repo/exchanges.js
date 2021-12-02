@@ -27,8 +27,8 @@ export async function insert(exchanges){
 		table: 'Exchanges',
 		data: exchanges.map(exchange => {
 			let tx = Buffer.from(exchange.tx, 'hex')
-			let base = this.trustlines.require(exchange.base)
-			let quote = this.trustlines.require(exchange.quote)
+			let base = this.trustlines.id(exchange.base)
+			let quote = this.trustlines.id(exchange.quote)
 
 			return {
 				tx,
@@ -46,8 +46,8 @@ export async function insert(exchanges){
 
 
 export async function all(base, quote, after){
-	let baseId = this.trustlines.require(base)
-	let quoteId = this.trustlines.require(quote)
+	let baseId = this.trustlines.id(base)
+	let quoteId = this.trustlines.id(quote)
 	
 	let rows = await this.all(
 		`SELECT *
