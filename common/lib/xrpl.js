@@ -1,10 +1,9 @@
 import Decimal from './decimal.js'
-import codec from 'ripple-address-codec'
 
 
 export function deriveExchanges(tx){
 	let hash = tx.hash || tx.transaction.hash
-	let account = tx.Account || tx.transaction.Account
+	let maker = tx.Account || tx.transaction.Account
 	let exchanges = []
 
 	for(let affected of (tx.meta || tx.metaData).AffectedNodes){
@@ -16,7 +15,8 @@ export function deriveExchanges(tx){
 		if(!node.PreviousFields || !node.PreviousFields.TakerPays || !node.PreviousFields.TakerGets)
 			continue
 
-		let counterparty = node.FinalFields.Account
+		let taker = node.FinalFields.Account
+		let sequence = node.FinalFields.Sequence
 		let previousTakerPays = fromLedgerAmount(node.PreviousFields.TakerPays)
 		let previousTakerGets = fromLedgerAmount(node.PreviousFields.TakerGets)
 		let finalTakerPays = fromLedgerAmount(node.FinalFields.TakerPays)
@@ -33,11 +33,19 @@ export function deriveExchanges(tx){
 		}
 
 		exchanges.push({
-			tx: hash,
-			maker: account,
-			base: {currency: currencyHexToUTF8(takerGot.currency), issuer: takerGot.issuer},
-			quote: {currency: currencyHexToUTF8(takerPaid.currency), issuer: takerPaid.issuer},
-			price: takerPaid.value.div(takerGot.value),
+			hash,
+			maker,
+			taker,
+			sequence,
+			base: {
+				currency: currencyHexToUTF8(takerPaid.currency), 
+				issuer: takerPaid.issuer
+			},
+			quote: {
+				currency: currencyHexToUTF8(takerGot.currency), 
+				issuer: takerGot.issuer
+			},
+			price: takerGot.value.div(takerPaid.value),
 			volume: takerPaid.value
 		})
 	}
@@ -113,8 +121,4 @@ export function toLedgerAmount(amount){
 		issuer: amount.issuer,
 		value: amount.value.toString()
 	}
-}
-
-export function decodeAddress(address){
-	return codec.decodeAccountID(address)
 }

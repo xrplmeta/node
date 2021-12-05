@@ -16,6 +16,7 @@ if(isMainThread){
 	
 	defaultLogger.level = log.level
 	
+	log.info(`*** XRPLMETA CRAWLER ***`)
 	log.info(`starting with config "${configPath}"`)
 
 	const config = loadConfig(configPath)

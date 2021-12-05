@@ -1,5 +1,5 @@
 import Router from '@koa/router'
-import { parseURIComponent as parsePairURIComponent } from '../../common/lib/pair.js'
+import { parseURIComponent as parsePairURIComponent } from '@xrplmeta/common/lib/pair.js'
 import * as procedures from './procedures.js'
 
 

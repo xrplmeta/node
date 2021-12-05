@@ -6,6 +6,7 @@ export default config => {
 	return new DB({
 		file: `${config.data.dir}/meta.db`,
 		modules,
-		journalMode: 'WAL'
+		journalMode: 'WAL',
+		readonly: config.readonly
 	})
 }

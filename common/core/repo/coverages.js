@@ -16,7 +16,7 @@ export function init(){
 	)
 }
 
-export async function get(task, index){
+export function get(task, index){
 	return this.get(
 		 `SELECT * FROM Coverages
 		 WHERE task = ? 
@@ -27,13 +27,13 @@ export async function get(task, index){
 	)
 }
 
-export async function extend(task, head, tail){
+export function extend(task, head, tail){
 	let span = {
 		head,
 		tail: tail || head
 	}
 
-	let intersecting = await this.all(
+	let intersecting = this.all(
 		`SELECT * FROM Coverages 
 		WHERE task = ?
 		AND NOT (head < ? OR tail > ?)`,
@@ -48,10 +48,10 @@ export async function extend(task, head, tail){
 	}
 
 	for(let seg of intersecting){
-		await this.run(`DELETE FROM Coverages WHERE id = ?`, seg.id)
+		this.run(`DELETE FROM Coverages WHERE id = ?`, seg.id)
 	}
 
-	await this.insert({
+	this.insert({
 		table: 'Coverages',
 		data: {
 			task,

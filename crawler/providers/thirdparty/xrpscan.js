@@ -1,6 +1,5 @@
 import Rest from '../../lib/rest.js'
 import { log } from '@xrplmeta/common/lib/log.js'
-import { decodeAddress } from '@xrplmeta/common/lib/xrpl.js'
 
 
 export default ({repo, config, loopTimeTask}) => {
@@ -22,12 +21,6 @@ export default ({repo, config, loopTimeTask}) => {
 			log.info(`got`, names.length, `names`)
 
 			for(let {account, name, domain, twitter, verified} of names){
-				try{
-					decodeAddress(account)
-				}catch{
-					continue
-				}
-
 				metas.push({
 					meta: {
 						name,
@@ -42,7 +35,13 @@ export default ({repo, config, loopTimeTask}) => {
 
 			log.info(`writing`, metas.length, `metas to db...`)
 
-			await repo.metas.insert(metas)
+			metas.forEach(meta => {
+				try{
+					repo.metas.insert(meta)
+				}catch{
+					//typo in address
+				}
+			})
 
 			log.info(`well-known scan complete`)
 		}

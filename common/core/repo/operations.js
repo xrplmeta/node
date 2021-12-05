@@ -16,12 +16,12 @@ export function init(){
 	)
 }
 
-export async function getNext(task, entity){
+export function getNext(task, entity){
 	let table = entity === 'A'
 		? 'Accounts'
 		: 'Trustlines'
 
-	return await this.get(
+	return this.get(
 		`SELECT
 			Operations.*, ${table}.id as entity
 		FROM
@@ -40,8 +40,8 @@ export async function getNext(task, entity){
 	)
 }
 
-export async function hasCompleted(task, subject){
-	let operation = await this.operations.getMostRecent(task, subject)
+export function hasCompleted(task, subject){
+	let operation = this.operations.getMostRecent(task, subject)
 
 	if(operation && operation.result === 'success')
 		return true
@@ -49,8 +49,8 @@ export async function hasCompleted(task, subject){
 	return false
 }
 
-export async function getMostRecent(task, subject){
-	return await this.get(
+export function getMostRecent(task, subject){
+	return this.get(
 		`SELECT * 
 		FROM Operations 
 		WHERE task = ? AND subject IS ?
@@ -81,8 +81,8 @@ export async function record(task, subject, promise){
 	await this.operations.mark(task, subject, start, result)
 }
 
-export async function mark(task, subject, start, result){
-	await this.insert({
+export function mark(task, subject, start, result){
+	this.insert({
 		table: 'Operations',
 		data: {
 			task,

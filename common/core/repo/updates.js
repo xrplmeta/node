@@ -13,15 +13,15 @@ export async function subscribe(callback){
 
 
 async function loop(repo){
-	let heads = await repo.getTableHeads()
+	let heads = getTableHeads(repo)
 
 	while(true){
-		let nextHeads = await repo.getTableHeads()
+		let nextHeads = getTableHeads(repo)
 		let updates = []
 
 		for(let [k, i] of Object.entries(heads)){
 			if(nextHeads[k] !== i){
-				let newEntries = await repo.getTableEntriesAfter(k, i)
+				let newEntries = await getTableEntriesAfter(repo, k, i)
 				let newSubjects = []
 
 				switch(k){
@@ -97,17 +97,17 @@ async function loop(repo){
 }
 
 
-async function getTableHeads(repo){
+function getTableHeads(repo){
 	return {
-		Trustlines: await repo.getv(`SELECT MAX(id) FROM Trustlines`),
-		Stats: await repo.getv(`SELECT MAX(id) FROM Stats`),
-		Metas: await repo.getv(`SELECT MAX(id) FROM Metas`),
-		Exchanges: await repo.getv(`SELECT MAX(id) FROM Exchanges`),
+		Trustlines: repo.getv(`SELECT MAX(id) FROM Trustlines`),
+		Stats: repo.getv(`SELECT MAX(id) FROM Stats`),
+		Metas: repo.getv(`SELECT MAX(id) FROM Metas`),
+		Exchanges: repo.getv(`SELECT MAX(id) FROM Exchanges`),
 	}
 }
 
-async function getTableEntriesAfter(repo, table, id){
-	return await repo.all(
+function getTableEntriesAfter(repo, table, id){
+	return repo.all(
 		`SELECT *
 		FROM ${table}
 		WHERE id > ?`,

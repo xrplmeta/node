@@ -1,140 +1,115 @@
-import { RestProvider } from '../base.js'
+import Rest from '../../lib/rest.js'
 import { log } from '@xrplmeta/common/lib/log.js'
+import { currencyHexToUTF8 } from '@xrplmeta/common/lib/xrpl.js'
 
 
-export default class extends RestProvider{
-	constructor({repo, nodes, config}){
-		super({
-			base: 'https://xumm.app', 
-			headers: {
-				'x-api-key': config.xumm.apiKey, 
-				'x-api-secret': config.xumm.apiSecret
-			},
-			ratelimit: config.xumm.maxRequestsPerMinute 
-				? {
-					tokensPerInterval: config.xumm.maxRequestsPerMinute, 
-					interval: 'minute'
+export default ({repo, config, loopTimeTask, count}) => {
+	let api = new Rest({
+		base: 'https://xumm.app',
+		headers: {
+			'x-api-key': config.xumm.apiKey, 
+			'x-api-secret': config.xumm.apiSecret
+		},
+		ratelimit: config.xumm.maxRequestsPerMinute 
+	})
+
+	loopTimeTask(
+		{
+			task: 'xumm.assets',
+			interval: config.xumm.refreshIntervalAssets
+		},
+		async t => {
+			log.info(`fetching curated asset list...`)
+
+			let { details } = await api.get('api/v1/platform/curated-assets')
+			let metas = []
+
+			log.info(`got ${Object.values(details).length} issuers`)
+
+			for(let issuer of Object.values(details)){
+				for(let currency of Object.values(issuer.currencies)){
+					metas.push({
+						meta: {
+							name: issuer.name,
+							domain: issuer.domain,
+							icon: issuer.avatar
+						},
+						account: currency.issuer,
+						source: 'xumm.app'
+					})
+
+					metas.push({
+						meta: {
+							name: currency.name,
+							icon: currency.avatar
+						},
+						trustline: {
+							currency: currencyHexToUTF8(currency.currency),
+							issuer: currency.issuer
+						},
+						source: 'xumm.app'
+					})
 				}
-				: null
-		})
-
-		this.repo = repo
-		this.nodes = nodes
-		this.config = config.xumm
-	}
-
-	run(){
-		this.loopOperation(
-			'xumm.assets', 
-			null, 
-			this.config.refreshIntervalAssets,
-			this.scanAssets.bind(this)
-		)
-
-		this.loopOperation(
-			'xumm.kyc', 
-			'issuer', 
-			this.config.refreshIntervalKyc,
-			this.checkKYC.bind(this)
-		)
-
-		this.loopOperation(
-			'xumm.icon', 
-			'issuer', 
-			this.config.refreshIntervalIcon,
-			this.checkIcon.bind(this)
-		)
-	}
-
-
-
-	async scanAssets(){
-		log.info(`fetching curated asset list...`)
-
-		let { details } = await this.api.get('api/v1/platform/curated-assets')
-		let metas = []
-
-		log.info(`got ${Object.values(details).length} issuers`)
-
-		for(let issuer of Object.values(details)){
-			for(let currency of Object.values(issuer.currencies)){
-				metas.push({
-					meta: {
-						name: issuer.name,
-						domain: issuer.domain,
-						icon: issuer.avatar
-					},
-					type: 'issuer',
-					subject: currency.issuer,
-					source: 'xumm.app'
-				})
-
-				metas.push({
-					meta: {
-						name: currency.name,
-						icon: currency.avatar
-					},
-					type: 'trustline',
-					subject: currency,
-					source: 'xumm.app'
-				})
 			}
+
+			log.info(`writing`, metas.length, `metas to db...`)
+
+			metas.forEach(meta => repo.metas.insert(meta))
+
+			log.info(`asset scan complete`)
 		}
+	)
 
-		log.info(`writing`, metas.length, `metas to db...`)
+	loopTimeTask(
+		{
+			task: 'xumm.kyc',
+			interval: config.xumm.refreshIntervalKYC,
+			subject: 'A'
+		},
+		async (t, accountId) => {
+			let account = await repo.accounts.get({id: accountId})
 
-		await this.repo.metas.set(metas)
+			let { kycApproved } = await api.get(`api/v1/platform/kyc-status/${account.address}`)
+			let meta = {kyc: kycApproved ? 'approved' : null}
 
-		log.info(`asset scan complete`)
-	}
+			repo.metas.insert({
+				meta,
+				account: account.id,
+				source: 'xumm.app'
+			})
 
-	async checkKYC(issuerId){
-		let issuer = await this.repo.issuers.getOne({id: issuerId})
-
-		let { kycApproved } = await this.api.get(`/api/v1/platform/kyc-status/${issuer.address}`)
-		let meta = {kyc: kycApproved ? 'approved' : null}
-
-		this.repo.metas.setOne({
-			meta,
-			type: 'issuer',
-			subject: issuer.id,
-			source: 'xumm.app'
-		})
-
-		if(!this.status){
-			this.status = {checked: 0, start: Date.now()}
-		}else if(Date.now() - this.status.start > 10000){
-			log.info(`checked ${this.status.checked+1} KYCs in 10s`)
-			this.status = null
-		}else{
-			this.status.checked++
+			count(`checked % KYCs`)
 		}
-	}
-
-	async checkIcon(issuerId){
-		let issuer = await this.repo.issuers.getOne({id: issuerId})
-		let res = await this.api.get(`/avatar/${issuer.address}.png`, null, {raw: true, redirect: 'manual'})
-		let meta = {icon: null}
+	)
 
 
-		if(res.headers.get('location')){
-			meta.icon = res.headers.get('location').split('?')[0]
+	loopTimeTask(
+		{
+			task: 'xumm.avatar',
+			interval: config.xumm.refreshIntervalAvatar,
+			subject: 'A'
+		},
+		async (t, accountId) => {
+			let account = await repo.accounts.get({id: accountId})
+			let meta = {icon: null}
+			let res = await api.get(
+				`/avatar/${account.address}.png`, 
+				null, 
+				{raw: true, redirect: 'manual'}
+			)
+
+
+			if(res.headers.get('location')){
+				meta.icon = res.headers.get('location').split('?')[0]
+			}
+
+			repo.metas.insert({
+				meta,
+				account: account.id,
+				source: 'xumm.pro'
+			})
+
+			count(`checked % icons`)
 		}
-
-		this.repo.metas.setOne({
-			meta,
-			type: 'issuer',
-			subject: issuer.id,
-			source: 'xumm.pro'
-		})
-
-		if(!this.status){
-			this.status = {checked: 0, start: Date.now()}
-		}else if(Date.now() - this.status.start > 10000){
-			log.info(`checked ${this.status.checked+1} icons in 10s`)
-			this.status = null
-		}else{
-			this.status.checked++
-		}
-	}
+	)
 }

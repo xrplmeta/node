@@ -1,6 +1,6 @@
-import { keySort, mapMultiKey, nestDotNotated } from '../../common/lib/data.js'
-import Decimal from '../../common/lib/decimal.js'
-import { log } from '../../common/lib/log.js'
+import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
+import Decimal from '@xrplmeta/common/lib/decimal.js'
+import { log } from '@xrplmeta/common/lib/log.js'
 
 
 export default class{
@@ -48,31 +48,28 @@ export default class{
 	}
 
 	async buildAll(progress){
-		let trustlines = await this.ctx.repo.trustlines.get()
+		let trustlines = this.ctx.repo.trustlines.all()
 		let i = 0
 
 		for(let trustline of trustlines){
 			await this.build(trustline)
 
 			if(progress)
-				progress(i++ / trustlines.length)
+				await progress(i++ / trustlines.length)
 		}
 	}
 
 	async build(trustline){
 		let ctx = this.ctx
-		let { id, currency, issuer } = trustline
-		let issuerId
+		let { id, currency, issuer: issuerId } = trustline
+		let issuer = ctx.repo.accounts.get({id: issuerId})
 
-		if(typeof issuer === 'number'){
-			issuerId = issuer
-			issuer = (await ctx.repo.issuers.getOne({id: issuer})).address
-		}else{
-			issuerId = (await ctx.repo.issuers.getOne({address: issuer})).id
-		}
+		if(!issuer)
+			return
+
 		
-		let currencyMetas = await ctx.repo.metas.get('trustline', trustline.id)
-		let issuerMetas = await ctx.repo.metas.get('issuer', issuerId)
+		let currencyMetas = ctx.repo.metas.all({trustline})
+		let issuerMetas = ctx.repo.metas.all({account: issuerId})
 		let meta = {
 			currency: this.sortMetas(
 				nestDotNotated(mapMultiKey(currencyMetas, 'key', true)),
@@ -87,7 +84,7 @@ export default class{
 		let data = await this.enrich({
 			id,
 			currency, 
-			issuer,
+			issuer: issuer.address,
 			meta
 		})
 
@@ -110,7 +107,7 @@ export default class{
 	}
 
 	async enrich(trustline){
-		let currentStats = await this.ctx.repo.stats.getRecent(trustline)
+		let currentStats = this.ctx.repo.stats.get(trustline)
 		let yesterdayStats
 		let candles = await this.ctx.datasets.exchanges.get(trustline, {currency: 'XRP'}, '1d')
 		let enriched = {
@@ -121,9 +118,9 @@ export default class{
 		if(currentStats){
 			enriched.stats.trustlines = currentStats.accounts
 			enriched.stats.supply = currentStats.supply
-			enriched.stats.liquidity = Decimal.sum(currentStats.buy, currentStats.sell).toString()
+			enriched.stats.liquidity = {ask: currentStats.ask, bid: currentStats.bid}
 
-			yesterdayStats = await this.ctx.repo.stats.getRecent(trustline, currentStats.date - 60*60*24)
+			yesterdayStats = this.ctx.repo.stats.get(trustline, currentStats.date - 60*60*24)
 
 			if(yesterdayStats){
 				enriched.stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100

@@ -1,7 +1,6 @@
 import Rest from '../../lib/rest.js'
 import { batched } from '@xrplmeta/common/lib/data.js'
 import { log } from '@xrplmeta/common/lib/log.js'
-import { decodeAddress } from '@xrplmeta/common/lib/xrpl.js'
 
 
 export default ({repo, config, loopTimeTask}) => {
@@ -90,11 +89,11 @@ export default ({repo, config, loopTimeTask}) => {
 						}
 					}
 
-					await repo.metas.insert(accounts.map(account => ({
+					accounts.forEach(account => repo.metas.insert({
 						meta,
 						account,
 						source: 'twitter.com'
-					})))
+					}))
 				}
 
 				i++

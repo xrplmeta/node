@@ -1,6 +1,7 @@
 import Koa from 'koa'
 import websocket from 'koa-easy-ws'
-import { log } from '../../common/lib/log.js'
+import { log } from '@xrplmeta/common/lib/log.js'
+import { wait } from '@xrplmeta/common/lib/time.js'
 import HTTPRouter from './http.js'
 import WSManager from './ws.js'
 import datasets from '../datasets/index.js'
@@ -26,10 +27,12 @@ export default class Server{
 		for(let [key, dataset] of Object.entries(this.datasets)){
 			let last = 0
 
-			await dataset.init(progress => {
+			await dataset.init(async progress => {
 				if(progress - last >= 0.1){
 					last = Math.floor(progress*10)/10
 					log.info(`building ${key}: ${Math.round(last * 100)}%`)
+
+					await wait(100)
 				}
 			})
 

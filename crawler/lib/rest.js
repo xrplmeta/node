@@ -41,6 +41,7 @@ export default class Rest{
 		options = options || {}
 		let headers = options.headers || {}
 
+
 		let url = this.getURL(route)
 		let req = {
 			method: method,

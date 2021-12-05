@@ -1,8 +1,8 @@
-import { keySort, mapMultiKey, nestDotNotated } from '../../common/lib/data.js'
-import { createURI as createPairURI } from '../../common/lib/pair.js'
-import { wait } from '../../common/lib/time.js'
-import Decimal from '../../common/lib/decimal.js'
-import { log } from '../../common/lib/log.js'
+import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
+import { createURI as createPairURI } from '@xrplmeta/common/lib/pair.js'
+import { wait } from '@xrplmeta/common/lib/time.js'
+import Decimal from '@xrplmeta/common/lib/decimal.js'
+import { log } from '@xrplmeta/common/lib/log.js'
 
 const candlestickIntervals = {
 	'5m': 60 * 5,
@@ -22,12 +22,12 @@ export default class{
 	}
 
 	async init(progress){
-		let trustlines = await this.ctx.repo.trustlines.get()
+		let trustlines = await this.ctx.repo.trustlines.all()
 		let i = 0
 
 		for(let trustline of trustlines){
 			await this.build(trustline, {currency: 'XRP'})
-			progress(i++ / trustlines.length)
+			await progress(i++ / trustlines.length)
 		}
 
 		this.ctx.repo.updates.subscribe(this.handleUpdates.bind(this))
@@ -61,13 +61,11 @@ export default class{
 
 	async build(base, quote){
 		let ctx = this.ctx
-		let baseId = typeof base === 'number' ? base : await ctx.repo.trustlines.idFromCurrency(base)
-		let quoteId = typeof quote === 'number' ? quote : await ctx.repo.trustlines.idFromCurrency(quote)
-		let exchanges = await ctx.repo.exchanges.get(baseId, quoteId)
+		let baseId = ctx.repo.trustlines.id(base)
+		let quoteId = ctx.repo.trustlines.id(quote)
+		let exchanges = ctx.repo.exchanges.all(baseId, quoteId)
 
-
-		this.filterOutliers(exchanges)
-
+		//this.filterOutliers(exchanges)
 
 		for(let [intervalKey, interval] of Object.entries(candlestickIntervals)){
 			let key = this.deriveKey(base, quote, intervalKey)

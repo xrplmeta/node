@@ -1,7 +1,7 @@
-import { unixNow } from '../../common/lib/time.js'
-import { currencyHexToUTF8, currencyUTF8ToHex } from '../../common/lib/xrpl.js'
-import { keySort, decimalCompare } from '../../common/lib/data.js'
-import Decimal from '../../common/lib/decimal.js'
+import { unixNow } from '@xrplmeta/common/lib/time.js'
+import { currencyHexToUTF8, currencyUTF8ToHex } from '@xrplmeta/common/lib/xrpl.js'
+import { keySort, decimalCompare } from '@xrplmeta/common/lib/data.js'
+import Decimal from '@xrplmeta/common/lib/decimal.js'
 
 const candlestickIntervals = {
 	'5m': 60 * 5,
@@ -32,8 +32,7 @@ export async function currencies(ctx){
 				trustlines: [],
 				stats: {
 					volume: new Decimal(0),
-					marketcap: new Decimal(0),
-					liquidity: new Decimal(0),
+					marketcap: new Decimal(0)
 				}
 			}
 
@@ -44,7 +43,6 @@ export async function currencies(ctx){
 
 		stack.stats.volume = stack.stats.volume.plus(trustline.stats.volume || 0)
 		stack.stats.marketcap = stack.stats.marketcap.plus(trustline.stats.marketcap || 0)
-		stack.stats.liquidity = stack.stats.liquidity.plus(trustline.stats.liquidity || 0)
 	}
 
 	stacks = keySort(
@@ -92,14 +90,12 @@ export async function currency_stats(ctx){
 		.filter(trustline => trustline.currency === currency)
 	let stats = {
 		volume: new Decimal(0),
-		marketcap: new Decimal(0),
-		liquidity: new Decimal(0),
+		marketcap: new Decimal(0)
 	}
 
 	for(let trustline of selectedTrustlines){
 		stats.volume = stats.volume.plus(trustline.stats.volume || 0)
 		stats.marketcap = stats.marketcap.plus(trustline.stats.marketcap || 0)
-		stats.liquidity = stats.liquidity.plus(trustline.stats.liquidity || 0)
 	}
 
 	return stats
@@ -107,24 +103,20 @@ export async function currency_stats(ctx){
 
 
 export async function trustline(ctx){
-	let currency = currencyUTF8ToHex(ctx.parameters.currency)
-	let issuer = ctx.parameters.issuer
-	let full = ctx.parameters.full
+	let { currency, issuer, full } = ctx.parameters
 	let trustlines = await ctx.datasets.trustlines.get()
-	let trustline = trustlines.find(trustline => trustline.currency === currency && trustline.issuer === issuer)
+	let trustline = trustlines.find(trustline => 
+		trustline.currency === currency && trustline.issuer === issuer)
 	
 	if(!trustline){
-		throw {message: 'trustline not listed', expose: true}
+		throw {message: `trustline not listed`, expose: true}
 	}
 
 	return formatTrustline(ctx, trustline, !full)
 }
 
 export async function trustline_history(ctx){
-	let currency = currencyUTF8ToHex(ctx.parameters.currency)
-	let issuer = ctx.parameters.issuer
-	let start = ctx.parameters.start || 0
-	let end = ctx.parameters.start || unixNow()
+	let { currency, issuer, start, end } = ctx.parameters
 	let historicals = ctx.datasets.historicals.get({currency, issuer})
 
 	return historicals
@@ -133,17 +125,13 @@ export async function trustline_history(ctx){
 export async function exchanges(ctx){
 	let { base, quote, format, start, end } = ctx.parameters
 
+	if(base.currency !== 'XRP' && !ctx.repo.trustlines.get(base))
+		throw {message: 'symbol not listed', expose: true}
+
+	if(quote.currency !== 'XRP' && !ctx.repo.trustlines.get(quote))
+		throw {message: 'symbol not listed', expose: true}
+
 	end = end || unixNow()
-	base.currency = currencyUTF8ToHex(base.currency)
-	quote.currency = currencyUTF8ToHex(quote.currency)
-
-
-	if(!await ctx.repo.trustlines.has(base))
-		throw {message: 'symbol not listed', expose: true}
-
-	if(!await ctx.repo.trustlines.has(quote))
-		throw {message: 'symbol not listed', expose: true}
-
 
 	if(format === 'raw'){
 
@@ -174,7 +162,6 @@ export async function exchanges(ctx){
 function formatTrustline(ctx, trustline, minimal){
 	let formatted = {
 		...trustline,
-		currency: currencyHexToUTF8(trustline.currency),
 		meta: {...trustline.meta}
 	}
 

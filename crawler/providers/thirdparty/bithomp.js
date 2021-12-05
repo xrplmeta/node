@@ -46,7 +46,7 @@ export default ({repo, config, loopTimeTask}) => {
 
 			log.info(`writing`, metas.length, `metas to db...`)
 
-			await repo.metas.insert(metas)
+			metas.forEach(meta => repo.metas.insert(meta))
 
 			log.info(`asset scan complete`)
 		}

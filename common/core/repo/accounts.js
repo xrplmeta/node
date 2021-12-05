@@ -1,4 +1,5 @@
-import { decodeAddress } from '../../lib/xrpl.js'
+import codec from 'ripple-address-codec'
+
 
 export function init(){
 	this.exec(
@@ -25,20 +26,30 @@ export function id(address, create=true){
 }
 
 export function get({id, address}){
+	let row
+
 	if(id){
-		return this.get(
+		row = this.get(
 			`SELECT * FROM Accounts
 			WHERE id = ?`,
 			id
 		)
 	}else if(address){
-		return this.get(
+		row = this.get(
 			`SELECT * FROM Accounts
 			WHERE address = ?`,
 			typeof address === 'string'
-				? decodeAddress(address)
+				? codec.decodeAccountID(address)
 				: address
 		)
+	}
+
+	if(!row)
+		return null
+
+	return {
+		...row,
+		address: codec.encodeAccountID(row.address)
 	}
 }
 
@@ -53,7 +64,7 @@ export function insert({address, domain, emailHash}){
 		table: 'Accounts',
 		data: {
 			address: typeof address === 'string'
-				? decodeAddress(address)
+				? codec.decodeAccountID(address)
 				: address,
 			domain,
 			emailHash

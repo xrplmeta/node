@@ -64,7 +64,7 @@ export function all(){
 
 
 export function insert({...trustline}){
-	if(typeof trustline.issuer === 'string')
+	if(typeof trustline.issuer !== 'number')
 		trustline.issuer = this.accounts.id(trustline.issuer)
 
 

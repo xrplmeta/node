@@ -44,37 +44,38 @@ export function insert({ledger, trustline, replaceAfter, ...stats}){
 }
 
 
-export async function all(trustline){
-	trustline = await this.trustlines.get(trustline)
+export function all(trustline){
+	let trustlineId = this.trustlines.id(trustline)
 
-	return await this.all(
-		`SELECT *
+	return this.all(
+		`SELECT Stats.id, trustline, "count", supply, bid, ask, date
 		FROM Stats
+		INNER JOIN Ledgers ON ("index" = Stats.ledger)
 		WHERE trustline = ?
-		ORDER BY date ASC`,
-		trustline.id
+		ORDER BY ledger ASC`,
+		trustlineId
 	)
 }
 
 
-export async function getRecent(trustline, t){
-	if(t === undefined){
-		return await this.get(
+export function get(trustline, ledger){
+	if(ledger === undefined){
+		return this.get(
 			`SELECT *
 			FROM Stats
 			WHERE trustline = ?
-			ORDER BY date DESC`,
+			ORDER BY ledger DESC`,
 			trustline.id
 		)
 	}else{
-		return await this.get(
+		return this.get(
 			`SELECT *
 			FROM Stats
 			WHERE trustline = ?
-			AND date >= ?
-			ORDER BY date ASC`,
+			AND ledger >= ?
+			ORDER BY ledger ASC`,
 			trustline.id,
-			t
+			ledger
 		)
 	}
 	

@@ -1,4 +1,4 @@
-import { log } from '../../common/lib/log.js'
+import { log } from '@xrplmeta/common/lib/log.js'
 import * as procedures from './procedures.js'
 
 

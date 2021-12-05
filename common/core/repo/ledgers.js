@@ -12,7 +12,11 @@ export function init(){
 			"fees"		INTEGER NOT NULL,
 			"accounts"	INTEGER NOT NULL,
 			PRIMARY KEY ("index")
-		);`
+		);
+
+		CREATE INDEX IF NOT EXISTS 
+		"LedgersDate" ON "Ledgers" 
+		("date");`
 	)
 }
 

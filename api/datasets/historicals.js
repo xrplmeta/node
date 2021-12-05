@@ -1,6 +1,6 @@
-import { leftProximityZip } from '../../common/lib/data.js'
-import { createURI as createPairURI } from '../../common/lib/pair.js'
-import Decimal from '../../common/lib/decimal.js'
+import { leftProximityZip } from '@xrplmeta/common/lib/data.js'
+import { createURI as createPairURI } from '@xrplmeta/common/lib/pair.js'
+import Decimal from '@xrplmeta/common/lib/decimal.js'
 
 
 
@@ -11,12 +11,12 @@ export default class{
 	}
 
 	async init(progress){
-		let trustlines = await this.ctx.repo.trustlines.get()
+		let trustlines = await this.ctx.repo.trustlines.all()
 		let i = 0
 
 		for(let trustline of trustlines){
 			await this.build(trustline)
-			progress(i++ / trustlines.length)
+			await progress(i++ / trustlines.length)
 		}
 
 		this.ctx.repo.updates.subscribe(this.handleUpdates.bind(this))
@@ -26,7 +26,7 @@ export default class{
 		let key = this.deriveKey(trustline)
 
 		if(!this.data[key])
-			await this.build(base, quote)
+			await this.build(trustline)
 
 		return this.data[key].historicals
 	}
@@ -47,7 +47,7 @@ export default class{
 
 	async build(trustline){
 		let ctx = this.ctx
-		let stats = await ctx.repo.stats.get(trustline)
+		let stats = ctx.repo.stats.all(trustline)
 		let exchanges = await ctx.datasets.exchanges.get(
 			trustline,
 			{currency: 'XRP'},
@@ -66,7 +66,7 @@ export default class{
 
 		let historicals = aligned.map(([stat, exchange]) => ({
 			date: stat.date,
-			trustlines: stat.accounts,
+			trustlines: stat.count,
 			supply: stat.supply,
 			liquidity: {buy: stat.buy, sell: stat.sell},
 			marketcap: exchange ? Decimal.mul(stat.supply, exchange.c) : '0'
@@ -74,7 +74,7 @@ export default class{
 
 		this.data[this.deriveKey(trustline)] = {
 			historicals,
-			trustline: await ctx.repo.trustlines.getOne(trustline)
+			trustline: ctx.repo.trustlines.get(trustline)
 		}
 	}
 
