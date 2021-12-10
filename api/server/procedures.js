@@ -173,6 +173,7 @@ function formatTrustline(ctx, trustline, minimal){
 
 		delete formatted.meta.issuer.emailHash
 		delete formatted.meta.issuer.socials
+		delete formatted.meta.issuer.description
 	}
 
 	return formatted

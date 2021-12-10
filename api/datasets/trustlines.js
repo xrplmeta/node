@@ -27,11 +27,11 @@ export default class{
 			let entry
 
 			switch(update.type){
-				case 'issuer':
+				case 'A':
 					entry = this.data.find(({ids}) => ids.issuer === update.subject)
 					break
 
-				case 'trustline':
+				case 'T':
 					entry = this.data.find(({ids}) => ids.trustline === update.subject)
 					break
 			}
@@ -73,11 +73,11 @@ export default class{
 		let meta = {
 			currency: this.sortMetas(
 				nestDotNotated(mapMultiKey(currencyMetas, 'key', true)),
-				ctx.config.api.defaultSourcePriority
+				ctx.config.api.sourcePriorities
 			),
 			issuer: this.sortMetas(
 				nestDotNotated(mapMultiKey(issuerMetas, 'key', true)),
-				ctx.config.api.defaultSourcePriority
+				ctx.config.api.sourcePriorities
 			)
 		}
 
@@ -143,19 +143,21 @@ export default class{
 		return enriched
 	}
 
-	sortMetas(metas, sourcePriority){
+	sortMetas(metas, priorities){
+		let sorted = {}
+
 		for(let [key, values] of Object.entries(metas)){
 			if(Array.isArray(values)){
-				keySort(values, meta => {
-					let priority = sourcePriority.indexOf(meta.source)
+				sorted[key] = keySort(values, meta => {
+					let index = priorities.indexOf(meta.source)
 
-					return priority >= 0 ? priority : 9999
+					return index >= 0 ? index : 9999
 				})
 			}else if(typeof values === 'object'){
-				Object.values(values).forEach(metas => this.sortMetas(metas, sourcePriority))
+				sorted[key] = this.sortMetas(values, priorities)
 			}
 		}
 
-		return metas
+		return sorted
 	}
 }

@@ -30,6 +30,11 @@ repo.tx(() => {
 			date
 		)
 
+		if(!ledger){
+			console.log('skip', date)
+			continue
+		}
+
 		for(let distrib of distribs){
 			let trustline = oldDB.get(`SELECT * FROM Trustlines WHERE id = ?`, distrib.trustline)
 			let issuerRow = oldDB.get(`SELECT * FROM Issuers WHERE id = ?`, trustline.issuer)
@@ -46,15 +51,16 @@ repo.tx(() => {
 				table: 'Distributions',
 				data: {
 					trustline: newTrustlineId,
-					ledger: ledger ? ledger.index : date,
+					ledger: ledger.index,
 					percent: distrib.percent,
 					share: distrib.share
-				}
+				},
+				duplicate: 'update'
 			})
 
 			console.log('inserted', {
 					trustline: newTrustlineId,
-					ledger: ledger ? ledger.index : date,
+					ledger: ledger.index,
 					percent: distrib.percent,
 					share: distrib.share
 				})
