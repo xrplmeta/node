@@ -22,7 +22,7 @@ export default class Server{
 	}
 
 	async start(){
-		log.info(`building essential datasets`)
+		log.info(`building essential datasets...`)
 	
 		for(let [key, dataset] of Object.entries(this.datasets)){
 			let last = 0

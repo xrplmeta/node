@@ -50,19 +50,19 @@ async function loop(repo){
 						break
 
 					case 'Exchanges':
-						newEntries.forEach(({from, to}) => {
-							if(from)
+						newEntries.forEach(({base, quote}) => {
+							if(base)
 								updates.push({
 									context: 'exchanges',
 									type: 'trustline',
-									subject: from,
+									subject: base,
 								})
 
-							if(to)
+							if(quote)
 								updates.push({
 									context: 'exchanges',
 									type: 'trustline',
-									subject: to,
+									subject: quote,
 								})
 						})
 						break
