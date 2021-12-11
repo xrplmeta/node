@@ -283,7 +283,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				liquidity: liquidity.toString()
 			})
 
-			await repo.tx(() => {
+			await repo.criticalTx(() => {
 				accounts.forEach(x => repo.accounts.insert(x))
 				balances.forEach(x => repo.balances.insert(x))
 				stats.forEach(x => repo.stats.insert(x))

@@ -13,44 +13,14 @@ const candlestickIntervals = {
 }
 
 
-export function allocate(series){
-	for(let series of series){
-		let table = deriveTable(series)
-
-		this.run(
-			`CREATE TABLE IF NOT EXISTS @table (
-				"id"		INTEGER NOT NULL UNIQUE,
-				"head"		INTEGER NOT NULL,
-				"tail"		INTEGER NOT NULL,
-				"t"			INTEGER NOT NULL,
-				"o"			TEXT NOT NULL,
-				"h"			TEXT NOT NULL,
-				"l"			TEXT NOT NULL,
-				"c"			TEXT NOT NULL,
-				"v"			TEXT NOT NULL,
-				"n"			INTEGER NOT NULL,
-				PRIMARY KEY ("id" AUTOINCREMENT)
-			);
-
-			CREATE UNIQUE INDEX IF NOT EXISTS 
-			@indexName ON @table 
-			("base", "quote");`,
-			{
-				table,
-				indexName: `${table}-BaseQuote`
-			}
-		)
-	}
-}
-
-
-export function fill(series, exchanges){
+export function allocate(series, exchanges){
 	let table = deriveTable(series)
 	let interval = series.interval
 	let candles = []
 	let candle = null
 	let lastCandle = null
-	
+
+	ensureTable.call(this, table)
 
 	for(let exchange of exchanges){
 		let t = Math.floor(exchange.date / interval) * interval
@@ -89,11 +59,21 @@ export function fill(series, exchanges){
 	if(candle)
 		candles.push(candle)
 
+
 	this.insert({
 		table,
-		data: candles
+		data: candles.map(candle => ({
+			...candle,
+			o: candle.o.toString(),
+			h: candle.h.toString(),
+			l: candle.l.toString(),
+			c: candle.c.toString(),
+			v: candle.v.toString()
+		}))
 	})
 }
+
+
 
 export function integrate(series, exchange){
 	let table = deriveTable(series)
@@ -104,6 +84,28 @@ export function integrate(series, exchange){
 }
 
 
+function ensureTable(table){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "${table}" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"head"		INTEGER NOT NULL,
+			"tail"		INTEGER NOT NULL,
+			"t"			INTEGER NOT NULL,
+			"o"			TEXT NOT NULL,
+			"h"			TEXT NOT NULL,
+			"l"			TEXT NOT NULL,
+			"c"			TEXT NOT NULL,
+			"v"			TEXT NOT NULL,
+			"n"			INTEGER NOT NULL,
+			PRIMARY KEY ("id" AUTOINCREMENT)
+		);
+
+		CREATE UNIQUE INDEX IF NOT EXISTS
+		"${table}-T" ON "${table}"
+		("t");`
+	)
+}
+
 function deriveTable({base, quote, interval}){
-	return `Candles-${base}-${quote}-${interval}`
+	return `CandlesB${base || 'X'}Q${quote || 'X'}I${interval}`
 }

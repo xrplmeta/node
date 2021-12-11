@@ -7,8 +7,15 @@ import { log } from '../lib/log.js'
 
 export default class{
 	constructor(config){
+		this.config = config
 		this.file = config.file
 		this.fileName = path.basename(config.file)
+		this.open()
+	}
+
+	open(){
+		let config = this.config
+
 		this.con = new Adapter(config.file, {readonly: config.readonly || false})
 		this.statementCache = {}
 
@@ -33,6 +40,20 @@ export default class{
 					this[key].init()
 			}
 		}
+	}
+
+	wipe(){
+		this.close()
+
+		fs.unlinkSync(this.file)
+
+		if(fs.existsSync(`${this.file}-wal`))
+			fs.unlinkSync(`${this.file}-wal`)
+
+		if(fs.existsSync(`${this.file}-shm`))
+			fs.unlinkSync(`${this.file}-shm`)
+
+		this.open()
 	}
 
 	close(){
@@ -138,8 +159,6 @@ export default class{
 				)
 			}
 
-
-
 			if(returnRow){
 				if(info && info.changes > 0){
 					return this.get(
@@ -154,32 +173,31 @@ export default class{
 		}
 	}
 
-	async tx(func){
+	tx(func){
 		if(this.inTx)
-			return await func()
+			return func()
 
 		log.debug(`sql tx begin`)
 
-		while(true){
-			try{
-				this.con.exec('BEGIN IMMEDIATE')
-				this.inTx = true
-				break
-			}catch(e){
-				if(e.code !== 'SQLITE_BUSY' && e.code !== 'SQLITE_BUSY_SNAPSHOT'){
-					throw e
-				}
-
-				log.info(`sql busy`)
-				await wait(3000)
-			}
-		}
+		this.con.exec('BEGIN IMMEDIATE')
+		this.inTx = true
 		
 		try{
-			var ret = await func()
+			var ret = func()
 
-			log.debug(`sql tx commit`)
-			this.con.exec('COMMIT')
+			if(ret instanceof Promise){
+				ret
+					.then(ret => {
+						log.debug(`sql tx commit`)
+						this.con.exec('COMMIT')
+					})
+					.catch(error => {
+						throw error
+					})
+			}else{
+				log.debug(`sql tx commit`)
+				this.con.exec('COMMIT')
+			}
 		}catch(error){
 			log.debug(`sql tx begin`)
 			this.con.exec('ROLLBACK')
@@ -190,6 +208,21 @@ export default class{
 		}
 
 		return ret
+	}
+
+	async criticalTx(func){
+		while(true){
+			try{
+				return this.tx(func)
+			}catch(e){
+				if(e.code !== 'SQLITE_BUSY' && e.code !== 'SQLITE_BUSY_SNAPSHOT'){
+					throw e
+				}
+
+				log.info(`sql busy`)
+				await wait(3000)
+			}
+		}
 	}
 
 	async monitorWAL(interval, maxSize){

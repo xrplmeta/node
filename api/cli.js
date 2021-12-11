@@ -3,6 +3,7 @@ import { Logger, log as defaultLogger } from '@xrplmeta/common/lib/log.js'
 import { load as loadConfig } from '@xrplmeta/common/core/config.js'
 import initRepo from '@xrplmeta/common/core/repo.js'
 import initCache from './data/cache.js'
+import initRecon from './data/recon.js'
 import Server from './server/server.js'
 
 
@@ -16,10 +17,14 @@ log.info(`*** XRPLMETA API SERVER ***`)
 log.info(`starting with config "${configPath}"`)
 
 const config = loadConfig(configPath)
-const repo = initRepo({...config, readonly: true})
+const repo = initRepo({...config, readonly: false})
 const cache = initCache(config)
 
 
+await initRecon({config, repo, cache})
 
-new Server({repo, config})
-	.start()
+/*
+recon.whenReady(() => 
+	new Server({config, cache})
+		.start()
+)*/

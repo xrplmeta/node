@@ -21,8 +21,12 @@ export function init(){
 		);
 
 		CREATE INDEX IF NOT EXISTS 
-		"ExchangesBaseQuote" ON "Exchanges" 
-		("base", "quote");`
+		"ExchangesBase" ON "Exchanges" 
+		("base");
+
+		CREATE INDEX IF NOT EXISTS 
+		"ExchangesQuote" ON "Exchanges" 
+		("quote");`
 	)
 }
 
@@ -60,7 +64,7 @@ export function all(base, quote){
 	let quoteId = quote ? this.trustlines.id(quote) : null
 	
 	let rows = this.all(
-		`SELECT Exchanges.id, base, quote, price, volume, date
+		`SELECT Exchanges.id, ledger, base, quote, price, volume, date
 		FROM Exchanges 
 		INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger)
 		WHERE 
@@ -69,7 +73,7 @@ export function all(base, quote){
 			OR
 			(\`base\` IS @quote AND \`quote\` IS @base)
 		)
-		ORDER BY ledger ASC`, 
+		ORDER BY date ASC`, 
 		{
 			base: baseId, 
 			quote: quoteId
@@ -83,6 +87,7 @@ export function all(base, quote){
 		if(exchange.base === baseId){
 			return {
 				id: exchange.id,
+				ledger: exchange.ledger,
 				date: exchange.date,
 				price: price,
 				volume: Decimal.mul(volume, price)
@@ -90,10 +95,16 @@ export function all(base, quote){
 		}else{
 			return {
 				id: exchange.id,
+				ledger: exchange.ledger,
 				date: exchange.date,
 				price: Decimal.div('1', price),
 				volume: volume
 			}
 		}
 	})
+}
+
+
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Exchanges`)
 }
