@@ -3,8 +3,8 @@ import { Logger, log as defaultLogger } from '@xrplmeta/common/lib/log.js'
 import { load as loadConfig } from '@xrplmeta/common/core/config.js'
 import initRepo from '@xrplmeta/common/core/repo.js'
 import initCache from './data/cache.js'
-import initRecon from './data/recon.js'
-import Server from './server/server.js'
+import initSync from './data/sync.js'
+import initServer from './server/server.js'
 
 
 const args = minimist(process.argv.slice(2))
@@ -21,10 +21,5 @@ const repo = initRepo({...config, readonly: false})
 const cache = initCache(config)
 
 
-await initRecon({config, repo, cache})
-
-/*
-recon.whenReady(() => 
-	new Server({config, cache})
-		.start()
-)*/
+await initSync({config, repo, cache})
+await initServer({config, cache})

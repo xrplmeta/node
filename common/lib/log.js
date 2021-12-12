@@ -28,7 +28,7 @@ const formatContent = arg => {
 class Logger{
 	constructor({name, color, level}){
 		this.name = name
-		this.color = color
+		this.color = color || 'yellow'
 		this.level = level || 'debug'
 		this.timings = {}
 	}

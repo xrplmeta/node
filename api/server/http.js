@@ -63,12 +63,18 @@ export default class extends Router{
 			}
 
 			try{
-				let parameters = {...ctx.query, ...ctx.params}
+				let parameters = {
+					...ctx.query, 
+					...ctx.params
+				}
 
 				if(transformParameters)
 					parameters = transformParameters(parameters)
 
-				ctx.body = await procedures[name]({...this.ctx, parameters})
+				ctx.body = await procedures[name]({
+					...this.ctx, 
+					parameters
+				})
 			}catch(error){
 				if(error.expose){
 					ctx.status = 400

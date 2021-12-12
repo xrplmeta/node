@@ -124,17 +124,19 @@ export async function trustline_history(ctx){
 
 export async function exchanges(ctx){
 	let { base, quote, format, start, end } = ctx.parameters
+	let baseId = base.currency !== 'XRP'
+		? ctx.cache.trustlines.get(base)?.id
+		: null
+	let quoteId = quote.currency !== 'XRP'
+		? ctx.cache.trustlines.get(quote)?.id
+		: null
 
-	if(base.currency !== 'XRP' && !ctx.repo.trustlines.get(base))
+	if(baseId === undefined || quoteId === undefined)
 		throw {message: 'symbol not listed', expose: true}
 
-	if(quote.currency !== 'XRP' && !ctx.repo.trustlines.get(quote))
-		throw {message: 'symbol not listed', expose: true}
-
-	end = end || unixNow()
 
 	if(format === 'raw'){
-
+		//todo
 	}else{
 		if(!candlestickIntervals[format]){
 			throw {
@@ -143,18 +145,15 @@ export async function exchanges(ctx){
 			}
 		}
 
-		let candles = await ctx.datasets.exchanges.get(base, quote, format)
-
-		if(start && end){
-			let filtered = candles
-				.filter(candle => candle.t >= start && candle.t <= end)
-
-			if(filtered.length === 0)
-				return candles.slice(-1)
-			else
-				return filtered
-		}else
-			return candles
+		return ctx.cache.candles.all(
+			{
+				base: baseId, 
+				quoteId, 
+				interval: candlestickIntervals[format]
+			},
+			start,
+			end
+		)
 	}
 }
 

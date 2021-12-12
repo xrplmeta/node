@@ -13,10 +13,10 @@ export async function subscribe(callback){
 
 
 async function loop(repo){
-	let heads = getTableHeads(repo)
+	let heads = repo.heads.all()
 
 	while(true){
-		let nextHeads = getTableHeads(repo)
+		let nextHeads = repo.heads.all()
 		let updates = []
 
 		for(let [k, i] of Object.entries(heads)){
@@ -96,15 +96,6 @@ async function loop(repo){
 	}
 }
 
-
-function getTableHeads(repo){
-	return {
-		Trustlines: repo.getv(`SELECT MAX(id) FROM Trustlines`),
-		Stats: repo.getv(`SELECT MAX(id) FROM Stats`),
-		Metas: repo.getv(`SELECT MAX(id) FROM Metas`),
-		Exchanges: repo.getv(`SELECT MAX(id) FROM Exchanges`),
-	}
-}
 
 function getTableEntriesAfter(repo, table, id){
 	return repo.all(

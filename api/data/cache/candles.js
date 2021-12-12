@@ -1,7 +1,6 @@
 import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
 import { createURI as createPairURI } from '@xrplmeta/common/lib/pair.js'
-import { wait } from '@xrplmeta/common/lib/time.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
+import { unixNow } from '@xrplmeta/common/lib/time.js'
 import { log } from '@xrplmeta/common/lib/log.js'
 
 const candlestickIntervals = {
@@ -12,6 +11,20 @@ const candlestickIntervals = {
 	'1d': 60 * 60 * 24,
 }
 
+export function all(series, start, end){
+	let table = deriveTable(series)
+	
+	if(!doesTableExist.call(this, table))
+		return []
+
+	return this.all(
+		`SELECT t, o, h, l, c, v, n FROM ${table}
+		WHERE t >= ? AND t <= ?
+		ORDER BY t ASC`,
+		start || 0,
+		end || unixNow()
+	)
+}
 
 export function allocate(series, exchanges){
 	let table = deriveTable(series)
@@ -79,10 +92,46 @@ export function integrate(series, exchange){
 	let table = deriveTable(series)
 	let t = Math.floor(exchange.date / interval) * interval
 	let candle = this.get(`SELECT * FROM Candles FROM ? WHERE t = ?`, table, t)
+	let price = exchange.price
+	let volume = exchange.volume
 
-	
+	if(candle){
+		candle.h = Decimal.max(candle.h, price)
+		candle.l = Decimal.min(candle.l, price)
+		candle.v = candle.v.plus(volume)
+		candle.n += 1
+
+		if(exchange.ledger < candle.tail){
+			candle.tail = exchange.ledger
+			candle.o = price
+		}else if(exchange.ledger > candle.head){
+			candle.head = exchange.ledger
+			candle.c = price
+		}
+	}else{
+		candle = {
+			t,
+			head: exchange.ledger,
+			tail: exchange.ledger,
+			o: price,
+			h: price,
+			l: price,
+			c: price,
+			v: volume,
+			n: 1
+		}
+	}
 }
 
+function doesTableExist(table){
+	return !!this.getv(
+		`SELECT COUNT(1) 
+		FROM sqlite_master 
+		WHERE type='table' 
+		AND name = ?`,
+		table
+	)
+}
 
 function ensureTable(table){
 	this.exec(

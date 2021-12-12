@@ -104,6 +104,16 @@ export function all(base, quote){
 	})
 }
 
+export function invert(exchanges){
+	return exchanges.map(exchange => ({
+		id: exchange.id,
+		ledger: exchange.ledger,
+		date: exchange.date,
+		price: Decimal.div('1', exchange.price),
+		volume: Decimal.mul(exchange.volume, exchange.price)
+	}))
+}
+
 
 export function count(){
 	return this.getv(`SELECT COUNT(1) FROM Exchanges`)
