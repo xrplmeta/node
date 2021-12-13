@@ -12,7 +12,9 @@ export function init(){
 			"currency"		TEXT NOT NULL,
 			"issuer"		TEXT NOT NULL,
 			"minimal"		TEXT NOT NULL,
-			"full"			TEXT NOT NULL
+			"full"			TEXT NOT NULL,
+			"marketcap"		REAL NOT NULL,
+			"volume"		REAL NOT NULL
 		);
 		
 		CREATE INDEX IF NOT EXISTS 
@@ -21,9 +23,32 @@ export function init(){
 
 		CREATE INDEX IF NOT EXISTS 
 		"TrustlinesIssuer" ON "Trustlines" 
-		("issuer");`
+		("issuer");
+
+		CREATE INDEX IF NOT EXISTS 
+		"TrustlinesMarketcap" ON "Trustlines" 
+		("marketcap");
+
+		CREATE INDEX IF NOT EXISTS 
+		"TrustlinesVolume" ON "Trustlines" 
+		("volume");`
 	)
 }
+
+export function all({currency}){
+	let rows
+
+	if(currency){
+		rows = this.all(
+			`SELECT * FROM Trustlines
+			WHERE currency`,
+			currency
+		)
+	}
+
+	return rows.map(row => decode(row))
+}
+
 
 export function get({currency, issuer}){
 	return decode(this.get(
@@ -43,6 +68,8 @@ export function insert({id, currency, issuer, minimal, full}){
 			issuer,
 			minimal: JSON.stringify(minimal),
 			full: JSON.stringify(full),
+			marketcap: parseFloat(full.stats.marketcap),
+			volume: parseFloat(full.stats.volume),
 		},
 		duplicate: 'update'
 	})

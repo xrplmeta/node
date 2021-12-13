@@ -1,5 +1,6 @@
 import * as candles from './sync/candles.js'
 import * as trustlines from './sync/trustlines.js'
+import * as currencies from './sync/currencies.js'
 import { Logger } from '@xrplmeta/common/lib/log.js'
 
 const log = new Logger({name: 'sync'})
@@ -18,12 +19,15 @@ export default async ctx => {
 
 	let repoHeads = ctx.repo.heads.all()
 
-
 	if(!cacheHeads.Exchanges){
 		candles.allocate.call(ctx, repoHeads)
 	}
 
 	if(!cacheHeads.Trustlines){
+		trustlines.allocate.call(ctx, repoHeads)
+	}
+
+	if(!cacheHeads.Currencies){
 		trustlines.allocate.call(ctx, repoHeads)
 	}
 
