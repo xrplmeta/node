@@ -1,3 +1,5 @@
 export * as heads from './heads.js'
 export * as trustlines from './trustlines.js'
+export * as currencies from './currencies.js'
 export * as candles from './candles.js'
+export * as stats from './stats.js'

@@ -16,71 +16,30 @@ export async function currencies(ctx){
 	let limit = ctx.parameters.limit || 100
 	let offset = ctx.parameters.offset || 0
 	let minTrustlines = ctx.parameters.min_trustlines || 100
-	let search = ctx.parameters.search
-	let trustlines = await ctx.datasets.trustlines.get()
+	let filter = ctx.parameters.filter
+	let total = ctx.cache.currencies.count()
+	let currencies = ctx.cache.currencies.all({limit, offset})
 	let stacks = []
-	let total = 0
-	let now = unixNow()
 
-	for(let trustline of trustlines){
-		let formatted = formatTrustline(ctx, trustline, true)
-		let stack = stacks.find(stack => stack.currency === formatted.currency)
 
-		if(!stack){
-			stack = {
-				currency: formatted.currency,
-				trustlines: [],
-				stats: {
-					volume: new Decimal(0),
-					marketcap: new Decimal(0)
-				}
+	for(let { currency, marketcap, volume } of currencies){
+		let trustlines = ctx.cache.trustlines.all({
+			currency,
+			minAccounts: minTrustlines,
+			limit: 3
+		})
+
+		stacks.push({
+			currency,
+			trustlines,
+			stats: {
+				marketcap: marketcap.toString(),
+				volume: volume.toString()
 			}
-
-			stacks.push(stack)
-		}
-
-		stack.trustlines.push(formatted)
-
-		stack.stats.volume = stack.stats.volume.plus(trustline.stats.volume || 0)
-		stack.stats.marketcap = stack.stats.marketcap.plus(trustline.stats.marketcap || 0)
-	}
-
-	stacks = keySort(
-		stacks, 
-		stack => stack.stats.volume || new Decimal(0), 
-		decimalCompare
-	)
-		.reverse()
-
-	for(let stack of stacks){
-		stack.count = stack.trustlines.length
-		stack.trustlines = keySort(
-			stack.trustlines,
-			trustline => Decimal.sum(
-				trustline.stats.volume || 0, 
-				(trustline.stats.trustlines || 0) / 1000
-			), 
-			decimalCompare
-		)
-			.reverse()
-			.filter((trustline, i) => i < 3 
-				|| trustline.stats.trustlines >= minTrustlines)
-	}
-
-	if(search){
-		stacks = stacks.filter(stack => {
-			if(stack.currency.toLowerCase().startsWith(search.toLowerCase()))
-				return true
 		})
 	}
 
-	total = stacks.length
-
-	if(limit)
-		stacks = stacks.slice(offset, offset + limit)
-
-
-	return {currencies: stacks, count: total}
+	return stacks
 }
 
 export async function currency_stats(ctx){

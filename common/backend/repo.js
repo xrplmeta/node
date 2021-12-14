@@ -4,6 +4,7 @@ import * as modules from './repo/index.js'
 
 export default config => {
 	return new DB({
+		...config,
 		file: `${config.data.dir}/meta.db`,
 		modules,
 		journalMode: 'WAL',

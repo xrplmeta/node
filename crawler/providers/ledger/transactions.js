@@ -6,11 +6,10 @@ import { fromTxs as summarize } from '../../ledger/summary.js'
 export default ({repo, config, xrpl, loopLedgerTask, count}) => {
 	loopLedgerTask(
 		{
-			task: 'ledger.txs',
+			task: 'ledgertx',
 			interval: 1,
 			backfillLedgers: config.ledger.stateTxLedgers,
-			backfillInterval: 1,
-			concurrency: config.ledger.txsConcurrency || 1
+			backfillInterval: 1
 		},
 		async index => {
 			log.debug(`scanning transactions of ledger #${index}`)

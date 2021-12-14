@@ -1,4 +1,10 @@
 export function init(){
+	if(!this.config.ledger?.topPercenters)
+		return
+
+	let percents = this.config.ledger.topPercenters
+		.map(percent => `"percent${percent.toString().replace('.', '')}"	REAL`)
+
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Stats" (
 			"id"		INTEGER NOT NULL UNIQUE,
@@ -8,6 +14,7 @@ export function init(){
 			"supply"	TEXT NOT NULL,
 			"bid"		TEXT NOT NULL,
 			"ask"		TEXT NOT NULL,
+			${percents.join(', ')},
 			PRIMARY KEY ("id" AUTOINCREMENT),
 			UNIQUE ("ledger", "trustline")
 		);
@@ -48,7 +55,7 @@ export function all(trustline){
 	let trustlineId = this.trustlines.id(trustline)
 
 	return this.all(
-		`SELECT Stats.id, trustline, "count", supply, bid, ask, date
+		`SELECT Stats.*, Ledgers.date
 		FROM Stats
 		INNER JOIN Ledgers ON ("index" = Stats.ledger)
 		WHERE trustline = ?

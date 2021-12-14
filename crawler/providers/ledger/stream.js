@@ -25,7 +25,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 		try{
 			repo.exchanges.insert(exchanges.map(exchange => ({...exchange, ledger: open.index})))
 			repo.ledgers.insert({index: open.index, date: open.time, ...summarize(open.txs)})
-			repo.coverages.extend('ledger.txs', open.index)
+			repo.coverages.extend('ledgertx', open.index)
 
 			log.info(`recorded ${exchanges.length} exchange(s)`)
 		}catch(e){

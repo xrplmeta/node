@@ -60,6 +60,10 @@ export default class{
 		this.con.close()
 	}
 
+	isEmpty(){
+		return this.getv(`SELECT COUNT(1) FROM sqlite_master WHERE type='table'`) === 0
+	}
+
 	pragma(sql){
 		return this.con.pragma(sql)
 	}
@@ -142,17 +146,17 @@ export default class{
 			if(modifier === 'UPDATE'){
 				var info = this.run(
 					`INSERT INTO ${table}
-					(${Object.keys(data).map(key => `\`${key}\``).join(',')})
+					(${Object.keys(data).map(key => `"${key}"`).join(',')})
 					VALUES
 					(${Object.keys(data).map(key => `@${key}`).join(',')})
 					ON CONFLICT DO UPDATE SET
-					${Object.keys(data).map(key => `\`${key}\`=@${key}`).join(',')}`,
+					${Object.keys(data).map(key => `"${key}"=@${key}`).join(',')}`,
 					data
 				)
 			}else{
 				var info = this.run(
 					`INSERT OR ${modifier} INTO ${table}
-					(${Object.keys(data).map(key => `\`${key}\``).join(',')})
+					(${Object.keys(data).map(key => `"${key}"`).join(',')})
 					VALUES
 					(${Object.keys(data).map(key => `@${key}`).join(',')})`,
 					data

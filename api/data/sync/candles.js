@@ -11,7 +11,7 @@ const intervals = [
 
 
 export function allocate(heads){
-	log.info(`building exchanges cache`)
+	log.time(`sync.candles`, `building exchanges cache`)
 
 	let trustlines = this.repo.trustlines.all()
 	let count = this.repo.exchanges.count()
@@ -40,15 +40,15 @@ export function allocate(heads){
 			processed += exchangesB.length
 		}
 
-		let newProgress = Math.floor((processed / count) * 100)
+		let e = processed / count
+		let t = i / trustlines.length
+		let newProgress = Math.floor((e * 0.75 + t * 0.25) * 100)
 
 		if(newProgress !== progress){
 			progress = newProgress
-			log.info(`processed`, processed, `of`, count, `exchanges (${progress}%)`)
+			log.info(`processed`, processed, `of`, count, `exchanges from`, i, `trustlines (${progress}%)`)
 		}
 	}
 
-	log.info(`built exchanges cache (head ${heads.Exchanges})`)
-
-	this.cache.heads.set('Exchanges', heads.Exchanges)
+	log.time(`sync.candles`, `built exchanges cache in %`)
 }

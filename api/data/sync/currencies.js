@@ -7,11 +7,13 @@ import Decimal from '@xrplmeta/common/lib/decimal.js'
 const log = new Logger({name: 'sync'})
 
 
-export async function allocate(heads){
-	log.info(`building currencies cache`)
+export function allocate(heads){
+	log.time(`sync.currencies`, `building currencies cache`)
 
 	let trustlines = this.repo.trustlines.all()
-	let currencies = new Set(trustlines.map(trustline => trustline.currency))
+	let currencies = trustlines
+		.map(trustline => trustline.currency)
+		.filter((currency, index, list) => list.indexOf(currency) === index)
 	let progress = 0
 	
 	for(let i=0; i<currencies.length; i++){
@@ -25,7 +27,7 @@ export async function allocate(heads){
 		}
 	}
 
-	this.cache.heads.set('Currencies', heads.Trustlines)
+	log.time(`sync.currencies`, `built trustlines cache in %`)
 }
 
 function compose(currency){

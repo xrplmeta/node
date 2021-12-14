@@ -7,8 +7,8 @@ import Decimal from '@xrplmeta/common/lib/decimal.js'
 const log = new Logger({name: 'sync'})
 
 
-export async function allocate(heads){
-	log.info(`building trustlines cache`)
+export function allocate(heads){
+	log.time(`sync.trustlines`, `building trustlines cache`)
 
 	let trustlines = this.repo.trustlines.all()
 	let progress = 0
@@ -24,7 +24,7 @@ export async function allocate(heads){
 		}
 	}
 
-	this.cache.heads.set('Trustlines', heads.Trustlines)
+	log.time(`sync.trustlines`, `built trustlines cache in %`)
 }
 
 function compose(trustline){
@@ -44,7 +44,6 @@ function compose(trustline){
 	}
 
 
-	let stats = {}
 	let currentStats = this.repo.stats.get(trustline)
 	let yesterdayStats
 	let now = unixNow()
@@ -52,6 +51,11 @@ function compose(trustline){
 		{base: id, quote: null, interval: 86400},
 		now - 60*60*24*7
 	)
+	let stats = {
+		marketcap: new Decimal(0),
+		volume: new Decimal(0),
+		trustlines: 0
+	}
 
 	if(currentStats){
 		stats.trustlines = currentStats.accounts

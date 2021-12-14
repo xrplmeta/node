@@ -7,15 +7,17 @@ export function init(){
 	)
 }
 
-export function set(key, sequence){
-	this.insert({
-		table: 'Heads',
-		data: {
-			key,
-			sequence
-		},
-		duplicate: 'update'
-	})
+export function set(heads){
+	for(let [key, sequence] of Object.entries(heads)){
+		this.insert({
+			table: 'Heads',
+			data: {
+				key,
+				sequence
+			},
+			duplicate: 'update'
+		})
+	}
 }
 
 export function all(){

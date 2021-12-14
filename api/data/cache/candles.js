@@ -152,7 +152,7 @@ function ensureTable(table){
 		);
 
 		CREATE UNIQUE INDEX IF NOT EXISTS
-		"${table}-T" ON "${table}"
+		"${table}T" ON "${table}"
 		("t");`
 	)
 }

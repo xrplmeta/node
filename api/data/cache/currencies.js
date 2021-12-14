@@ -25,6 +25,16 @@ export function init(){
 }
 
 
+export function all({limit, offset}){
+	return this.all(
+		`SELECT * FROM Currencies
+		ORDER BY volume DESC
+		LIMIT ?, ?`,
+		limit, offset
+	)
+}
+
+
 export function insert(data){
 	this.insert({
 		table: 'Currencies',

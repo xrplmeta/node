@@ -3,46 +3,46 @@ import { wait, unixNow } from '@xrplmeta/common/lib/time.js'
 import { keySort, decimalCompare } from '@xrplmeta/common/lib/data.js'
 import { currencyHexToUTF8 } from '@xrplmeta/common/lib/xrpl.js'
 import Decimal from '@xrplmeta/common/lib/decimal.js'
-import initScanDB from '../../ledger/scandb.js'
+import initSnapshot from '../../ledger/snapshot.js'
 
 
 
 export default ({repo, config, xrpl, loopLedgerTask}) => {
 	loopLedgerTask(
 		{
-			task: 'ledger.states',
-			interval: config.ledger.stateInterval,
-			backfillLedgers: config.ledger.stateHistoryLedgers,
-			backfillInterval: config.ledger.stateHistoryInterval,
+			task: 'snapshot',
+			interval: config.ledger.snapshotInterval,
+			backfillLedgers: config.ledger.snapshotHistoryLedgers,
+			backfillInterval: config.ledger.snapshotHistoryInterval,
 		},
 		async (index, isBackfill) => {
 			let replaceAfter = isBackfill
 				? null
-				: Math.floor(index / config.ledger.stateHistoryInterval) 
-					* config.ledger.stateHistoryInterval
+				: Math.floor(index / config.ledger.snapshotHistoryInterval) 
+					* config.ledger.snapshotHistoryInterval
 
-			log.time(`states.scan`, `starting ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index}`)
+			log.time(`snapshot`, `starting ${isBackfill ? 'backfill' : 'full'} snapshot of ledger #${index}`)
 
-			let scandbFile = config.ledger.stateProcessInMemory
+			let snapshotFile = config.ledger.snapshotProcessInMemory
 				? `:memory:`
-				: `${config.data.dir}/scan.db`
+				: `${config.data.dir}/snapshot.db`
 
 
-			let scandb = initScanDB(scandbFile)
-			let queue = fillStateQueue(xrpl, index)
+			let snapshot = initSnapshot(snapshotFile)
+			let queue = fillQueue(xrpl, index)
 			let chunk
 			let scanned = 0
 			let start = Date.now()
 
 			if(log.level === 'debug')
-				scandb.enableQueryProfiling()
+				snapshot.enableQueryProfiling()
 
-			log.time(`states.collect`)
+			log.time(`snapshot.record`)
 
 			while(chunk = await queue()){
-				log.time(`states.chunk`)
+				log.time(`snapshot.chunk`)
 
-				await scandb.tx(async () => {
+				await snapshot.tx(async () => {
 					for(let state of chunk){
 
 						if(state.LedgerEntryType === 'RippleState'){
@@ -50,13 +50,13 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 							let issuer = state.HighLimit.value === '0' ? state.HighLimit.issuer : state.LowLimit.issuer
 							let holder = state.HighLimit.value !== '0' ? state.HighLimit.issuer : state.LowLimit.issuer
 
-							scandb.balances.insert({
+							snapshot.balances.insert({
 								account: holder,
 								trustline: {currency, issuer},
 								balance: state.Balance.value.replace(/^-/, '')
 							})
 						}else if(state.LedgerEntryType === 'AccountRoot'){
-							scandb.accounts.insert({
+							snapshot.accounts.insert({
 								address: state.Account,
 								emailHash: state.EmailHash || null,
 								domain: state.Domain 
@@ -67,7 +67,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 									: null
 							})
 
-							scandb.balances.insert({
+							snapshot.balances.insert({
 								account: state.Account,
 								trustline: null,
 								balance: new Decimal(state.Balance)
@@ -106,7 +106,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 								pays = state.TakerPays.value
 							}
 
-							scandb.offers.insert({
+							snapshot.offers.insert({
 								account: state.Account,
 								base,
 								quote,
@@ -118,11 +118,11 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				})
 				
 				scanned += chunk.length
-				log.time(`states.chunk`, `scanned`, scanned, `entries (chunk took %)`)
+				log.time(`snapshot.chunk`, `scanned`, scanned, `entries (chunk took %)`)
 			}
 
-			log.time(`states.collect`, `collected all ledger states in %`)
-			log.time(`states.compute`, `computing metadata`)
+			log.time(`snapshot.record`, `took snapshot in %`)
+			log.time(`snapshot.compute`, `computing metadata`)
 
 			let accounts = []
 			let balances = []
@@ -130,7 +130,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let distributions = []
 			let liquidity = new Decimal(0)
 
-			let relevantTrustlines = scandb.iterate(
+			let relevantTrustlines = snapshot.iterate(
 				`SELECT 
 					Trustlines.id, 
 					currency,  
@@ -143,19 +143,19 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			)
 
 			for(let trustline of relevantTrustlines){
-				let balances = scandb.balances.all({trustline})
+				let lines = snapshot.balances.all({trustline})
 
-				if(balances.length < config.ledger.minTrustlines)
+				if(lines.length < config.ledger.minTrustlines)
 					continue
 
 
 				let nonZeroBalances = keySort(
-					balances.filter(({balance}) => balance !== '0'),
+					lines.filter(({balance}) => balance !== '0'),
 					({balance}) => new Decimal(balance),
 					decimalCompare.DESC
 				)
 
-				let count = balances.length
+				let count = lines.length
 				let holders = nonZeroBalances.length
 				let bid = new Decimal(0)
 				let ask = new Decimal(0)
@@ -163,8 +163,8 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
 
 				
-				for(let { account, balance } of balances){
-					let offers = scandb.all(
+				for(let { account, balance } of lines){
+					let offers = snapshot.all(
 						`SELECT * FROM Offers
 						WHERE account = ?
 						AND (base = ? OR quote = ?)`,
@@ -175,7 +175,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 					if(offers.length > 0){
 						for(let offer of offers){
-							let xrpBalance = scandb.balances.get({
+							let xrpBalance = snapshot.balances.get({
 								account, 
 								trustline: null
 							})
@@ -206,7 +206,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					let whales = nonZeroBalances.slice(0, config.ledger.captureWhales)
 
 					for(let { account, balance } of whales){
-						let { address } = scandb.accounts.get({id: account})
+						let { address } = snapshot.accounts.get({id: account})
 
 						balances.push({
 							account: address,
@@ -227,7 +227,9 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					}
 				}
 
-				stats.push({
+
+
+				let stat = {
 					ledger: index,
 					trustline: {
 						currency: trustline.currency,
@@ -238,48 +240,36 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 					bid: bid.toString(),
 					ask: ask.toString(),
 					replaceAfter
-				})
+				}
 
 				if(supply.gt('0')){
-					let percenters = config.ledger.topPercenters
-						.map(percent => {
-							let group = nonZeroBalances.slice(0, Math.ceil(holders * percent / 100))
-							let wealth = group.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
-							let share = wealth.div(supply).times(100)
+					for(let percent of config.ledger.topPercenters){
+						let group = nonZeroBalances.slice(0, Math.ceil(holders * percent / 100))
+						let wealth = group.reduce((sum, {balance}) => sum.plus(balance), new Decimal(0))
+						let share = wealth.div(supply).times(100)
+						let key = `percent${percent.toString().replace('.', '')}`
 
-							return {
-								percent,
-								share: share.toNumber()
-							}
-						})
-
-					distributions.push({
-						ledger: index,
-						trustline: {
-							currency: trustline.currency,
-							issuer: trustline.issuer
-						},
-						percenters,
-						replaceAfter
-					})
+						stat[key] = share.toNumber()
+					}
 				}
+
+				stats.push(stat)
 			}
 			
-			log.time(`states.compute`, `computed metadata in %`)
-			log.time(`states.insert`,
+			log.time(`snapshot.compute`, `computed metadata in %`)
+			log.time(`snapshot.insert`,
 				`inserting:`,
 				accounts.length, `accounts,`,
 				balances.length, `balances,`,
-				stats.length, `trustlines,`,
-				distributions.length, `distributions`
+				stats.length, `trustlines,`
 			)
 
 			repo.states.insert({
 				index,
-				accounts: scandb.accounts.count(),
-				trustlines: scandb.trustlines.count(),
-				balances: scandb.balances.count(),
-				offers: scandb.offers.count(),
+				accounts: snapshot.accounts.count(),
+				trustlines: snapshot.trustlines.count(),
+				balances: snapshot.balances.count(),
+				offers: snapshot.offers.count(),
 				liquidity: liquidity.toString()
 			})
 
@@ -287,20 +277,19 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				accounts.forEach(x => repo.accounts.insert(x))
 				balances.forEach(x => repo.balances.insert(x))
 				stats.forEach(x => repo.stats.insert(x))
-				distributions.forEach(x => repo.distributions.insert(x))
 			})
 
-			log.time(`states.insert`, `inserted rows in %`)
+			log.time(`snapshot.insert`, `inserted rows in %`)
 
-			scandb.close()
+			snapshot.close()
 
-			log.time(`states.scan`, `completed ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index} in %`)
+			log.time(`snapshot`, `completed ${isBackfill ? 'backfill' : 'full'} scan of ledger #${index} in %`)
 		}
 	)
 }
 
 
-function fillStateQueue(xrpl, index){
+function fillQueue(xrpl, index){
 	let chunkSize = 100000
 	let ledgerData
 	let lastMarker
@@ -313,10 +302,12 @@ function fillStateQueue(xrpl, index){
 			else
 				await wait(100)
 
-		log.info(`ledger data queue: ${queue.length}/3`)
+		log.debug(`ledger data queue: ${queue.length}/3`)
 
 		return queue.shift()
 	}
+
+	let n = 0
 
 	;(async () => {
 		while(true){
@@ -340,7 +331,7 @@ function fillStateQueue(xrpl, index){
 			queue.push(ledgerData.state)
 			lastMarker = ledgerData.marker
 
-			if(!lastMarker){
+			if(!lastMarker || n++>=2){
 				done = true
 				break
 			}
