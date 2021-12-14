@@ -9,7 +9,6 @@ export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Currencies" (
 			"currency"		INTEGER NOT NULL UNIQUE,
-			"stats"			TEXT NOT NULL,
 			"marketcap"		REAL NOT NULL,
 			"volume"		REAL NOT NULL
 		);
@@ -30,10 +29,13 @@ export function all({limit, offset}){
 		`SELECT * FROM Currencies
 		ORDER BY volume DESC
 		LIMIT ?, ?`,
-		limit, offset
+		offset, limit
 	)
 }
 
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Currencies`)
+}
 
 export function insert(data){
 	this.insert({

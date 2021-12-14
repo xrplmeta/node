@@ -25,28 +25,28 @@ export function allocate(heads){
 		let exchangesQ = this.repo.exchanges.invert(exchangesB)
 
 		if(exchangesB.length > 0){
-			for(let interval of intervals){
-				this.cache.candles.allocate(
-					{base: trustline.id, quote: null, interval},
-					exchangesB
-				)
+			this.cache.tx(() => {
+				for(let interval of intervals){
+					this.cache.candles.allocate(
+						{base: trustline.id, quote: null, interval},
+						exchangesB
+					)
 
-				this.cache.candles.allocate(
-					{base: null, quote: trustline.id, interval},
-					exchangesQ
-				)
-			}
+					this.cache.candles.allocate(
+						{base: null, quote: trustline.id, interval},
+						exchangesQ
+					)
+				}
+			})
 
 			processed += exchangesB.length
 		}
 
-		let e = processed / count
-		let t = i / trustlines.length
-		let newProgress = Math.floor((e * 0.75 + t * 0.25) * 100)
+		let newProgress = Math.floor((processed / count) * 100)
 
 		if(newProgress !== progress){
 			progress = newProgress
-			log.info(`processed`, processed, `of`, count, `exchanges from`, i, `trustlines (${progress}%)`)
+			log.info(`processed`, processed, `of`, count, `exchanges (${progress}%)`)
 		}
 	}
 

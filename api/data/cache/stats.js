@@ -10,15 +10,15 @@ export function set(trustline, stats){
 	if(stats.length === 0)
 		return
 
-	let table = deriveTable(series)
+	let table = deriveTable(trustline)
 	let cols = Object.keys(stats[0])
 	let percentCols = cols.filter(col => col.startsWith('percent'))
 
-	ensureTable(table, percentCols)
+	ensureTable.call(this, table, percentCols)
 
 	this.insert({
 		table,
-		stats
+		data: stats
 	})
 }
 
@@ -52,8 +52,8 @@ function ensureTable(table, percentCols){
 		);
 
 		CREATE UNIQUE INDEX IF NOT EXISTS
-		"${table}Trustline" ON "${table}"
-		("trustline");`
+		"${table}Date" ON "${table}"
+		("date");`
 	)
 }
 

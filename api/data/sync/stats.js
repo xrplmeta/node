@@ -27,6 +27,7 @@ export function allocate(heads){
 
 function compose(trustline){
 	let stats = this.repo.stats.all(trustline)
+		.map(({trustline, ...stat}) => stat)
 
 	this.cache.stats.set(trustline, stats)
 }

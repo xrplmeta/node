@@ -31,7 +31,7 @@ export function allocate(heads){
 }
 
 function compose(currency){
-	let trustlines = this.cache.trustlines.all({currency})
+	let trustlines = this.cache.trustlines.all({currency}, true)
 	let marketcap = new Decimal(0)
 	let volume = new Decimal(0)
 

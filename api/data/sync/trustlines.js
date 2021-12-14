@@ -58,7 +58,7 @@ function compose(trustline){
 	}
 
 	if(currentStats){
-		stats.trustlines = currentStats.accounts
+		stats.trustlines = currentStats.count
 		stats.supply = currentStats.supply
 		stats.liquidity = {ask: currentStats.ask, bid: currentStats.bid}
 
@@ -83,7 +83,7 @@ function compose(trustline){
 	}
 
 	let full = {stats, meta}
-	let minimal = {
+	let condensed = {
 		stats: {
 			...stats,
 			liquidity: undefined
@@ -109,7 +109,7 @@ function compose(trustline){
 		id,
 		currency, 
 		issuer: issuer.address,
-		minimal,
+		condensed,
 		full
 	})
 }

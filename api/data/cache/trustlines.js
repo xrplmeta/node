@@ -11,8 +11,8 @@ export function init(){
 			"id"			INTEGER NOT NULL UNIQUE,
 			"currency"		TEXT NOT NULL,
 			"issuer"		TEXT NOT NULL,
-			"minimal"		TEXT NOT NULL,
 			"full"			TEXT NOT NULL,
+			"condensed"		TEXT NOT NULL,
 			"accounts"		INTEGER NOT NULL,
 			"marketcap"		REAL NOT NULL,
 			"volume"		REAL NOT NULL
@@ -40,16 +40,19 @@ export function init(){
 	)
 }
 
-export function all({currency, minAccounts}){
+export function all({currency, minAccounts, limit}, full){
 	let rows
 
 	if(currency){
 		rows = this.all(
-			`SELECT * FROM Trustlines
+			`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Trustlines
 			WHERE currency = ?
-			AND accounts >= ?`,
+			AND accounts >= ?
+			ORDER BY volume DESC
+			LIMIT ?`,
 			currency,
-			minAccounts || 0
+			minAccounts || 0,
+			limit
 		)
 	}
 
@@ -57,25 +60,25 @@ export function all({currency, minAccounts}){
 }
 
 
-export function get({currency, issuer}){
+export function get({currency, issuer}, full){
 	return decode(this.get(
-		`SELECT * FROM Trustlines
+		`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Trustlines
 		WHERE currency = ? AND issuer = ?`,
 		currency,
 		issuer
 	))
 }
 
-export function insert({id, currency, issuer, minimal, full}){
+export function insert({id, currency, issuer, full, condensed}){
 	this.insert({
 		table: 'Trustlines',
 		data: {
 			id,
 			currency,
 			issuer,
-			minimal: JSON.stringify(minimal),
 			full: JSON.stringify(full),
-			accounts: full.stats.trustlines || 0,
+			condensed: JSON.stringify(condensed),
+			accounts: full.stats.trustlines,
 			marketcap: parseFloat(full.stats.marketcap),
 			volume: parseFloat(full.stats.volume),
 		},
@@ -84,9 +87,10 @@ export function insert({id, currency, issuer, minimal, full}){
 }
 
 function decode(row){
+	let { meta, ...trustline } = row
+
 	return {
-		...row,
-		minimal: JSON.parse(row.minimal),
-		full: JSON.parse(row.full),
+		...trustline,
+		...JSON.parse(meta)
 	}
 }

@@ -33,7 +33,7 @@ function allocate(ctx){
 	currencies.allocate.call(ctx, repoHeads)
 	stats.allocate.call(ctx, repoHeads)
 
-	log.info(`sync.prepare`, `built caching database in %`)
+	log.time(`sync.prepare`, `built caching database in %`)
 
 	ctx.cache.heads.set(repoHeads)
 }

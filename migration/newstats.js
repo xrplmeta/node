@@ -9,7 +9,7 @@ let repo = initRepo({
 		topPercenters: [0.01, 0.1, 1.0, 10.0, 25.0, 50.0]
 	},
 	data: {
-		dir: '/Users/mwni/Documents/xrpl'
+		dir: 'V:/xrpl/xrplmeta'
 	}
 })
 
