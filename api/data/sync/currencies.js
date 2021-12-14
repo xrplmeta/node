@@ -42,3 +42,7 @@ function compose(currency){
 
 	this.cache.currencies.insert({currency, marketcap, volume})
 }
+
+export function register(updates){
+	
+}

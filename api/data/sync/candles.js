@@ -20,11 +20,16 @@ export function allocate(heads){
 	
 	for(let i=0; i<trustlines.length; i++){
 		let trustline = trustlines[i]
-		let exchangesB = this.repo.exchanges.all(trustline, null)
-			.filter(exchange => exchange.id <= heads.Exchanges)
-		let exchangesQ = this.repo.exchanges.invert(exchangesB)
+		let exchanges = [
+			...this.repo.exchanges.all({base: trustline, quote: null}),
+			...this.repo.exchanges.all({base: null, quote: trustline})
+		]
+		let exchangesB = exchanges.map(exchange => 
+			this.repo.exchanges.align(exchange, trustline, null))
+		let exchangesQ = exchanges.map(exchange => 
+			this.repo.exchanges.align(exchange, null, trustline))
 
-		if(exchangesB.length > 0){
+		if(exchanges.length > 0){
 			this.cache.tx(() => {
 				for(let interval of intervals){
 					this.cache.candles.allocate(
@@ -51,4 +56,33 @@ export function allocate(heads){
 	}
 
 	log.time(`sync.candles`, `built exchanges cache in %`)
+}
+
+
+export function register(updates){
+	if(!updates.exchanges)
+		return
+
+	let newExchanges = this.repo.exchanges.all({
+		from: updates.exchanges[0],
+		to: updates.exchanges[1]
+	})
+
+	for(let exchange of newExchanges){
+		let tl = exchange.base || exchange.quote
+		let exchangeB = this.repo.exchanges.align(exchange, tl, null)
+		let exchangeQ = this.repo.exchanges.align(exchange, null, tl)
+
+		for(let interval of intervals){
+			this.cache.candles.integrate(
+				{base: tl, quote: null, interval},
+				exchangeB
+			)
+
+			this.cache.candles.integrate(
+				{base: null, quote: tl, interval},
+				exchangeQ
+			)
+		}
+	}
 }

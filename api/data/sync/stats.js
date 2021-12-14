@@ -25,6 +25,10 @@ export function allocate(heads){
 	log.time(`sync.stats`, `built stats cache in %`)
 }
 
+export function register(updates){
+	
+}
+
 function compose(trustline){
 	let stats = this.repo.stats.all(trustline)
 		.map(({trustline, ...stat}) => stat)

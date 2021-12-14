@@ -1,8 +1,8 @@
 export function all(){
 	return {
-		Trustlines: this.getv(`SELECT MAX(id) FROM Trustlines`),
-		Stats: this.getv(`SELECT MAX(id) FROM Stats`),
-		Metas: this.getv(`SELECT MAX(id) FROM Metas`),
-		Exchanges: this.getv(`SELECT MAX(id) FROM Exchanges`),
+		trustlines: this.getv(`SELECT MAX(id) FROM Trustlines`),
+		stats: this.getv(`SELECT MAX(id) FROM Stats`),
+		metas: this.getv(`SELECT MAX(id) FROM Metas`),
+		exchanges: this.getv(`SELECT MAX(id) FROM Exchanges`),
 	}
 }

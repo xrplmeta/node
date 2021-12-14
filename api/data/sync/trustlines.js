@@ -27,6 +27,10 @@ export function allocate(heads){
 	log.time(`sync.trustlines`, `built trustlines cache in %`)
 }
 
+export function register(updates){
+	
+}
+
 function compose(trustline){
 	let { id, currency, issuer: issuerId } = trustline
 	let issuer = this.repo.accounts.get({id: issuerId})	

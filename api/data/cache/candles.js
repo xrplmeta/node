@@ -123,6 +123,12 @@ export function integrate(series, exchange){
 			n: 1
 		}
 	}
+
+	this.insert({
+		table,
+		data: candle,
+		duplicate: 'update'
+	})
 }
 
 function doesTableExist(table){

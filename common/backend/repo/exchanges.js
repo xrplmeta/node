@@ -59,61 +59,72 @@ export function insert(exchanges){
 }
 
 
-export function all(base, quote){
-	let baseId = base ? this.trustlines.id(base) : null
-	let quoteId = quote ? this.trustlines.id(quote) : null
-	
-	let rows = this.all(
-		`SELECT Exchanges.id, ledger, base, quote, price, volume, date
-		FROM Exchanges 
-		INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger)
-		WHERE 
-		(
-			(\`base\` IS @base AND \`quote\` IS @quote)
-			OR
-			(\`base\` IS @quote AND \`quote\` IS @base)
+export function all({base, quote, from, to}){
+	let rows = []
+
+	if(base || quote){
+		let baseId = base ? this.trustlines.id(base) : null
+		let quoteId = quote ? this.trustlines.id(quote) : null
+		
+		rows = this.all(
+			`SELECT Exchanges.id, ledger, base, quote, price, volume, date
+			FROM Exchanges 
+			INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger)
+			WHERE \`base\` IS ? 
+			AND \`quote\` IS ?
+			ORDER BY date ASC`, 
+			baseId,
+			quoteId
 		)
-		ORDER BY date ASC`, 
-		{
-			base: baseId, 
-			quote: quoteId
-		}
-	)
+	}else if(from || to){
+		rows = this.all(
+			`SELECT * FROM Exchanges 
+			WHERE id >= ? AND id <= ?`, 
+			from, 
+			to
+		)
+	}
 
-	return rows.map(exchange => {
-		let price = deserialize(exchange.price)
-		let volume = deserialize(exchange.volume)
+	return rows.map(exchange => decode(exchange))
+}
 
-		if(exchange.base === baseId){
-			return {
-				id: exchange.id,
-				ledger: exchange.ledger,
-				date: exchange.date,
-				price: price,
-				volume: Decimal.mul(volume, price)
-			}
-		}else{
-			return {
-				id: exchange.id,
-				ledger: exchange.ledger,
-				date: exchange.date,
-				price: Decimal.div('1', price),
-				volume: volume
-			}
+export function decode(exchange, baseId){
+	return {
+		...exchange,
+		price: deserialize(exchange.price),
+		volume: deserialize(exchange.volume)
+	}
+}
+
+export function align(exchanges, base, quote){
+	if(exchange.base === base){
+		return {
+			id: exchange.id,
+			ledger: exchange.ledger,
+			date: exchange.date,
+			price: exchange.price,
+			volume: Decimal.mul(exchange.volume, exchange.price)
 		}
-	})
+	}else{
+		return {
+			id: exchange.id,
+			ledger: exchange.ledger,
+			date: exchange.date,
+			price: Decimal.div('1', exchange.price),
+			volume: exchange.volume
+		}
+	}
 }
 
 export function invert(exchanges){
-	return exchanges.map(exchange => ({
+	return {
 		id: exchange.id,
 		ledger: exchange.ledger,
 		date: exchange.date,
 		price: Decimal.div('1', exchange.price),
 		volume: Decimal.mul(exchange.volume, exchange.price)
-	}))
+	}
 }
-
 
 export function count(){
 	return this.getv(`SELECT COUNT(1) FROM Exchanges`)

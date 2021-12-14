@@ -52,7 +52,7 @@ export function all({currency, minAccounts, limit}, full){
 			LIMIT ?`,
 			currency,
 			minAccounts || 0,
-			limit
+			limit || 999999999
 		)
 	}
 
