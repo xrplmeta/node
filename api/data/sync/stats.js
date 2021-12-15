@@ -11,8 +11,10 @@ export function allocate(heads){
 	
 	for(let i=0; i<trustlines.length; i++){
 		let trustline = trustlines[i]
-		
-		compose.call(this, trustline)
+		let stats = this.repo.stats.all(trustline)
+			.map(({trustline, ...stat}) => stat)
+
+		this.cache.stats.set(trustline, stats)
 
 		let newProgress = Math.floor((i / trustlines.length) * 100)
 
@@ -26,7 +28,19 @@ export function allocate(heads){
 }
 
 export function register(updates){
-	
+	let relevant = affected.filter(({contexts}) => 
+		contexts.some(context => ['stat'].includes(context)))
+
+	for(let { type, id } of relevant){
+		if(type === 'trustline'){
+			let ids = this.repo.all(`SELECT id FROM Stats WHERE trustline = ?`, id)
+
+			this.cache.stats.vacuum(ids)
+
+			compose.call(this, this.repo.trustlines.get({id}))
+			log.debug(`updated stats (TL${id})`)
+		}
+	}
 }
 
 function compose(trustline){

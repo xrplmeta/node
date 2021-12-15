@@ -307,8 +307,6 @@ function fillQueue(xrpl, index){
 		return queue.shift()
 	}
 
-	let n = 0
-
 	;(async () => {
 		while(true){
 			while(queue.length >= chunkSize * 3)
@@ -331,7 +329,7 @@ function fillQueue(xrpl, index){
 			queue.push(ledgerData.state)
 			lastMarker = ledgerData.marker
 
-			if(!lastMarker || n++>=2){
+			if(!lastMarker){
 				done = true
 				break
 			}

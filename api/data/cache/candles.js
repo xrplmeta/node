@@ -92,15 +92,19 @@ export function allocate(series, exchanges){
 
 export function integrate(series, exchange){
 	let table = deriveTable(series)
+	let interval = series.interval
 	let t = Math.floor(exchange.date / interval) * interval
-	let candle = this.get(`SELECT * FROM Candles FROM ? WHERE t = ?`, table, t)
+
+	ensureTable.call(this, table)
+	
+	let candle = this.get(`SELECT * FROM ${table} WHERE t = ?`, t)
 	let price = exchange.price
 	let volume = exchange.volume
 
 	if(candle){
 		candle.h = Decimal.max(candle.h, price)
 		candle.l = Decimal.min(candle.l, price)
-		candle.v = candle.v.plus(volume)
+		candle.v = Decimal.sum(candle.v, volume)
 		candle.n += 1
 
 		if(exchange.ledger < candle.tail){
@@ -126,7 +130,14 @@ export function integrate(series, exchange){
 
 	this.insert({
 		table,
-		data: candle,
+		data: {
+			...candle,
+			o: candle.o.toString(),
+			h: candle.h.toString(),
+			l: candle.l.toString(),
+			c: candle.c.toString(),
+			v: candle.v.toString(),
+		},
 		duplicate: 'update'
 	})
 }

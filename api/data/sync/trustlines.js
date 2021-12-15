@@ -27,8 +27,16 @@ export function allocate(heads){
 	log.time(`sync.trustlines`, `built trustlines cache in %`)
 }
 
-export function register(updates){
-	
+export function register({ affected }){
+	let relevant = affected.filter(({contexts}) => 
+		contexts.some(context => ['exchange', 'meta', 'stat'].includes(context)))
+
+	for(let { type, id } of relevant){
+		if(type === 'trustline'){
+			compose.call(this, this.repo.trustlines.get({id}))
+			log.debug(`updated trustline (TL${id})`)
+		}
+	}
 }
 
 function compose(trustline){

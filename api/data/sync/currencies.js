@@ -43,6 +43,14 @@ function compose(currency){
 	this.cache.currencies.insert({currency, marketcap, volume})
 }
 
-export function register(updates){
-	
+export function register({ affected }){
+	let relevant = affected.filter(({contexts}) => 
+		contexts.some(context => ['exchange', 'stat'].includes(context)))
+
+	for(let { type, id } of relevant){
+		if(type === 'trustline'){
+			compose.call(this, this.repo.trustlines.get({id}).currency)
+			log.debug(`updated currency (TL${id})`)
+		}
+	}
 }

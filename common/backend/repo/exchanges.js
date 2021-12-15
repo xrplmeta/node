@@ -71,14 +71,15 @@ export function all({base, quote, from, to}){
 			FROM Exchanges 
 			INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger)
 			WHERE \`base\` IS ? 
-			AND \`quote\` IS ?
-			ORDER BY date ASC`, 
+			AND \`quote\` IS ?`, 
 			baseId,
 			quoteId
 		)
 	}else if(from || to){
 		rows = this.all(
-			`SELECT * FROM Exchanges 
+			`SELECT Exchanges.id, ledger, base, quote, price, volume, date 
+			FROM Exchanges
+			INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger) 
 			WHERE id >= ? AND id <= ?`, 
 			from, 
 			to
@@ -88,7 +89,7 @@ export function all({base, quote, from, to}){
 	return rows.map(exchange => decode(exchange))
 }
 
-export function decode(exchange, baseId){
+export function decode(exchange){
 	return {
 		...exchange,
 		price: deserialize(exchange.price),
@@ -96,7 +97,7 @@ export function decode(exchange, baseId){
 	}
 }
 
-export function align(exchanges, base, quote){
+export function align(exchange, base, quote){
 	if(exchange.base === base){
 		return {
 			id: exchange.id,
@@ -105,7 +106,7 @@ export function align(exchanges, base, quote){
 			price: exchange.price,
 			volume: Decimal.mul(exchange.volume, exchange.price)
 		}
-	}else{
+	}else if(exchange.base === quote){
 		return {
 			id: exchange.id,
 			ledger: exchange.ledger,
@@ -113,6 +114,8 @@ export function align(exchanges, base, quote){
 			price: Decimal.div('1', exchange.price),
 			volume: exchange.volume
 		}
+	}else{
+		throw 'unexpected base/quote pair'
 	}
 }
 

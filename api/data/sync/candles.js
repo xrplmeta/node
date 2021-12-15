@@ -24,10 +24,13 @@ export function allocate(heads){
 			...this.repo.exchanges.all({base: trustline, quote: null}),
 			...this.repo.exchanges.all({base: null, quote: trustline})
 		]
+
+		exchanges.sort((a, b) => a.date - b.date)
+
 		let exchangesB = exchanges.map(exchange => 
-			this.repo.exchanges.align(exchange, trustline, null))
+			this.repo.exchanges.align(exchange, trustline.id, null))
 		let exchangesQ = exchanges.map(exchange => 
-			this.repo.exchanges.align(exchange, null, trustline))
+			this.repo.exchanges.align(exchange, null, trustline.id))
 
 		if(exchanges.length > 0){
 			this.cache.tx(() => {
@@ -59,13 +62,13 @@ export function allocate(heads){
 }
 
 
-export function register(updates){
-	if(!updates.exchanges)
+export function register({ ranges }){
+	if(!ranges.exchanges)
 		return
 
 	let newExchanges = this.repo.exchanges.all({
-		from: updates.exchanges[0],
-		to: updates.exchanges[1]
+		from: ranges.exchanges[0],
+		to: ranges.exchanges[1]
 	})
 
 	for(let exchange of newExchanges){
