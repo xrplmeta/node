@@ -12,5 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@xrplmeta/common": "file:../common"
+  },
+  "scripts": {
+    "bundle": "node ./node_modules/@xrplmeta/common/build/bundle.js"
   }
 }

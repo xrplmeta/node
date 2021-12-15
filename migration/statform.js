@@ -19,6 +19,11 @@ console.log('fixing coverage labels')
 repo.exec(`UPDATE Coverages SET task='ledgertx' WHERE task='ledger.txs'`)
 repo.exec(`UPDATE Coverages SET task='snapshot' WHERE task='ledger.states'`)
 
+console.log('renaming states table fields')
+
+repo.exec(`ALTER TABLE "main"."States" RENAME COLUMN "trustlines" TO "currencies"`)
+repo.exec(`ALTER TABLE "main"."States" RENAME COLUMN "balances" TO "trustlines"`)
+
 let stats = repo.all(`SELECT * FROM Stats`)
 
 console.log(`got all ${stats.length} stats`)

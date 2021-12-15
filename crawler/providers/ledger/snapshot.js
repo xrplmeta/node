@@ -267,8 +267,8 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			repo.states.insert({
 				index,
 				accounts: snapshot.accounts.count(),
-				trustlines: snapshot.trustlines.count(),
-				balances: snapshot.balances.count(),
+				currencies: snapshot.trustlines.count(),
+				trustlines: snapshot.balances.count(),
 				offers: snapshot.offers.count(),
 				liquidity: liquidity.toString()
 			})

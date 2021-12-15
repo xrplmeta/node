@@ -39,7 +39,10 @@ export async function currencies(ctx){
 		})
 	}
 
-	return stacks
+	return {
+		currencies: stacks, 
+		count: total
+	}
 }
 
 export async function trustline(ctx){
@@ -55,9 +58,19 @@ export async function trustline(ctx){
 
 export async function trustline_history(ctx){
 	let { currency, issuer, start, end } = ctx.parameters
-	let historicals = ctx.datasets.historicals.get({currency, issuer})
+	let { id, ...trustline } = ctx.cache.trustlines.get({currency, issuer})
 
-	return historicals
+	if(!trustline){
+		throw {message: `trustline not listed`, expose: true}
+	}
+
+	let stats = ctx.cache.stats.all(
+		{id}, 
+		start || 0,
+		end || unixNow()
+	)
+
+	return stats
 }
 
 export async function exchanges(ctx){
@@ -78,7 +91,7 @@ export async function exchanges(ctx){
 	}else{
 		if(!candlestickIntervals[format]){
 			throw {
-				message: `This format is not available. Available formats are: raw, ${Object.keys(candlestickIntervals).join(', ')}`, 
+				message: `format not available - available formats: raw, ${Object.keys(candlestickIntervals).join(', ')}`, 
 				expose: true
 			}
 		}
@@ -86,49 +99,11 @@ export async function exchanges(ctx){
 		return ctx.cache.candles.all(
 			{
 				base: baseId, 
-				quoteId, 
+				quote: quoteId, 
 				interval: candlestickIntervals[format]
 			},
 			start,
 			end
 		)
 	}
-}
-
-
-function formatTrustline(ctx, trustline, minimal){
-	let formatted = {
-		...trustline,
-		meta: {...trustline.meta}
-	}
-
-	delete formatted.id
-
-	if(minimal){
-		formatted.meta.currency = collapseMetas(trustline.meta.currency, ctx.parameters.source_priority),
-		formatted.meta.issuer = collapseMetas(trustline.meta.issuer, ctx.parameters.source_priority)
-
-		delete formatted.meta.issuer.emailHash
-		delete formatted.meta.issuer.socials
-		delete formatted.meta.issuer.description
-	}
-
-	return formatted
-}
-
-function collapseMetas(metas, sourcePriority){
-	let collapsed = {}
-
-	for(let [key, values] of Object.entries(metas)){
-		if(Array.isArray(values)){
-			let meta = values[0]
-
-			if(meta.value)
-				collapsed[key] = meta.value
-		}else{
-			collapsed[key] = collapseMetas(values, sourcePriority)
-		}
-	}
-
-	return collapsed
 }

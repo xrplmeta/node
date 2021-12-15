@@ -6,6 +6,17 @@ import Decimal from '@xrplmeta/common/lib/decimal.js'
 
 
 
+export function all(trustline, start, end){
+	let table = deriveTable(trustline)
+
+	return this.all(
+		`SELECT * FROM ${table}
+		WHERE date >=? AND date <= ?`,
+		start,
+		end
+	)
+}
+
 export function set(trustline, stats){
 	if(stats.length === 0)
 		return
@@ -20,6 +31,32 @@ export function set(trustline, stats){
 		table,
 		data: stats
 	})
+}
+
+export function insert(trustline, stat){
+	let table = deriveTable(trustline)
+
+	this.insert({
+		table,
+		data: stat
+	})
+}
+
+export function vacuum(trustline, ids){
+	let table = deriveTable(trustline)
+	let existing = this.all(`SELECT id FROM ${table}`)
+	let missing = ids.filter(id => !existing.includes(id))
+	let excess = existing.filter(id => !ids.includes(id))
+
+	for(let id of excess){
+		this.run(
+			`DELETE FROM ${table}
+			WHERE id = ?`,
+			id
+		)
+	}
+
+	return missing
 }
 
 
@@ -37,13 +74,14 @@ function doesTableExist(table){
 function ensureTable(table, percentCols){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "${table}" (
-			"id"		INTEGER NOT NULL UNIQUE,
-			"ledger"	INTEGER NOT NULL,
-			"date"		INTEGER NOT NULL,
-			"count"		INTEGER NOT NULL,
-			"supply"	TEXT NOT NULL,
-			"bid"		TEXT NOT NULL,
-			"ask"		TEXT NOT NULL,
+			"id"			INTEGER NOT NULL UNIQUE,
+			"ledger"		INTEGER NOT NULL,
+			"date"			INTEGER NOT NULL,
+			"trustlines"	INTEGER NOT NULL,
+			"supply"		TEXT NOT NULL,
+			"marketcap"		TEXT NOT NULL,
+			"bid"			TEXT NOT NULL,
+			"ask"			TEXT NOT NULL,
 			${
 				percentCols
 					.map(col => `"${col}"	REAL`)

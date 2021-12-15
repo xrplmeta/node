@@ -14,10 +14,10 @@ export default class extends Router{
 			this.wrappedProcedure('currencies')
 		)
 
-		this.get(
+		/*this.get(
 			'/currency/:currency/stats', 
 			this.wrappedProcedure('currency_stats')
-		)
+		)*/
 
 		this.get(
 			'/trustline/:trustline', 

@@ -68,16 +68,18 @@ export function all(trustline){
 export function get(trustline, ledger){
 	if(ledger === undefined){
 		return this.get(
-			`SELECT *
+			`SELECT *, Ledgers.date
 			FROM Stats
+			INNER JOIN Ledgers ON ("index" = Stats.ledger)
 			WHERE trustline = ?
 			ORDER BY ledger DESC`,
 			trustline.id
 		)
 	}else{
 		return this.get(
-			`SELECT *
+			`SELECT *, Ledgers.date
 			FROM Stats
+			INNER JOIN Ledgers ON ("index" = Stats.ledger)
 			WHERE trustline = ?
 			AND ledger >= ?
 			ORDER BY ledger ASC`,
