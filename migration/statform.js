@@ -28,10 +28,12 @@ let stats = repo.all(`SELECT * FROM Stats`)
 
 console.log(`got all ${stats.length} stats`)
 
-repo.exec(`DROP TABLE Stats`)
-repo.stats.init()
+
 
 repo.tx(() => {
+	repo.exec(`DROP TABLE Stats`)
+	repo.stats.init()
+
 	for(let stat of stats){
 		let distribs = repo.all(`SELECT * FROM Distributions WHERE trustline = ? AND ledger = ?`, stat.trustline, stat.ledger)
 
@@ -44,6 +46,7 @@ repo.tx(() => {
 			data: stat
 		})
 
-		console.log(stats.indexOf(stat), stats.length)
+		if(Math.random() > 0.99)
+			console.log(stats.indexOf(stat), stats.length)
 	}
 })

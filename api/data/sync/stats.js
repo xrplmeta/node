@@ -62,7 +62,7 @@ export function allocate(heads){
 	log.time(`sync.stats`, `built stats cache in %`)
 }
 
-export function register(updates){
+export function register({ affected }){
 	let relevant = affected.filter(({contexts}) => 
 		contexts.some(context => ['stat'].includes(context)))
 
