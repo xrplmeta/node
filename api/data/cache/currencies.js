@@ -1,8 +1,8 @@
 import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
 import { createURI as createPairURI } from '@xrplmeta/common/lib/pair.js'
 import { wait } from '@xrplmeta/common/lib/time.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
 import { log } from '@xrplmeta/common/lib/log.js'
+import Decimal from '@xrplmeta/common/lib/decimal.js'
 
 
 export function init(){
@@ -24,12 +24,17 @@ export function init(){
 }
 
 
-export function all({limit, offset}){
+export function all({limit, offset, filter}){
 	return this.all(
 		`SELECT * FROM Currencies
+		${filter ? 'WHERE currency LIKE @filter' : ''}
 		ORDER BY volume DESC
-		LIMIT ?, ?`,
-		offset, limit
+		LIMIT @offset, @limit`,
+		{
+			limit,
+			offset,
+			filter: filter ? `${filter}%` : null
+		}
 	)
 }
 

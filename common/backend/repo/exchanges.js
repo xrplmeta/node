@@ -58,7 +58,29 @@ export function insert(exchanges){
 	})
 }
 
+export function* iter({base, quote, from, to} = {}){
+	let where = '1'
 
+	if(base || quote){
+		where = `"base" IS @base AND "quote" IS @quote`
+	}else if(from || to){
+		where = `id >= @from AND id <= @to`
+	}
+
+	let iter = this.iterate(
+		`SELECT Exchanges.id, ledger, base, quote, price, volume, date 
+		FROM Exchanges
+		INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger) 
+		WHERE ${where}`, 
+		{base, quote, from, to}
+	)
+
+	for(let exchange of iter){
+		yield decode(exchange)
+	}
+}
+
+/*
 export function all({base, quote, from, to}){
 	let rows = []
 
@@ -87,7 +109,7 @@ export function all({base, quote, from, to}){
 	}
 
 	return rows.map(exchange => decode(exchange))
-}
+}*/
 
 export function decode(exchange){
 	return {
@@ -127,6 +149,10 @@ export function invert(exchanges){
 		price: Decimal.div('1', exchange.price),
 		volume: Decimal.mul(exchange.volume, exchange.price)
 	}
+}
+
+export function pairs(){
+	return this.all(`SELECT DISTINCT base, quote FROM Exchanges`)
 }
 
 export function count(){

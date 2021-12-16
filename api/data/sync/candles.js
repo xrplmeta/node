@@ -13,41 +13,51 @@ const intervals = [
 export function allocate(heads){
 	log.time(`sync.candles`, `building exchanges cache`)
 
-	let trustlines = this.repo.trustlines.all()
+	let pairs = this.repo.exchanges.pairs()
 	let count = this.repo.exchanges.count()
 	let processed = 0
 	let progress = 0
-	
-	for(let i=0; i<trustlines.length; i++){
-		let trustline = trustlines[i]
+
+	let uniquePairs = pairs.filter(({base, quote}, i) => 
+		i > pairs.findIndex(pair => true
+			&& pair.base === quote 
+			&& pair.quote === base
+		)
+	)
+
+
+	for(let {base, quote} of uniquePairs){
 		let exchanges = [
-			...this.repo.exchanges.all({base: trustline, quote: null}),
-			...this.repo.exchanges.all({base: null, quote: trustline})
+			...this.repo.exchanges.iter({base: base, quote: quote}),
+			...this.repo.exchanges.iter({base: quote, quote: base})
 		]
 
 		exchanges.sort((a, b) => a.date - b.date)
-
-		let exchangesB = exchanges.map(exchange => 
-			this.repo.exchanges.align(exchange, trustline.id, null))
-		let exchangesQ = exchanges.map(exchange => 
-			this.repo.exchanges.align(exchange, null, trustline.id))
 
 		if(exchanges.length > 0){
 			this.cache.tx(() => {
 				for(let interval of intervals){
 					this.cache.candles.allocate(
-						{base: trustline.id, quote: null, interval},
-						exchangesB
+						{base: base, quote: quote, interval},
+						exchanges.map(exchange => this.repo.exchanges.align(
+							exchange, 
+							base, 
+							quote
+						))
 					)
 
 					this.cache.candles.allocate(
-						{base: null, quote: trustline.id, interval},
-						exchangesQ
+						{base: quote, quote: base, interval},
+						exchanges.map(exchange => this.repo.exchanges.align(
+							exchange, 
+							quote, 
+							base
+						))
 					)
 				}
 			})
 
-			processed += exchangesB.length
+			processed += exchanges.length
 		}
 
 		let newProgress = Math.floor((processed / count) * 100)
@@ -57,7 +67,7 @@ export function allocate(heads){
 			log.info(`processed`, processed, `of`, count, `exchanges (${progress}%)`)
 		}
 	}
-
+	
 	log.time(`sync.candles`, `built exchanges cache in %`)
 }
 
@@ -66,25 +76,21 @@ export function register({ ranges }){
 	if(!ranges.exchanges)
 		return
 
-	let newExchanges = this.repo.exchanges.all({
+	let newExchanges = this.repo.exchanges.iter({
 		from: ranges.exchanges[0],
 		to: ranges.exchanges[1]
 	})
 
 	for(let exchange of newExchanges){
-		let tl = exchange.base || exchange.quote
-		let exchangeB = this.repo.exchanges.align(exchange, tl, null)
-		let exchangeQ = this.repo.exchanges.align(exchange, null, tl)
-
 		for(let interval of intervals){
 			this.cache.candles.integrate(
-				{base: tl, quote: null, interval},
-				exchangeB
+				{base: exchange.base, quote: exchange.quote, interval},
+				this.repo.exchanges.align(exchange, exchange.base, exchange.quote)
 			)
 
 			this.cache.candles.integrate(
-				{base: null, quote: tl, interval},
-				exchangeQ
+				{base: exchange.quote, quote: exchange.base, interval},
+				this.repo.exchanges.align(exchange, exchange.quote, exchange.base)
 			)
 		}
 	}

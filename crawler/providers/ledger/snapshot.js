@@ -321,7 +321,10 @@ function fillQueue(xrpl, index){
 					priority: 100
 				})
 			}catch(e){
-				log.info(`could not obtain ledger data:\n`, e)
+				if(e === 'NO_NODE_AVAILABLE')
+					throw e
+
+				log.info(`could not obtain ledger data temporarily:\n`, e)
 				await wait(1000)
 				continue
 			}

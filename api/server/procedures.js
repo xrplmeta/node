@@ -18,7 +18,7 @@ export async function currencies(ctx){
 	let minTrustlines = ctx.parameters.min_trustlines || 100
 	let filter = ctx.parameters.filter
 	let total = ctx.cache.currencies.count()
-	let currencies = ctx.cache.currencies.all({limit, offset})
+	let currencies = ctx.cache.currencies.all({limit, offset, filter})
 	let stacks = []
 
 
@@ -28,6 +28,9 @@ export async function currencies(ctx){
 			minAccounts: minTrustlines,
 			limit: 3
 		})
+
+		if(trustlines.length === 0)
+			continue
 
 		stacks.push({
 			currency,
