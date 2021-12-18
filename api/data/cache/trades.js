@@ -32,13 +32,14 @@ export function allocate(pair, exchanges){
 
 export function integrate(pair, exchange){
 	let table = deriveTable(pair)
+
+	ensureTable.call(this, table)
+
 	let recent = this.getv(`SELECT MAX(ledger) FROM ${table}`)
 	let count = this.getv(`SELECT COUNT(1) FROM ${table}`)
 
 	if(exchange.ledger < recent)
 		return
-	
-	ensureTable.call(this, table)
 	
 	this.insert({
 		table,
