@@ -1,7 +1,4 @@
-import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
-import { createURI as createPairURI } from '@xrplmeta/common/lib/pair.js'
 import { unixNow } from '@xrplmeta/common/lib/time.js'
-import { log } from '@xrplmeta/common/lib/log.js'
 import Decimal from '@xrplmeta/common/lib/decimal.js'
 
 
@@ -158,7 +155,7 @@ function ensureTable(table){
 			"id"		INTEGER NOT NULL UNIQUE,
 			"head"		INTEGER NOT NULL,
 			"tail"		INTEGER NOT NULL,
-			"t"			INTEGER NOT NULL,
+			"t"			INTEGER NOT NULL UNIQUE,
 			"o"			TEXT NOT NULL,
 			"h"			TEXT NOT NULL,
 			"l"			TEXT NOT NULL,
@@ -166,11 +163,7 @@ function ensureTable(table){
 			"v"			TEXT NOT NULL,
 			"n"			INTEGER NOT NULL,
 			PRIMARY KEY ("id" AUTOINCREMENT)
-		);
-
-		CREATE UNIQUE INDEX IF NOT EXISTS
-		"${table}T" ON "${table}"
-		("t");`
+		);`
 	)
 }
 

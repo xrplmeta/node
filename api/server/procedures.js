@@ -90,7 +90,14 @@ export async function exchanges(ctx){
 
 
 	if(format === 'raw'){
-		//todo
+		return ctx.cache.trades.all(
+			{
+				base: baseId, 
+				quote: quoteId
+			},
+			start,
+			end
+		)
 	}else{
 		if(!candlestickIntervals[format]){
 			throw {

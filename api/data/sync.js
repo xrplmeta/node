@@ -1,4 +1,4 @@
-import * as candles from './sync/candles.js'
+import * as exchanges from './sync/exchanges.js'
 import * as trustlines from './sync/trustlines.js'
 import * as currencies from './sync/currencies.js'
 import * as stats from './sync/stats.js'
@@ -31,7 +31,7 @@ function allocate(ctx){
 
 	log.time(`sync.prepare`, `building caching database`)
 
-	candles.allocate.call(ctx, repoHeads)
+	exchanges.allocate.call(ctx, repoHeads)
 	trustlines.allocate.call(ctx, repoHeads)
 	currencies.allocate.call(ctx, repoHeads)
 	stats.allocate.call(ctx, repoHeads)
@@ -152,7 +152,7 @@ async function loop(ctx){
 		
 		try{
 			ctx.cache.tx(() => {
-				candles.register.call(ctx, {ranges, affected})
+				exchanges.register.call(ctx, {ranges, affected})
 				trustlines.register.call(ctx, {ranges, affected})
 				currencies.register.call(ctx, {ranges, affected})
 				stats.register.call(ctx, {ranges, affected})

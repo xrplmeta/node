@@ -13,20 +13,13 @@ const intervals = [
 export function allocate(heads){
 	log.time(`sync.candles`, `building exchanges cache`)
 
-	let pairs = this.repo.exchanges.pairs()
+	let pairs = this.repo.exchanges.pairs(true)
 	let count = this.repo.exchanges.count()
 	let processed = 0
 	let progress = 0
 
-	let uniquePairs = pairs.filter(({base, quote}, i) => 
-		i > pairs.findIndex(pair => true
-			&& pair.base === quote 
-			&& pair.quote === base
-		)
-	)
 
-
-	for(let {base, quote} of uniquePairs){
+	for(let {base, quote} of pairs){
 		let exchanges = [
 			...this.repo.exchanges.iter({base: base, quote: quote}),
 			...this.repo.exchanges.iter({base: quote, quote: base})
@@ -35,26 +28,40 @@ export function allocate(heads){
 		exchanges.sort((a, b) => a.date - b.date)
 
 		if(exchanges.length > 0){
+			let exchangesBQ = exchanges.map(exchange => this.repo.exchanges.align(
+				exchange, 
+				base, 
+				quote
+			))
+
+			let exchangesQB = exchanges.map(exchange => this.repo.exchanges.align(
+				exchange, 
+				quote, 
+				base
+			))
+
 			this.cache.tx(() => {
 				for(let interval of intervals){
 					this.cache.candles.allocate(
 						{base: base, quote: quote, interval},
-						exchanges.map(exchange => this.repo.exchanges.align(
-							exchange, 
-							base, 
-							quote
-						))
+						exchangesBQ
 					)
 
 					this.cache.candles.allocate(
 						{base: quote, quote: base, interval},
-						exchanges.map(exchange => this.repo.exchanges.align(
-							exchange, 
-							quote, 
-							base
-						))
+						exchangesQB
 					)
 				}
+
+				this.cache.trades.allocate(
+					{base: base, quote: quote},
+					exchangesBQ
+				)
+
+				this.cache.trades.allocate(
+					{base: quote, quote: base},
+					exchangesQB
+				)
 			})
 
 			processed += exchanges.length
@@ -82,16 +89,29 @@ export function register({ ranges }){
 	})
 
 	for(let exchange of newExchanges){
+		let exchangeBQ = this.repo.exchanges.align(exchange, exchange.base, exchange.quote)
+		let exchangeQB = this.repo.exchanges.align(exchange, exchange.quote, exchange.base)
+
 		for(let interval of intervals){
 			this.cache.candles.integrate(
 				{base: exchange.base, quote: exchange.quote, interval},
-				this.repo.exchanges.align(exchange, exchange.base, exchange.quote)
+				exchangeBQ
 			)
 
 			this.cache.candles.integrate(
 				{base: exchange.quote, quote: exchange.base, interval},
-				this.repo.exchanges.align(exchange, exchange.quote, exchange.base)
+				exchangeQB
 			)
 		}
+
+		this.cache.trades.integrate(
+			{base: exchange.base, quote: exchange.quote},
+			exchangeBQ
+		)
+
+		this.cache.trades.integrate(
+			{base: exchange.quote, quote: exchange.base},
+			exchangeQB
+		)
 	}
 }

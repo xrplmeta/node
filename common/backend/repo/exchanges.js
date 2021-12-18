@@ -58,21 +58,24 @@ export function insert(exchanges){
 	})
 }
 
-export function* iter({base, quote, from, to} = {}){
-	let where = '1'
+export function* iter({base, quote, from, to, recent} = {}){
+	let sql = `
+		SELECT Exchanges.id, ledger, base, quote, price, volume, date 
+		FROM Exchanges
+		INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger)
+	`
 
 	if(base || quote){
-		where = `"base" IS @base AND "quote" IS @quote`
+		sql += `WHERE "base" IS @base AND "quote" IS @quote`
 	}else if(from || to){
-		where = `id >= @from AND id <= @to`
+		sql += `WHERE id >= @from AND id <= @to`
+	}else if(recent){
+		sql += `ORDER BY date DESC LIMIT @recent`
 	}
 
 	let iter = this.iterate(
-		`SELECT Exchanges.id, ledger, base, quote, price, volume, date 
-		FROM Exchanges
-		INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger) 
-		WHERE ${where}`, 
-		{base, quote, from, to}
+		sql, 
+		{base, quote, from, to, recent}
 	)
 
 	for(let exchange of iter){
@@ -151,8 +154,17 @@ export function invert(exchanges){
 	}
 }
 
-export function pairs(){
-	return this.all(`SELECT DISTINCT base, quote FROM Exchanges`)
+export function pairs(unique){
+	let pairs = this.all(`SELECT DISTINCT base, quote FROM Exchanges`)
+
+	return unique
+		? pairs.filter(({base, quote}, i) => 
+			i > pairs.findIndex(pair => true
+				&& pair.base === quote 
+				&& pair.quote === base
+			)
+		)
+		: pairs
 }
 
 export function count(){

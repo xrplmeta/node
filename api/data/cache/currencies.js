@@ -1,10 +1,3 @@
-import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
-import { createURI as createPairURI } from '@xrplmeta/common/lib/pair.js'
-import { wait } from '@xrplmeta/common/lib/time.js'
-import { log } from '@xrplmeta/common/lib/log.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
-
-
 export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Currencies" (
