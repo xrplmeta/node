@@ -1,0 +1,9 @@
+{
+  "name": "@xrplmeta/db",
+  "type": "module",
+  "version": "3.0.0-alpha",
+  "main": "db.js",
+  "dependencies": {
+    "better-sqlite3": "^7.4.5"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@xrplmeta/lib",
+  "version": "3.0.0-alpha",
+  "exports": {
+    "./config": "./config.js",
+    "./log": "./log.js",
+    "./db": "./db.js",
+    "./utils/data": "./utils/data.js",
+    "./utils/decimal": "./utils/decimal.js",
+    "./utils/formatting": "./utils/formatting.js",
+    "./utils/ledger": "./utils/ledger.js",
+    "./utils/pair": "./utils/pair.js",
+    "./utils/time": "./utils/time.js",
+  }
+}
