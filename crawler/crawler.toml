@@ -1,0 +1,50 @@
+[DATA]
+dir = "V:/xrpl/xrplmeta"
+
+
+[LEDGER]
+state_interval = 225 # 15m
+state_history_interval = 3600 # 4h
+state_history_ledgers = 7884000 # 1y
+state_process_in_memory = false
+min_trustlines = 3
+capture_whales = 100
+top_percenters = [0.01, 0.1, 1.0, 10.0, 25.0, 50.0]
+
+
+
+[XUMM]
+api_key = "5a674f6a-2c81-4469-bf93-11073f386b14"
+api_secret = "5c937a8b-1402-46e9-8144-4d44bd97cd71"
+refresh_interval_assets = 600
+refresh_interval_kyc = 86400
+max_requests_per_minute = 60
+
+[BITHOMP]
+refresh_interval = 600
+api_key = "ed95d680-3282-11ec-a9bc-6154c7b13d69"
+
+[XRPSCAN]
+refresh_interval = 600
+
+[TWITTER]
+bearer_token = "AAAAAAAAAAAAAAAAAAAAAFCXVgEAAAAARJEkKINMeyvtq6FLJbyNlYxTASM%3Dsl47vKmkUJUnGNwXx3f6ooessFAgTOGwQGhEZ5pQi0tDw3PEjO"
+refresh_interval = 3600
+max_requests_per_minute = 60
+
+[GRAVATAR]
+refresh_interval = 3600
+max_requests_per_minute = 60
+
+
+
+[[NODES]]
+disabled = true
+url = "wss://s1.ripple.com"
+allowed_commands = ['subscribe']
+
+
+[[NODES]]
+url = "ws://xrptrader.org:4920"
+connections = 3
+allowed_commands = ['subscribe', 'ledger', 'ledger_data']

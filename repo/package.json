@@ -1,0 +1,9 @@
+{
+  "name": "@xrplmeta/repo",
+  "type": "module",
+  "version": "3.0.0-alpha",
+  "dependencies": {
+    "@xrplmeta/db": "3.0.0-alpha",
+    "ripple-address-codec": "^4.2.0"
+  }
+}

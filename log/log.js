@@ -52,39 +52,45 @@ const humanDuration = (ms, dp = 0) => {
 	return `${scaledTime.toFixed(dp)} ${timeUnits[timeScalarIndex]}`
 }
 
-class Logger{
-	constructor({name, color, level}){
-		this.name = name
-		this.color = color || 'yellow'
-		this.level = level || 'debug'
+export class Logger{
+	constructor(config){
+		this.config(config)
 		this.timings = {}
 	}
 
-	registerWorker(worker, config){
-		worker.on('message', message => {
+	config({name, color, severity, isSubprocess}){
+		this.name = name
+		this.color = color || 'yellow'
+		this.severity = severity || 'debug'
+		this.isSubprocess = isSubprocess || false
+	}
+
+	registerSubprocess(subprocess, config){
+		subprocess.on('message', message => {
 			if(message && message.type === 'log'){
-				this.log.call({...config, level: this.level}, message.level, ...message.args)
+				this.log.call({...config, level: this.severity}, message.level, ...message.args)
 			}
 		})
 	}
 
 	log(level, ...args){
-		if(isMainThread){
-			if(!levelCascades[level].includes(this.level))
-				return
-
-			let func = level === 'E'
-				? console.error
-				: console.log
-			let color = level === 'E'
-				? 'red'
-				: this.color
-			let contents = args.map(formatContent)
-
-			func(`${new Date().toISOString().slice(0,19).replace('T', ' ')} ${level} [\x1b[${logColors[color]}${this.name}\x1b[0m]`, ...contents)
-		}else{
-			parentPort.postMessage({type: 'log', level, args: args.map(formatContent)})
+		if(this.isSubprocess){
+			process.send({type: 'log', level, args: args.map(formatContent)})
+			return
 		}
+
+		if(!levelCascades[level].includes(this.severity))
+			return
+
+		let output = level === 'E'
+			? console.error
+			: console.log
+		let color = level === 'E'
+			? 'red'
+			: this.color
+		let contents = args.map(formatContent)
+
+		output(`${new Date().toISOString().slice(0,19).replace('T', ' ')} ${level} [\x1b[${logColors[color]}${this.name}\x1b[0m]`, ...contents)
 	}
 
 	debug(...contents){
@@ -120,16 +126,7 @@ class Logger{
 }
 
 
-const defaultLogger = new Logger({name: 'main', color: 'yellow'})
-const log = {
-	debug: defaultLogger.debug.bind(defaultLogger),
-	info: defaultLogger.info.bind(defaultLogger),
-	error: defaultLogger.error.bind(defaultLogger),
-	time: defaultLogger.time.bind(defaultLogger),
-}
-
-Object.defineProperty(log, 'level', {
-	set: level => defaultLogger.level = level
+export const log = new Logger({
+	name: 'main', 
+	color: 'yellow'
 })
-
-export { Logger, log }
