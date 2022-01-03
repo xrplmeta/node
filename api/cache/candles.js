@@ -1,14 +1,6 @@
-import { unixNow } from '@xrplmeta/common/lib/time.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
+import { unixNow } from '@xrplmeta/utils'
+import Decimal from 'decimal.js'
 
-
-const candlestickIntervals = {
-	'5m': 60 * 5,
-	'15m': 60 * 15,
-	'1h': 60 * 60,
-	'4h': 60 * 60 * 4,
-	'1d': 60 * 60 * 24,
-}
 
 export function all(series, start, end){
 	let table = deriveTable(series)

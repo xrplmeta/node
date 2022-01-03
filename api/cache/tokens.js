@@ -1,6 +1,6 @@
 export function init(){
 	this.exec(
-		`CREATE TABLE IF NOT EXISTS "Trustlines" (
+		`CREATE TABLE IF NOT EXISTS "Tokens" (
 			"id"			INTEGER NOT NULL UNIQUE,
 			"currency"		TEXT NOT NULL,
 			"issuer"		TEXT NOT NULL,
@@ -12,23 +12,23 @@ export function init(){
 		);
 		
 		CREATE INDEX IF NOT EXISTS 
-		"TrustlinesCurrency" ON "Trustlines" 
+		"TokensCurrency" ON "Tokens" 
 		("currency");
 
 		CREATE INDEX IF NOT EXISTS 
-		"TrustlinesIssuer" ON "Trustlines" 
+		"TokensIssuer" ON "Tokens" 
 		("issuer");
 
 		CREATE INDEX IF NOT EXISTS 
-		"TrustlinesAccounts" ON "Trustlines" 
+		"TokensAccounts" ON "Tokens" 
 		("accounts");
 
 		CREATE INDEX IF NOT EXISTS 
-		"TrustlinesMarketcap" ON "Trustlines" 
+		"TokensMarketcap" ON "Tokens" 
 		("marketcap");
 
 		CREATE INDEX IF NOT EXISTS 
-		"TrustlinesVolume" ON "Trustlines" 
+		"TokensVolume" ON "Tokens" 
 		("volume");`
 	)
 }
@@ -38,7 +38,7 @@ export function all({currency, minAccounts, limit}, full){
 
 	if(currency){
 		rows = this.all(
-			`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Trustlines
+			`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Tokens
 			WHERE currency = ?
 			AND accounts >= ?
 			ORDER BY volume DESC
@@ -55,7 +55,7 @@ export function all({currency, minAccounts, limit}, full){
 
 export function get({currency, issuer}, full){
 	return decode(this.get(
-		`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Trustlines
+		`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Tokens
 		WHERE currency = ? AND issuer = ?`,
 		currency,
 		issuer
@@ -64,14 +64,14 @@ export function get({currency, issuer}, full){
 
 export function insert({id, currency, issuer, full, condensed}){
 	this.insert({
-		table: 'Trustlines',
+		table: 'Tokens',
 		data: {
 			id,
 			currency,
 			issuer,
 			full: JSON.stringify(full),
 			condensed: JSON.stringify(condensed),
-			accounts: full.stats.trustlines,
+			accounts: full.stats.tokens,
 			marketcap: parseFloat(full.stats.marketcap),
 			volume: parseFloat(full.stats.volume),
 		},
@@ -80,10 +80,10 @@ export function insert({id, currency, issuer, full, condensed}){
 }
 
 function decode(row){
-	let { meta, ...trustline } = row
+	let { meta, ...token } = row
 
 	return {
-		...trustline,
+		...token,
 		...JSON.parse(meta)
 	}
 }

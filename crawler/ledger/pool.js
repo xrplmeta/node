@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
 import xrpl from 'xrpl'
+import log from '@xrplmeta/log'
 import { wait } from '@xrplmeta/utils'
 
 

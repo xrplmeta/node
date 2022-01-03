@@ -1,5 +1,4 @@
 import Router from '@koa/router'
-import { parseURIComponent as parsePairURIComponent } from '@xrplmeta/common/lib/pair.js'
 import * as procedures from './procedures.js'
 
 
@@ -15,24 +14,24 @@ export default class extends Router{
 		)
 
 		this.get(
-			'/trustline/:trustline', 
+			'/token/:token', 
 			this.wrappedProcedure(
-				'trustline', 
+				'token', 
 				parameters => ({
 					...parameters,
-					...this.parseTokenURI(parameters.trustline),
+					...this.parseTokenURI(parameters.token),
 					full: parameters.hasOwnProperty('full')
 				})
 			)
 		)
 
 		this.get(
-			'/trustline/:trustline/history', 
+			'/token/:token/history', 
 			this.wrappedProcedure(
-				'trustline_history', 
+				'token_history', 
 				parameters => ({
 					...parameters,
-					...this.parseTokenURI(parameters.trustline)
+					...this.parseTokenURI(parameters.token)
 				})
 			)
 		)

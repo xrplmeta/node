@@ -1,7 +1,5 @@
-import { unixNow } from '@xrplmeta/common/lib/time.js'
-import { currencyHexToUTF8, currencyUTF8ToHex } from '@xrplmeta/common/lib/xrpl.js'
-import { keySort, decimalCompare } from '@xrplmeta/common/lib/data.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
+import { unixNow } from '@xrplmeta/utils'
+
 
 const candlestickIntervals = {
 	'5m': 60 * 5,
@@ -15,7 +13,7 @@ const candlestickIntervals = {
 export async function currencies(ctx){
 	let limit = ctx.parameters.limit || 100
 	let offset = ctx.parameters.offset || 0
-	let minTrustlines = ctx.parameters.min_trustlines || 100
+	let minTokens = ctx.parameters.min_tokens || 100
 	let filter = ctx.parameters.filter
 	let total = ctx.cache.currencies.count()
 	let currencies = ctx.cache.currencies.all({limit, offset, filter})
@@ -23,18 +21,18 @@ export async function currencies(ctx){
 
 
 	for(let { currency, marketcap, volume } of currencies){
-		let trustlines = ctx.cache.trustlines.all({
+		let tokens = ctx.cache.tokens.all({
 			currency,
-			minAccounts: minTrustlines,
+			minAccounts: minTokens,
 			limit: 3
 		})
 
-		if(trustlines.length === 0)
+		if(tokens.length === 0)
 			continue
 
 		stacks.push({
 			currency,
-			trustlines,
+			tokens,
 			stats: {
 				marketcap: marketcap.toString(),
 				volume: volume.toString()
@@ -48,23 +46,23 @@ export async function currencies(ctx){
 	}
 }
 
-export async function trustline(ctx){
+export async function token(ctx){
 	let { currency, issuer, full } = ctx.parameters
-	let { id, ...trustline } = ctx.cache.trustlines.get({currency, issuer}, full)
+	let { id, ...token } = ctx.cache.tokens.get({currency, issuer}, full)
 	
-	if(!trustline){
-		throw {message: `trustline not listed`, expose: true}
+	if(!token){
+		throw {message: `token not listed`, expose: true}
 	}
 
-	return trustline
+	return token
 }
 
-export async function trustline_history(ctx){
+export async function token_history(ctx){
 	let { currency, issuer, start, end } = ctx.parameters
-	let { id, ...trustline } = ctx.cache.trustlines.get({currency, issuer})
+	let { id, ...token } = ctx.cache.tokens.get({currency, issuer})
 
-	if(!trustline){
-		throw {message: `trustline not listed`, expose: true}
+	if(!token){
+		throw {message: `token not listed`, expose: true}
 	}
 
 	let stats = ctx.cache.stats.all(
@@ -79,10 +77,10 @@ export async function trustline_history(ctx){
 export async function exchanges(ctx){
 	let { base, quote, format, start, end } = ctx.parameters
 	let baseId = base.currency !== 'XRP'
-		? ctx.cache.trustlines.get(base)?.id
+		? ctx.cache.tokens.get(base)?.id
 		: null
 	let quoteId = quote.currency !== 'XRP'
-		? ctx.cache.trustlines.get(quote)?.id
+		? ctx.cache.tokens.get(quote)?.id
 		: null
 
 	if(baseId === undefined || quoteId === undefined)
@@ -99,9 +97,9 @@ export async function exchanges(ctx){
 			end
 		)
 	}else{
-		if(!candlestickIntervals[format]){
+		if(!ctx.config.exchanges.candleIntervals[format]){
 			throw {
-				message: `format not available - available formats: raw, ${Object.keys(candlestickIntervals).join(', ')}`, 
+				message: `format not available - available formats: raw, ${Object.keys(ctx.config.exchanges.candleIntervals).join(', ')}`, 
 				expose: true
 			}
 		}
@@ -110,7 +108,7 @@ export async function exchanges(ctx){
 			{
 				base: baseId, 
 				quote: quoteId, 
-				interval: candlestickIntervals[format]
+				interval: ctx.config.exchanges.candleIntervals[format]
 			},
 			start,
 			end

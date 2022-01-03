@@ -11,17 +11,6 @@ import providers from './providers/index.js'
 const args = minimist(process.argv.slice(2))
 const configPath = args.config || 'crawler.toml'
 
-log.config({
-	name: 'main', 
-	color: 'yellow', 
-	severity: args.log || 'info'
-})
-
-log.info(`*** XRPLMETA CRAWLER ***`)
-log.info(`starting with config "${configPath}"`)
-
-const config = loadConfig(configPath)
-const repo = initRepo(config)
 
 
 switch(args._[0]){
@@ -33,21 +22,44 @@ switch(args._[0]){
 	}
 
 	case 'work': {
-		const task = args.task
+		log.config({
+			name: args.task, 
+			color: 'cyan',
+			isSubprocess: true
+		})
+
+		const config = loadConfig(configPath)
+		const repo = initRepo(config)
 		const xrpl = new Client()
 
-		providers[task](
+		providers[args.task](
 			context({config, repo, xrpl})
 		)
 		break
 	}
 
 	default: {
+		log.config({
+			name: 'main', 
+			color: 'yellow', 
+			severity: args.log || 'info'
+		})
+
+		log.info(`*** XRPLMETA CRAWLER ***`)
+		log.info(`starting with config "${configPath}"`)
+
+		const config = loadConfig(configPath)
+		const repo = initRepo(config)
 		const only = args.only ? args.only.split(',') : null
 		const xrpl = new Host(config)
 		const tasks = Object.keys(providers)
 			.filter(key => !only || only.includes(key))
 
+
+		if(tasks.length === 0){
+			log.error(`no tasks selected - terminating under these circumstances`)
+			process.exit()
+		}
 
 		log.info('spawning processes...')
 
@@ -61,8 +73,8 @@ switch(args._[0]){
 				fileURLToPath(import.meta.url), 
 				[
 					`work`,
-					`--config ${configPath}`,
-					`--task`
+					`--config`, configPath,
+					`--task`, task
 				]
 			)
 
