@@ -3,7 +3,7 @@ import * as trustlines from './sync/trustlines.js'
 import * as currencies from './sync/currencies.js'
 import * as stats from './sync/stats.js'
 import { Logger } from '@xrplmeta/common/lib/log.js'
-import { wait } from '@xrplmeta/common/lib/time.js'
+import { wait } from '@xrplmeta/utils'
 
 const log = new Logger({name: 'sync'})
 

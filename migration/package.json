@@ -11,9 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@xrplmeta/common": "3.0.0-alpha"
-  },
-  "scripts": {
-    "bundle": "node ./node_modules/@xrplmeta/common/build/bundle.js"
+    "@xrplmeta/repo": "3.0.0-alpha"
   }
 }

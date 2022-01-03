@@ -1,14 +1,13 @@
+import EventEmitter from 'events'
 import xrpl from 'xrpl'
-import EventEmitter from '@xrplmeta/common/lib/events.js'
-import { wait } from '@xrplmeta/common/lib/time.js'
-import { Logger } from '@xrplmeta/common/lib/log.js'
+import { wait } from '@xrplmeta/utils'
 
 
 export default class extends EventEmitter{
 	constructor(config){
 		super()
 
-		this.log = new Logger({name: 'xrpl', color: 'yellow'})
+		this.log = log.branch({name: 'xrpl', color: 'yellow'})
 		this.queue = []
 		this.clients = []
 		this.seen = []
@@ -177,6 +176,6 @@ export default class extends EventEmitter{
 	printConnections(recent){
 		let online = this.clients.filter(client => client.isConnected()).length
 
-		this.log.info(`${online} / ${this.clients.length} clients online ${recent ? `(${recent})` : ''}`)
+		this.log.info(`connected to ${online} / ${this.clients.length} nodes ${recent ? `(${recent})` : ''}`)
 	}
 }

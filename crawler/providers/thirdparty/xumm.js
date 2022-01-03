@@ -1,6 +1,6 @@
 import Rest from '../../lib/rest.js'
-import { log } from '@xrplmeta/common/lib/log.js'
-import { currencyHexToUTF8 } from '@xrplmeta/common/lib/xrpl.js'
+import log from '@xrplmeta/log'
+import { currencyHexToUTF8 } from '@xrplmeta/utils'
 
 
 export default ({repo, config, loopTimeTask, count}) => {
@@ -43,7 +43,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 							name: currency.name,
 							icon: currency.avatar
 						},
-						trustline: {
+						token: {
 							currency: currencyHexToUTF8(currency.currency),
 							issuer: currency.issuer
 						},

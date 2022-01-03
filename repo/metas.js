@@ -1,5 +1,3 @@
-import { wait } from '../../lib/time.js'
-
 export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Metas" (
@@ -59,9 +57,9 @@ export function insert(meta){
 	if(meta.account){
 		type = 'A'
 		subject = this.accounts.id(meta.account)
-	}else if(meta.trustline){
+	}else if(meta.token){
 		type = 'T'
-		subject = this.trustlines.id(meta.trustline)
+		subject = this.tokens.id(meta.token)
 	}else{
 		throw 'unspecified subject'
 	}
@@ -90,9 +88,9 @@ function deriveTypeSubject(entity){
 	if(entity.account){
 		type = 'A'
 		subject = this.accounts.id(entity.account, false)
-	}else if(entity.trustline){
+	}else if(entity.token){
 		type = 'T'
-		subject = this.trustlines.id(entity.trustline, false)
+		subject = this.tokens.id(entity.token, false)
 	}
 
 	return {type, subject}

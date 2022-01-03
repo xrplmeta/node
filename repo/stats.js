@@ -8,7 +8,7 @@ export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Stats" (
 			"id"		INTEGER NOT NULL UNIQUE,
-			"trustline"	INTEGER NOT NULL,
+			"token"	INTEGER NOT NULL,
 			"ledger"	INTEGER NOT NULL,
 			"count"		INTEGER NOT NULL,
 			"supply"	TEXT NOT NULL,
@@ -16,25 +16,25 @@ export function init(){
 			"ask"		TEXT NOT NULL,
 			${percents.join(', ')},
 			PRIMARY KEY ("id" AUTOINCREMENT),
-			UNIQUE ("ledger", "trustline")
+			UNIQUE ("ledger", "token")
 		);
 
 		CREATE INDEX IF NOT EXISTS 
-		"StatsTrustline" ON "Stats" 
-		("trustline");`
+		"StatsToken" ON "Stats" 
+		("token");`
 	)
 }
 
 
-export function insert({ledger, trustline, replaceAfter, ...stats}){
-	let trustlineId = this.trustlines.id(trustline)
+export function insert({ledger, token, replaceAfter, ...stats}){
+	let tokenId = this.tokens.id(token)
 
 	if(replaceAfter){
 		this.run(
 			`DELETE FROM Stats
-			WHERE trustline = ?
+			WHERE token = ?
 			AND ledger > ?`,
-			trustlineId,
+			tokenId,
 			replaceAfter
 		)
 	}
@@ -43,7 +43,7 @@ export function insert({ledger, trustline, replaceAfter, ...stats}){
 		table: 'Stats',
 		data: {
 			ledger,
-			trustline: trustlineId,
+			token: tokenId,
 			...stats
 		},
 		duplicate: 'update'
@@ -51,39 +51,39 @@ export function insert({ledger, trustline, replaceAfter, ...stats}){
 }
 
 
-export function all(trustline){
-	let trustlineId = this.trustlines.id(trustline)
+export function all(token){
+	let tokenId = this.tokens.id(token)
 
 	return this.all(
 		`SELECT Stats.*, Ledgers.date
 		FROM Stats
 		INNER JOIN Ledgers ON ("index" = Stats.ledger)
-		WHERE trustline = ?
+		WHERE token = ?
 		ORDER BY ledger ASC`,
-		trustlineId
+		tokenId
 	)
 }
 
 
-export function get(trustline, ledger){
+export function get(token, ledger){
 	if(ledger === undefined){
 		return this.get(
 			`SELECT *, Ledgers.date
 			FROM Stats
 			INNER JOIN Ledgers ON ("index" = Stats.ledger)
-			WHERE trustline = ?
+			WHERE token = ?
 			ORDER BY ledger DESC`,
-			trustline.id
+			token.id
 		)
 	}else{
 		return this.get(
 			`SELECT *, Ledgers.date
 			FROM Stats
 			INNER JOIN Ledgers ON ("index" = Stats.ledger)
-			WHERE trustline = ?
+			WHERE token = ?
 			AND ledger >= ?
 			ORDER BY ledger ASC`,
-			trustline.id,
+			token.id,
 			ledger
 		)
 	}

@@ -1,5 +1,5 @@
-import { log } from '../../lib/log.js'
-import { wait, unixNow } from '../../lib/time.js'
+import log from '@xrplmeta/log'
+import { wait, unixNow } from '@xrplmeta/utils'
 
 export function init(){
 	this.exec(
@@ -19,7 +19,7 @@ export function init(){
 export function getNext(task, entity){
 	let table = entity === 'A'
 		? 'Accounts'
-		: 'Trustlines'
+		: 'Tokens'
 
 	return this.get(
 		`SELECT

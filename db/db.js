@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path'
 import Adapter from 'better-sqlite3'
-import { wait } from '../lib/time.js'
-import { log } from '../lib/log.js'
+import { wait } from '@xrplmeta/utils'
+import log from '@xrplmeta/log'
 
 
 export default class{

@@ -1,6 +1,5 @@
-import { log } from '@xrplmeta/common/lib/log.js'
-import { wait, rippleToUnix } from '@xrplmeta/common/lib/time.js'
-import { deriveExchanges } from '@xrplmeta/common/lib/xrpl.js'
+import log from '@xrplmeta/log'
+import { wait, rippleToUnix, deriveExchanges } from '@xrplmeta/utils'
 import { fromTxs as summarize } from '../../ledger/summary.js'
 
 export default ({repo, config, xrpl, loopLedgerTask, count}) => {

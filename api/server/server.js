@@ -1,7 +1,7 @@
 import Koa from 'koa'
 import websocket from 'koa-easy-ws'
 import { Logger } from '@xrplmeta/common/lib/log.js'
-import { wait } from '@xrplmeta/common/lib/time.js'
+import { wait } from '@xrplmeta/utils'
 import HTTPRouter from './http.js'
 import WSManager from './ws.js'
 

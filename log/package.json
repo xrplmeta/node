@@ -1,5 +1,5 @@
 {
-  "name": "@xrplmeta/db",
+  "name": "@xrplmeta/log",
   "type": "module",
   "version": "3.0.0-alpha",
   "main": "log.js"

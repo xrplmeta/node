@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
+import { wait, unixNow } from '@xrplmeta/utils'
+import log from '@xrplmeta/log'
 import Rest from '../lib/rest.js'
-import { wait, unixNow } from '@xrplmeta/common/lib/time.js'
-import { log } from '@xrplmeta/common/lib/log.js'
 
 
 const leeway = 1

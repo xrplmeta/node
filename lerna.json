@@ -17,8 +17,13 @@
     }
   },
   "packages": [
-    "common",
+    "api",
+    "config",
     "crawler",
-    "api"
+    "db",
+    "log",
+    "migration",
+    "repo",
+    "utils"
   ]
 }

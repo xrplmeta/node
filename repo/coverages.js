@@ -1,6 +1,3 @@
-import { log } from '../../lib/log.js'
-import { wait, unixNow } from '../../lib/time.js'
-
 export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Coverages" (
