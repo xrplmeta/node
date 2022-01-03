@@ -1,10 +1,10 @@
 {
   "name": "@xrplmeta/crawler",
   "type": "module",
-  "version": "2.0.0-alpha",
+  "version": "1.0.0-alpha",
   "main": "cli.js",
   "dependencies": {
-    "@xrplmeta/common": "file:../common",
+    "@xrplmeta/common": "3.0.0-alpha",
     "limiter": "^2.0.1",
     "minimist": "^1.2.5",
     "node-fetch": "^3.0.0",

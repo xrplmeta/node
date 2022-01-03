@@ -1,7 +1,7 @@
 {
   "name": "@xrplmeta/migration",
   "type": "module",
-  "version": "1.0.0",
+  "version": "3.0.0-alpha",
   "description": "",
   "main": "transfer.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@xrplmeta/common": "file:../common"
+    "@xrplmeta/common": "3.0.0-alpha"
   },
   "scripts": {
     "bundle": "node ./node_modules/@xrplmeta/common/build/bundle.js"

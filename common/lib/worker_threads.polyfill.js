@@ -1,4 +1,5 @@
 import { fork } from 'child_process'
+import { URL } from 'url'
 import EventEmitter from 'events'
 
 let isMainThread = true
@@ -19,7 +20,11 @@ class Worker extends EventEmitter{
 	constructor(file, options){
 		super()
 
+		if(file instanceof URL)
+			file = file.pathname
+
 		this.process = fork(file, ['--worker-polyfilled', JSON.stringify(JSON.stringify(options.workerData))])
+		this.process.on('online', () => this.emit('spawned'))
 		this.process.on('message', message => this.emit('message', message))
 		this.process.on('error', error => this.emit('error', error))
 		this.process.on('exit', code => this.emit('exit', code))

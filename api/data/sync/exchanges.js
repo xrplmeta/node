@@ -24,6 +24,16 @@ export function allocate(heads){
 			...this.repo.exchanges.iter({base: base, quote: quote}),
 			...this.repo.exchanges.iter({base: quote, quote: base})
 		]
+		
+		if(!base || !quote){
+			//align exchange so volume is XRP
+			exchanges = exchanges
+				.filter(exchange => this.repo.exchanges.align(
+					exchange,
+					base ? base : quote,
+					base ? quote : base
+				).volume.gte('0.01'))
+		}
 
 		exchanges.sort((a, b) => a.date - b.date)
 
@@ -91,6 +101,13 @@ export function register({ ranges }){
 	for(let exchange of newExchanges){
 		let exchangeBQ = this.repo.exchanges.align(exchange, exchange.base, exchange.quote)
 		let exchangeQB = this.repo.exchanges.align(exchange, exchange.quote, exchange.base)
+
+		if(!exchange.base || !exchange.quote){
+			let volume = exchange.base ? exchangeBQ.volume : exchangeQB.volume
+
+			if(volume.lt('0.01'))
+				continue
+		}
 
 		for(let interval of intervals){
 			this.cache.candles.integrate(

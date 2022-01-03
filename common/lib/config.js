@@ -12,6 +12,26 @@ export function load(path){
 	return adjusted
 }
 
+export function override(config, args){
+	let apply = (conf, key, value) => {
+		let parts = key.split('.')
+
+		if(parts.length > 1){
+			return apply(conf[parts[0]], parts.slice(1).join('.'), value)
+		}else{
+			return {...conf, [key]: value}
+		}
+	}
+
+	for(let [key, value] of Object.entries(args)){
+		if(key.startsWith('config.')){
+			config = apply(config, key.slice(7), value)
+		}
+	}
+
+	return config
+}
+
 function camelify(obj){
 	if(Array.isArray(obj))
 		return obj.map(o => camelify(o))

@@ -14,18 +14,13 @@ export default class extends Router{
 			this.wrappedProcedure('currencies')
 		)
 
-		/*this.get(
-			'/currency/:currency/stats', 
-			this.wrappedProcedure('currency_stats')
-		)*/
-
 		this.get(
 			'/trustline/:trustline', 
 			this.wrappedProcedure(
 				'trustline', 
 				parameters => ({
 					...parameters,
-					...parsePairURIComponent(parameters.trustline),
+					...this.parseTokenURI(parameters.trustline),
 					full: parameters.hasOwnProperty('full')
 				})
 			)
@@ -37,7 +32,7 @@ export default class extends Router{
 				'trustline_history', 
 				parameters => ({
 					...parameters,
-					...parsePairURIComponent(parameters.trustline)
+					...this.parseTokenURI(parameters.trustline)
 				})
 			)
 		)
@@ -53,6 +48,15 @@ export default class extends Router{
 				})
 			)
 		)
+	}
+
+	parseTokenURI(uri){
+		let [currency, issuer] = uri.split(':')
+
+		return {
+			currency,
+			issuer
+		}
 	}
 
 	wrappedProcedure(name, transformParameters){
