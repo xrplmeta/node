@@ -21,7 +21,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 			log.time(`snapshot`, `starting ${isBackfill ? 'backfill' : 'full'} snapshot of ledger #${index}`)
 
-			let snapshotFile = config.ledger.snapshotProcessInMemory
+			let snapshotFile = config.ledger.snapshotInMemory
 				? `:memory:`
 				: `${config.data.dir}/snapshot.db`
 

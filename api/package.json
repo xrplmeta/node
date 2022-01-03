@@ -4,9 +4,15 @@
   "version": "3.0.0-alpha",
   "main": "cli.js",
   "dependencies": {
+    "@xrplmeta/config": "3.0.0-alpha",
+    "@xrplmeta/db": "3.0.0-alpha",
+    "@xrplmeta/repo": "3.0.0-alpha",
+    "@xrplmeta/log": "3.0.0-alpha",
+    "@xrplmeta/utils": "3.0.0-alpha",
     "@koa/router": "^10.1.1",
     "koa": "^2.13.4",
     "koa-easy-ws": "^1.3.1",
-    "minimist": "^1.2.5"
+    "minimist": "^1.2.5",
+    "decimal.js": "^10.3.1"
   }
 }

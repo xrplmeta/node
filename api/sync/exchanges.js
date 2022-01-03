@@ -1,13 +1,10 @@
-import { Logger } from '@xrplmeta/common/lib/log.js'
+import mainlog from '@xrplmeta/log'
 
-const log = new Logger({name: 'sync'})
-const intervals = [
-	5 * 60,
-	15 * 60,
-	60 * 60,
-	4 * 60 * 60,
-	24 * 60 * 60
-]
+
+const log = mainlog.branch({
+	name: 'sync:exchanges',
+	color: 'cyan'
+})
 
 
 export function allocate(heads){
@@ -51,7 +48,7 @@ export function allocate(heads){
 			))
 
 			this.cache.tx(() => {
-				for(let interval of intervals){
+				for(let interval of Object.values(this.config.exchanges.candleIntervals)){
 					this.cache.candles.allocate(
 						{base: base, quote: quote, interval},
 						exchangesBQ

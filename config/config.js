@@ -2,7 +2,7 @@ import fs from 'fs'
 import toml from 'toml'
 
 export function load(path){
-	let config = toml.parse(fs.readFileSync('config.toml').toString())
+	let config = toml.parse(fs.readFileSync(path).toString())
 	let adjusted = {}
 
 	for(let [key, directive] of Object.entries(config)){

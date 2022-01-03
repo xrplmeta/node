@@ -2,7 +2,7 @@ export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Balances" (
 			"account"	INTEGER NOT NULL,
-			"token"	INTEGER,
+			"token"		INTEGER,
 			"balance"	TEXT NOT NULL,
 			UNIQUE ("account", "token")
 		);

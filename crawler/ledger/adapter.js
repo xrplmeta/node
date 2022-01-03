@@ -45,7 +45,6 @@ export class Host{
 export class Client extends EventEmitter{
 	constructor(){
 		super()
-		this.port = port
 		this.requests = []
 		this.counter = 0
 		process.on('message', ({type, payload}) => {

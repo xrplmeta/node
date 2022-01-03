@@ -1,30 +1,32 @@
-import { Logger } from '@xrplmeta/common/lib/log.js'
-import { unixNow } from '@xrplmeta/common/lib/time.js'
-import { keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/common/lib/data.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
+import { unixNow, keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/utils'
+import Decimal from 'decimal.js'
+import log from '@xrplmeta/log'
 
+log.config({
+	name: 'sync:tokens',
+	color: 'cyan'
+})
 
-const log = new Logger({name: 'sync'})
 
 
 export function allocate(heads){
-	log.time(`sync.trustlines`, `building trustlines cache`)
+	log.time(`sync.tokens`, `building tokens cache`)
 
-	let trustlines = this.repo.trustlines.all()
+	let tokens = this.repo.tokens.all()
 	let progress = 0
 	
-	for(let i=0; i<trustlines.length; i++){
-		compose.call(this, trustlines[i])
+	for(let i=0; i<tokens.length; i++){
+		compose.call(this, tokens[i])
 
-		let newProgress = Math.floor((i / trustlines.length) * 100)
+		let newProgress = Math.floor((i / tokens.length) * 100)
 
 		if(newProgress !== progress){
 			progress = newProgress
-			log.info(`processed`, i, `of`, trustlines.length, `trustlines (${progress}%)`)
+			log.info(`processed`, i, `of`, tokens.length, `tokens (${progress}%)`)
 		}
 	}
 
-	log.time(`sync.trustlines`, `built trustlines cache in %`)
+	log.time(`sync.tokens`, `built tokens cache in %`)
 }
 
 export function register({ affected }){
@@ -32,31 +34,31 @@ export function register({ affected }){
 		contexts.some(context => ['exchange', 'meta', 'stat'].includes(context)))
 
 	for(let { type, id } of relevant){
-		if(type === 'trustline'){
-			compose.call(this, this.repo.trustlines.get({id}))
-			log.debug(`updated trustline (TL${id})`)
+		if(type === 'token'){
+			compose.call(this, this.repo.tokens.get({id}))
+			log.debug(`updated token (TL${id})`)
 		}
 	}
 }
 
-function compose(trustline){
-	let { id, currency, issuer: issuerId } = trustline
+function compose(token){
+	let { id, currency, issuer: issuerId } = token
 	let issuer = this.repo.accounts.get({id: issuerId})	
-	let currencyMetas = this.repo.metas.all({trustline})
+	let currencyMetas = this.repo.metas.all({token})
 	let issuerMetas = this.repo.metas.all({account: issuerId})
 	let meta = {
 		currency: sortMetas(
 			nestDotNotated(mapMultiKey(currencyMetas, 'key', true)),
-			this.config.api.sourcePriorities
+			this.config.meta.sourcePriorities
 		),
 		issuer: sortMetas(
 			nestDotNotated(mapMultiKey(issuerMetas, 'key', true)),
-			this.config.api.sourcePriorities
+			this.config.meta.sourcePriorities
 		)
 	}
 
 
-	let currentStats = this.repo.stats.get(trustline)
+	let currentStats = this.repo.stats.get(token)
 	let yesterdayStats
 	let now = unixNow()
 	let candles = this.cache.candles.all(
@@ -66,18 +68,18 @@ function compose(trustline){
 	let stats = {
 		marketcap: new Decimal(0),
 		volume: new Decimal(0),
-		trustlines: 0
+		tokens: 0
 	}
 
 	if(currentStats){
-		stats.trustlines = currentStats.count
+		stats.tokens = currentStats.count
 		stats.supply = currentStats.supply
 		stats.liquidity = {ask: currentStats.ask, bid: currentStats.bid}
 
-		yesterdayStats = this.repo.stats.get(trustline, currentStats.date - 60*60*24)
+		yesterdayStats = this.repo.stats.get(token, currentStats.date - 60*60*24)
 
 		if(yesterdayStats){
-			stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
+			stats.tokens_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
 		}
 	}
 
@@ -103,7 +105,7 @@ function compose(trustline){
 		meta: {
 			currency: collapseMetas(
 				meta.currency, 
-				this.config.api.sourcePriorities
+				this.config.meta.sourcePriorities
 			),
 			issuer: collapseMetas(
 				{
@@ -112,12 +114,12 @@ function compose(trustline){
 					socials: undefined,
 					description: undefined
 				}, 
-				this.config.api.sourcePriorities
+				this.config.meta.sourcePriorities
 			)
 		}
 	}
 
-	this.cache.trustlines.insert({
+	this.cache.tokens.insert({
 		id,
 		currency, 
 		issuer: issuer.address,

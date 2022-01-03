@@ -1,11 +1,13 @@
-import * as exchanges from './sync/exchanges.js'
-import * as trustlines from './sync/trustlines.js'
-import * as currencies from './sync/currencies.js'
-import * as stats from './sync/stats.js'
-import { Logger } from '@xrplmeta/common/lib/log.js'
+import * as exchanges from './exchanges.js'
+import * as tokens from './tokens.js'
+import * as stats from './stats.js'
+import log from '@xrplmeta/log'
 import { wait } from '@xrplmeta/utils'
 
-const log = new Logger({name: 'sync'})
+log.config({
+	name: 'sync',
+	color: 'cyan'
+})
 
 
 export default async ctx => {
@@ -32,8 +34,7 @@ function allocate(ctx){
 	log.time(`sync.prepare`, `building caching database`)
 
 	exchanges.allocate.call(ctx, repoHeads)
-	trustlines.allocate.call(ctx, repoHeads)
-	currencies.allocate.call(ctx, repoHeads)
+	tokens.allocate.call(ctx, repoHeads)
 	stats.allocate.call(ctx, repoHeads)
 
 	log.time(`sync.prepare`, `built whole caching database in %`)
@@ -64,10 +65,10 @@ async function loop(ctx){
 				ranges[k] = [cacheHeads[k], i]
 
 				switch(k){
-					case 'trustlines':
+					case 'tokens':
 						for(let row of newRows){
 							affected.push({
-								type: {A: 'account', T: 'trustline'}[row.type],
+								type: {A: 'account', T: 'token'}[row.type],
 								id: row.subject,
 								context: 'stats'
 							})
@@ -78,7 +79,7 @@ async function loop(ctx){
 						for(let row of newRows){
 							if(row.base){
 								affected.push({
-									type: 'trustline',
+									type: 'token',
 									id: row.base,
 									context: 'exchange'
 								})
@@ -86,7 +87,7 @@ async function loop(ctx){
 
 							if(row.quote){
 								affected.push({
-									type: 'trustline',
+									type: 'token',
 									id: row.quote,
 									context: 'exchange'
 								})
@@ -97,7 +98,7 @@ async function loop(ctx){
 					case 'metas':
 						for(let row of newRows){
 							affected.push({
-								type: {A: 'account', T: 'trustline'}[row.type],
+								type: {A: 'account', T: 'token'}[row.type],
 								id: row.subject,
 								context: 'stats'
 							})
@@ -107,8 +108,8 @@ async function loop(ctx){
 					case 'stats':
 						for(let row of newRows){
 							affected.push({
-								type: 'trustline',
-								id: row.trustline,
+								type: 'token',
+								id: row.token,
 								context: 'stats'
 							})
 						}
@@ -153,7 +154,7 @@ async function loop(ctx){
 		try{
 			ctx.cache.tx(() => {
 				exchanges.register.call(ctx, {ranges, affected})
-				trustlines.register.call(ctx, {ranges, affected})
+				tokens.register.call(ctx, {ranges, affected})
 				currencies.register.call(ctx, {ranges, affected})
 				stats.register.call(ctx, {ranges, affected})
 

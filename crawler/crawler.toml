@@ -3,10 +3,9 @@ dir = "V:/xrpl/xrplmeta"
 
 
 [LEDGER]
-state_interval = 225 # 15m
-state_history_interval = 3600 # 4h
-state_history_ledgers = 7884000 # 1y
-state_process_in_memory = false
+snapshot_interval = 225 # 15m
+snapshot_backfill_interval = 3600 # 4h
+snapshot_in_memory = false
 min_trustlines = 3
 capture_whales = 100
 top_percenters = [0.01, 0.1, 1.0, 10.0, 25.0, 50.0]

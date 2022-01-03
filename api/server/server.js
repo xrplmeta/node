@@ -1,11 +1,16 @@
 import Koa from 'koa'
 import websocket from 'koa-easy-ws'
-import { Logger } from '@xrplmeta/common/lib/log.js'
+import log from '@xrplmeta/log'
 import { wait } from '@xrplmeta/utils'
 import HTTPRouter from './http.js'
 import WSManager from './ws.js'
 
-const log = new Logger({name: 'server', color: 'cyan'})
+
+log.config({
+	name: 'server',
+	color: 'green'
+})
+
 
 export default ({config, cache}) => {
 	let koa = new Koa()
@@ -22,7 +27,7 @@ export default ({config, cache}) => {
 	})
 
 	koa.use(router.routes(), router.allowedMethods())
-	koa.listen(config.api.port)
+	koa.listen(config.server.port)
 
-	log.info(`listening on port ${config.api.port}`)
+	log.info(`listening on port ${config.server.port}`)
 }

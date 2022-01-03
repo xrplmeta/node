@@ -1,4 +1,4 @@
-import { unixNow } from '@xrplmeta/common/lib/time.js'
+import { unixNow } from '@xrplmeta/utils'
 
 
 export function all(pair, start, end){

@@ -1,5 +1,5 @@
-export function all(trustline, start, end){
-	let table = deriveTable(trustline)
+export function all(token, start, end){
+	let table = deriveTable(token)
 
 	return this.all(
 		`SELECT * FROM ${table}
@@ -9,11 +9,11 @@ export function all(trustline, start, end){
 	)
 }
 
-export function set(trustline, stats){
+export function set(token, stats){
 	if(stats.length === 0)
 		return
 
-	let table = deriveTable(trustline)
+	let table = deriveTable(token)
 	let cols = Object.keys(stats[0])
 	let percentCols = cols.filter(col => col.startsWith('percent'))
 
@@ -25,8 +25,8 @@ export function set(trustline, stats){
 	})
 }
 
-export function insert(trustline, stat){
-	let table = deriveTable(trustline)
+export function insert(token, stat){
+	let table = deriveTable(token)
 
 	this.insert({
 		table,
@@ -34,8 +34,8 @@ export function insert(trustline, stat){
 	})
 }
 
-export function vacuum(trustline, ids){
-	let table = deriveTable(trustline)
+export function vacuum(token, ids){
+	let table = deriveTable(token)
 	let existing = this.all(`SELECT id FROM ${table}`)
 	let missing = ids.filter(id => !existing.includes(id))
 	let excess = existing.filter(id => !ids.includes(id))
@@ -69,7 +69,7 @@ function ensureTable(table, percentCols){
 			"id"			INTEGER NOT NULL UNIQUE,
 			"ledger"		INTEGER NOT NULL,
 			"date"			INTEGER NOT NULL,
-			"trustlines"	INTEGER NOT NULL,
+			"tokens"	INTEGER NOT NULL,
 			"supply"		TEXT NOT NULL,
 			"marketcap"		TEXT NOT NULL,
 			"bid"			TEXT NOT NULL,
@@ -87,6 +87,6 @@ function ensureTable(table, percentCols){
 	)
 }
 
-function deriveTable(trustline){
-	return `Stats${trustline.id}`
+function deriveTable(token){
+	return `Stats${token.id}`
 }

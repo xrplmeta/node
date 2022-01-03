@@ -72,11 +72,11 @@ export class Logger{
 		this.isSubprocess = isSubprocess || false
 	}
 
-	subprocess(subprocess, config){
+	subprocess(subprocess){
 		subprocess.on('message', message => {
 			if(message && message.type === 'log'){
 				this.log.call(
-					{...config, severity: this.severity}, 
+					{...message.config, severity: this.severity}, 
 					message.level, 
 					...message.args
 				)
@@ -86,7 +86,15 @@ export class Logger{
 
 	log(level, ...args){
 		if(this.isSubprocess){
-			process.send({type: 'log', level, args: args.map(formatContent)})
+			process.send({
+				type: 'log', 
+				config: {
+					name: this.name,
+					color: this.color
+				},
+				level, 
+				args: args.map(formatContent)
+			})
 			return
 		}
 
