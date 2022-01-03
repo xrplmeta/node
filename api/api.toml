@@ -1,0 +1,9 @@
+[DATA]
+dir = "V:/xrpl/xrplmeta"
+
+[CACHE]
+in_memory = false
+
+[API]
+port=4080
+source_priorities = ['ledger', 'website', 'xumm.app', 'xumm.pro', 'bithomp.com', 'xrpscan.com', 'twitter.com', 'gravatar.com']

@@ -1,5 +1,5 @@
-import DB from '../lib/db.js'
-import * as modules from './repo/index.js'
+import DB from '@xrplmeta/db'
+import * as modules from './modules.js'
 
 
 export default config => {
