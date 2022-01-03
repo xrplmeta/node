@@ -4,7 +4,7 @@ export function init(){
 			"index"			INTEGER NOT NULL UNIQUE,
 			"accounts"		INTEGER NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
-			"balances"		INTEGER NOT NULL,
+			"tokens"		INTEGER NOT NULL,
 			"offers"		INTEGER NOT NULL,
 			"liquidity"		INTEGER NOT NULL,
 			PRIMARY KEY ("index")

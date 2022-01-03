@@ -2,8 +2,12 @@
   "name": "@xrplmeta/repo",
   "type": "module",
   "version": "3.0.0-alpha",
+  "main": "repo.js",
   "dependencies": {
     "@xrplmeta/db": "3.0.0-alpha",
+    "@xrplmeta/log": "3.0.0-alpha",
+    "@xrplmeta/utils": "3.0.0-alpha",
+    "decimal.js": "^10.3.1",
     "ripple-address-codec": "^4.2.0"
   }
 }

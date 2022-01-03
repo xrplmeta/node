@@ -1,5 +1,5 @@
+import EventEmitter from 'events'
 import Pool from './pool.js'
-import EventEmitter from '@xrplmeta/common/lib/events.js'
 
 
 export class Host{
@@ -17,11 +17,11 @@ export class Host{
 			switch(type){
 				case 'xrpl.invoke':
 					this.pool[payload.method](...payload.args)
-						.then(data => worker.postMessage({
+						.then(data => worker.send({
 							type: 'xrpl.invoke', 
 							payload: {id: payload.id, data}
 						}))
-						.catch(error => worker.postMessage({
+						.catch(error => worker.send({
 							type: 'xrpl.invoke', 
 							payload: {id: payload.id, error}
 						}))
@@ -37,18 +37,18 @@ export class Host{
 
 	dispatchEmit(event, data){
 		for(let worker of this.workers){
-			worker.postMessage({type: 'xrpl.event', payload: {event, data}})
+			worker.send({type: 'xrpl.event', payload: {event, data}})
 		}
 	}
 }
 
 export class Client extends EventEmitter{
-	constructor(port){
+	constructor(){
 		super()
 		this.port = port
 		this.requests = []
 		this.counter = 0
-		this.port.on('message', ({type, payload}) => {
+		process.on('message', ({type, payload}) => {
 			switch(type){
 				case 'xrpl.event':
 					this.emit(payload.event, payload.data)
@@ -76,7 +76,7 @@ export class Client extends EventEmitter{
 			let id = this.counter++
 
 			this.requests.push({id, resolve, reject})
-			this.port.postMessage({type: 'xrpl.invoke', payload: {id, method: 'request', args}})
+			process.send({type: 'xrpl.invoke', payload: {id, method: 'request', args}})
 
 		})
 	}

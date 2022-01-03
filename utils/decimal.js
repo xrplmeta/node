@@ -5,7 +5,7 @@
  * Copyright (c) 2020, Michael Mclaughlin.
  */
 
-import Decimal from './decimal.js'
+import Decimal from 'decimal.js'
 
 
 const BASE = 1e7;

@@ -1,8 +1,6 @@
-import { log } from '../../lib/log.js'
-
 export function init(){
 	this.exec(
-		`CREATE TABLE IF NOT EXISTS "Trustlines" (
+		`CREATE TABLE IF NOT EXISTS "Tokens" (
 			"id"			INTEGER NOT NULL UNIQUE,
 			"currency"		TEXT NOT NULL,
 			"issuer"		INTEGER NOT NULL,
@@ -12,30 +10,30 @@ export function init(){
 		);
 		
 		CREATE INDEX IF NOT EXISTS 
-		"TrustlinesIssuer" ON "Trustlines" 
+		"TokenIssuer" ON "Tokens" 
 		("issuer");`
 	)
 }
 
-export function id(trustline, create=true){
-	if(typeof trustline === 'number')
-		return trustline
+export function id(token, create=true){
+	if(typeof token === 'number')
+		return token
 
-	if(trustline.id)
-		return trustline.id
+	if(token.id)
+		return token.id
 
-	if(!trustline.issuer)
+	if(!token.issuer)
 		return null
 
-	return this.trustlines.get(trustline)?.id 
-		|| (create ? this.trustlines.insert(trustline).id : null)
+	return this.tokens.get(token)?.id 
+		|| (create ? this.tokens.insert(token).id : null)
 }
 
 
 export function get(by){
 	if(by.id){
 		return this.get(
-			`SELECT * FROM Trustlines
+			`SELECT * FROM Tokens
 			WHERE id = ?`,
 			by.id,
 		) 
@@ -46,7 +44,7 @@ export function get(by){
 			return null
 
 		return this.get(
-			`SELECT * FROM Trustlines
+			`SELECT * FROM Tokens
 			WHERE issuer = ? AND currency = ?`,
 			issuerId,
 			by.currency, 
@@ -58,19 +56,19 @@ export function get(by){
 export function all(){
 	return this.all(
 		`SELECT *
-		FROM Trustlines`, 
+		FROM Tokens`, 
 	)
 }
 
 
-export function insert({...trustline}){
-	if(typeof trustline.issuer !== 'number')
-		trustline.issuer = this.accounts.id(trustline.issuer)
+export function insert({...token}){
+	if(typeof token.issuer !== 'number')
+		token.issuer = this.accounts.id(token.issuer)
 
 
 	return this.insert({
-		table: 'Trustlines',
-		data: trustline,
+		table: 'Tokens',
+		data: token,
 		duplicate: 'ignore',
 		returnRow: true
 	})
@@ -78,5 +76,5 @@ export function insert({...trustline}){
 
 
 export function count(){
-	return this.getv(`SELECT COUNT(1) FROM Trustlines`)
+	return this.getv(`SELECT COUNT(1) FROM Tokens`)
 }

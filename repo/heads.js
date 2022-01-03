@@ -1,5 +1,5 @@
 const tablemap = {
-	trustlines: 'Trustlines',
+	tokens: 'Tokens',
 	stats: 'Stats',
 	metas: 'Metas',
 	exchanges: 'Exchanges'
@@ -8,7 +8,7 @@ const tablemap = {
 
 export function all(){
 	return {
-		trustlines: this.getv(`SELECT MAX(id) FROM Trustlines`),
+		tokens: this.getv(`SELECT MAX(id) FROM Tokens`),
 		stats: this.getv(`SELECT MAX(id) FROM Stats`),
 		metas: this.getv(`SELECT MAX(id) FROM Metas`),
 		exchanges: this.getv(`SELECT MAX(id) FROM Exchanges`),

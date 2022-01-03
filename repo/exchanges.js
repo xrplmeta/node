@@ -1,5 +1,5 @@
-import Decimal from '../../lib/decimal.js'
-import { serialize, deserialize } from '../../lib/decimal.io.js'
+import Decimal from 'decimal.js'
+import { serialize, deserialize } from '@xrplmeta/utils'
 import codec from 'ripple-address-codec'
 
 
@@ -37,8 +37,8 @@ export function insert(exchanges){
 			let hash = Buffer.from(exchange.hash, 'hex')
 			let maker = codec.decodeAccountID(exchange.maker)
 			let taker = codec.decodeAccountID(exchange.taker)
-			let base = this.trustlines.id(exchange.base)
-			let quote = this.trustlines.id(exchange.quote)
+			let base = this.tokens.id(exchange.base)
+			let quote = this.tokens.id(exchange.quote)
 			let price = serialize(new Decimal(exchange.price))
 			let volume = serialize(new Decimal(exchange.volume))
 
@@ -82,37 +82,6 @@ export function* iter({base, quote, from, to, recent} = {}){
 		yield decode(exchange)
 	}
 }
-
-/*
-export function all({base, quote, from, to}){
-	let rows = []
-
-	if(base || quote){
-		let baseId = base ? this.trustlines.id(base) : null
-		let quoteId = quote ? this.trustlines.id(quote) : null
-		
-		rows = this.all(
-			`SELECT Exchanges.id, ledger, base, quote, price, volume, date
-			FROM Exchanges 
-			INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger)
-			WHERE \`base\` IS ? 
-			AND \`quote\` IS ?`, 
-			baseId,
-			quoteId
-		)
-	}else if(from || to){
-		rows = this.all(
-			`SELECT Exchanges.id, ledger, base, quote, price, volume, date 
-			FROM Exchanges
-			INNER JOIN Ledgers ON (Ledgers."index" = Exchanges.ledger) 
-			WHERE id >= ? AND id <= ?`, 
-			from, 
-			to
-		)
-	}
-
-	return rows.map(exchange => decode(exchange))
-}*/
 
 export function decode(exchange){
 	return {

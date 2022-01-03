@@ -1,6 +1,6 @@
 import Rest from '../../lib/rest.js'
-import { batched } from '@xrplmeta/common/lib/data.js'
-import { log } from '@xrplmeta/common/lib/log.js'
+import log from '@xrplmeta/log'
+import { batched } from '@xrplmeta/utils'
 
 
 export default ({repo, config, loopTimeTask}) => {

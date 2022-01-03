@@ -21,10 +21,10 @@ export function init(){
 export function insert({account, base, quote, gets, pays}){
 	let accountId = this.accounts.id(account)
 	let baseId = base
-		? this.trustlines.id(base)
+		? this.tokens.id(base)
 		: null
 	let quoteId = quote
-		? this.trustlines.id(quote)
+		? this.tokens.id(quote)
 		: null
 
 	return this.insert({

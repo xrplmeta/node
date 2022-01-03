@@ -1,9 +1,7 @@
-import { log } from '@xrplmeta/common/lib/log.js'
-import { wait, unixNow } from '@xrplmeta/common/lib/time.js'
-import { keySort, decimalCompare } from '@xrplmeta/common/lib/data.js'
-import { currencyHexToUTF8 } from '@xrplmeta/common/lib/xrpl.js'
-import Decimal from '@xrplmeta/common/lib/decimal.js'
+import log from '@xrplmeta/log'
+import Decimal from 'decimal.js'
 import initSnapshot from '../../ledger/snapshot.js'
+import { wait, unixNow, keySort, decimalCompare, currencyHexToUTF8 } from '@xrplmeta/utils'
 
 
 
@@ -52,7 +50,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 							snapshot.balances.insert({
 								account: holder,
-								trustline: {currency, issuer},
+								token: {currency, issuer},
 								balance: state.Balance.value.replace(/^-/, '')
 							})
 						}else if(state.LedgerEntryType === 'AccountRoot'){
@@ -69,7 +67,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 							snapshot.balances.insert({
 								account: state.Account,
-								trustline: null,
+								token: null,
 								balance: new Decimal(state.Balance)
 									.div('1000000')
 									.toString()
@@ -130,22 +128,22 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let distributions = []
 			let liquidity = new Decimal(0)
 
-			let relevantTrustlines = snapshot.iterate(
+			let relevantTokens = snapshot.iterate(
 				`SELECT 
-					Trustlines.id, 
+					Tokens.id, 
 					currency,  
 					address as issuer,
 					domain as issuerDomain,
 					emailHash as issuerEmailHash
 				FROM 
-					Trustlines 
-					INNER JOIN Accounts ON (Accounts.id = Trustlines.issuer)`
+					Tokens 
+					INNER JOIN Accounts ON (Accounts.id = Tokens.issuer)`
 			)
 
-			for(let trustline of relevantTrustlines){
-				let lines = snapshot.balances.all({trustline})
+			for(let token of relevantTokens){
+				let lines = snapshot.balances.all({token})
 
-				if(lines.length < config.ledger.minTrustlines)
+				if(lines.length < config.ledger.minTokens)
 					continue
 
 
@@ -169,15 +167,15 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						WHERE account = ?
 						AND (base = ? OR quote = ?)`,
 						account,
-						trustline.id,
-						trustline.id,
+						token.id,
+						token.id,
 					)
 
 					if(offers.length > 0){
 						for(let offer of offers){
 							let xrpBalance = snapshot.balances.get({
 								account, 
-								trustline: null
+								token: null
 							})
 
 							if(xrpBalance){
@@ -193,7 +191,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 								}
 							}
 
-							if(offer.quote === trustline.id){
+							if(offer.quote === token.id){
 								ask = ask.plus(Decimal.min(offer.pays, balance))
 							}
 						}
@@ -210,19 +208,19 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 						balances.push({
 							account: address,
-							trustline: {
-								currency: trustline.currency,
-								issuer: trustline.issuer
+							token: {
+								currency: token.currency,
+								issuer: token.issuer
 							},
 							balance
 						})
 					}
 
-					if(!accounts.some(account => account.address === trustline.issuer)){
+					if(!accounts.some(account => account.address === token.issuer)){
 						accounts.push({
-							address: trustline.issuer,
-							domain: trustline.issuerDomain,
-							emailHash: trustline.issuerEmailHash
+							address: token.issuer,
+							domain: token.issuerDomain,
+							emailHash: token.issuerEmailHash
 						})
 					}
 				}
@@ -231,9 +229,9 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 
 				let stat = {
 					ledger: index,
-					trustline: {
-						currency: trustline.currency,
-						issuer: trustline.issuer
+					token: {
+						currency: token.currency,
+						issuer: token.issuer
 					},
 					count,
 					supply: supply.toString(),
@@ -261,14 +259,14 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				`inserting:`,
 				accounts.length, `accounts,`,
 				balances.length, `balances,`,
-				stats.length, `trustlines,`
+				stats.length, `tokens,`
 			)
 
 			repo.states.insert({
 				index,
 				accounts: snapshot.accounts.count(),
-				currencies: snapshot.trustlines.count(),
 				trustlines: snapshot.balances.count(),
+				tokens: snapshot.tokens.count(),
 				offers: snapshot.offers.count(),
 				liquidity: liquidity.toString()
 			})

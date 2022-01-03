@@ -2,50 +2,50 @@ export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Balances" (
 			"account"	INTEGER NOT NULL,
-			"trustline"	INTEGER,
+			"token"	INTEGER,
 			"balance"	TEXT NOT NULL,
-			UNIQUE ("account", "trustline")
+			UNIQUE ("account", "token")
 		);
 
 		CREATE INDEX IF NOT EXISTS 
-		"BalancesTrustline" ON "Balances" 
-		("trustline");`
+		"BalancesToken" ON "Balances" 
+		("token");`
 	)
 }
 
-export function get({account, trustline}){
+export function get({account, token}){
 	return this.get(
 		`SELECT * FROM Balances
 		WHERE account = ?
-		AND trustline IS ?`,
+		AND token IS ?`,
 		this.accounts.id(account),
-		trustline
-			? this.trustlines.id(trustline)
+		token
+			? this.tokens.id(token)
 			: null,
 	)
 }
 
 export function all(by){
-	if(by.trustline){
+	if(by.token){
 		return this.all(
 			`SELECT * FROM Balances
-			WHERE trustline = ?`,
-			this.trustlines.id(by.trustline)
+			WHERE token = ?`,
+			this.tokens.id(by.token)
 		)
 	}
 }
 
-export function insert({account, trustline, balance}){
+export function insert({account, token, balance}){
 	let accountId = this.accounts.id(account)
-	let trustlineId = trustline
-		? this.trustlines.id(trustline)
+	let tokenId = token
+		? this.tokens.id(token)
 		: null
 
 	return this.insert({
 		table: 'Balances',
 		data: {
 			account: accountId,
-			trustline: trustlineId,
+			token: tokenId,
 			balance
 		},
 		duplicate: 'update'

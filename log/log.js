@@ -58,6 +58,13 @@ export class Logger{
 		this.timings = {}
 	}
 
+	branch(config){
+		return new Logger({
+			isSubprocess: this.isSubprocess,
+			...config
+		})
+	}
+
 	config({name, color, severity, isSubprocess}){
 		this.name = name
 		this.color = color || 'yellow'
@@ -65,10 +72,14 @@ export class Logger{
 		this.isSubprocess = isSubprocess || false
 	}
 
-	registerSubprocess(subprocess, config){
+	subprocess(subprocess, config){
 		subprocess.on('message', message => {
 			if(message && message.type === 'log'){
-				this.log.call({...config, level: this.severity}, message.level, ...message.args)
+				this.log.call(
+					{...config, severity: this.severity}, 
+					message.level, 
+					...message.args
+				)
 			}
 		})
 	}
@@ -126,7 +137,7 @@ export class Logger{
 }
 
 
-export const log = new Logger({
+export default new Logger({
 	name: 'main', 
 	color: 'yellow'
 })
