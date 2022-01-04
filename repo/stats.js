@@ -7,13 +7,13 @@ export function init(){
 
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Stats" (
-			"id"		INTEGER NOT NULL UNIQUE,
-			"token"	INTEGER NOT NULL,
-			"ledger"	INTEGER NOT NULL,
-			"count"		INTEGER NOT NULL,
-			"supply"	TEXT NOT NULL,
-			"bid"		TEXT NOT NULL,
-			"ask"		TEXT NOT NULL,
+			"id"			INTEGER NOT NULL UNIQUE,
+			"token"			INTEGER NOT NULL,
+			"ledger"		INTEGER NOT NULL,
+			"trustlines"	INTEGER NOT NULL,
+			"supply"		TEXT NOT NULL,
+			"bid"			TEXT NOT NULL,
+			"ask"			TEXT NOT NULL,
 			${percents.join(', ')},
 			PRIMARY KEY ("id" AUTOINCREMENT),
 			UNIQUE ("ledger", "token")
@@ -68,7 +68,7 @@ export function all(token){
 export function get(token, ledger){
 	if(ledger === undefined){
 		return this.get(
-			`SELECT *, Ledgers.date
+			`SELECT Stats.*, Ledgers.date
 			FROM Stats
 			INNER JOIN Ledgers ON ("index" = Stats.ledger)
 			WHERE token = ?
@@ -77,7 +77,7 @@ export function get(token, ledger){
 		)
 	}else{
 		return this.get(
-			`SELECT *, Ledgers.date
+			`SELECT Stats.*, Ledgers.date
 			FROM Stats
 			INNER JOIN Ledgers ON ("index" = Stats.ledger)
 			WHERE token = ?

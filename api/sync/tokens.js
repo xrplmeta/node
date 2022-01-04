@@ -1,8 +1,9 @@
 import { unixNow, keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/utils'
 import Decimal from 'decimal.js'
-import log from '@xrplmeta/log'
+import mainlog from '@xrplmeta/log'
 
-log.config({
+
+const log = mainlog.branch({
 	name: 'sync:tokens',
 	color: 'cyan'
 })
@@ -68,19 +69,19 @@ function compose(token){
 	let stats = {
 		marketcap: new Decimal(0),
 		volume: new Decimal(0),
-		tokens: 0
+		trustlines: 0
 	}
 
 	if(currentStats){
-		stats.tokens = currentStats.count
+		stats.trustlines = currentStats.trustlines
 		stats.supply = currentStats.supply
 		stats.liquidity = {ask: currentStats.ask, bid: currentStats.bid}
 
 		yesterdayStats = this.repo.stats.get(token, currentStats.date - 60*60*24)
 
-		if(yesterdayStats){
-			stats.tokens_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
-		}
+		/*if(yesterdayStats){
+			stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
+		}*/
 	}
 
 	if(candles.length > 0){

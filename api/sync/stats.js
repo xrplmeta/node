@@ -1,8 +1,9 @@
 import Decimal from 'decimal.js'
 import { leftProximityZip } from '@xrplmeta/utils'
-import log from '@xrplmeta/log'
+import mainlog from '@xrplmeta/log'
 
-log.config({
+
+const log = mainlog.branch({
 	name: 'sync:stats',
 	color: 'cyan'
 })
@@ -20,10 +21,6 @@ export function allocate(heads){
 	for(let i=0; i<tokens.length; i++){
 		let token = tokens[i]
 		let stats = this.repo.stats.all(token)
-			.map(({token, count, ...stat}) => ({
-				...stat,
-				tokens: count
-			}))
 
 		if(stats.length === 0)
 			continue
@@ -45,12 +42,14 @@ export function allocate(heads){
 			}
 		)
 
-		let combined = aligned.map(([stat, candle]) => ({
-			...stat,
-			marketcap: candle
-				? Decimal.mul(stat.supply, candle.c).toString() 
-				: '0'
-		}))
+		let combined = aligned
+			.map(([stat, candle]) => ({
+				...stat,
+				marketcap: candle
+					? Decimal.mul(stat.supply, candle.c).toString() 
+					: '0'
+			}))
+			.map(({ token, ...stats }) => stats)
 
 		this.cache.stats.set(token, combined)
 
@@ -76,7 +75,7 @@ export function register({ affected }){
 			let missing = this.cache.stats.vacuum({id}, ids)
 
 			for(let msid of missing){
-				let {token, count, ...stat} = this.repo.stats.get({id: msid})
+				let {token, ...stat} = this.repo.stats.get({id: msid})
 				let candle = this.cache.candles.all(
 					{base: token.id, quote: null, interval: mcapCandle},
 					Math.floor(stat.date / mcapCandle) * mcapCandle,
@@ -85,7 +84,6 @@ export function register({ affected }){
 
 				this.cache.stats.insert({id}, {
 					...stat,
-					tokens: count,
 					marketcap: candle
 						? Decimal.mul(stat.supply, candle.c).toString()
 						: '0',

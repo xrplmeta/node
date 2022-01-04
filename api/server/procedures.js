@@ -1,14 +1,6 @@
 import { unixNow } from '@xrplmeta/utils'
 
 
-const candlestickIntervals = {
-	'5m': 60 * 5,
-	'15m': 60 * 15,
-	'1h': 60 * 60,
-	'4h': 60 * 60 * 4,
-	'1d': 60 * 60 * 24,
-}
-
 
 export async function currencies(ctx){
 	let limit = ctx.parameters.limit || 100
@@ -44,6 +36,15 @@ export async function currencies(ctx){
 		currencies: stacks, 
 		count: total
 	}
+}
+
+export async function tokens(ctx){
+	let limit = ctx.parameters.limit || 100
+	let offset = ctx.parameters.offset || 0
+	let filter = ctx.parameters.filter
+	let total = ctx.cache.tokens.count()
+
+	return ctx.cache.tokens.all({limit, offset})
 }
 
 export async function token(ctx){

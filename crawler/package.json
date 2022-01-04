@@ -8,7 +8,7 @@
     "@xrplmeta/repo": "3.0.0-alpha",
     "@xrplmeta/log": "3.0.0-alpha",
     "@xrplmeta/utils": "3.0.0-alpha",
-    "limiter": "^2.0.1",
+    "limiter": "=2.0.1",
     "minimist": "^1.2.5",
     "node-fetch": "^3.0.0",
     "xrpl": "^2.0.0"
