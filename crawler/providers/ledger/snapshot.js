@@ -143,7 +143,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			for(let token of relevantTokens){
 				let lines = snapshot.balances.all({token})
 
-				if(lines.length < config.ledger.minTokens)
+				if(lines.length < config.ledger.minTrustlines)
 					continue
 
 
@@ -233,7 +233,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						currency: token.currency,
 						issuer: token.issuer
 					},
-					count,
+					trustlines: count,
 					supply: supply.toString(),
 					bid: bid.toString(),
 					ask: ask.toString(),
@@ -319,8 +319,8 @@ function fillQueue(xrpl, index){
 					priority: 100
 				})
 			}catch(e){
-				if(e === 'NO_NODE_AVAILABLE')
-					throw e
+				//if(e === 'NO_NODE_AVAILABLE')
+				//	throw e
 
 				log.info(`could not obtain ledger data temporarily:\n`, e)
 				await wait(1000)

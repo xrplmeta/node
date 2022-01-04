@@ -69,7 +69,7 @@ function ensureTable(table, percentCols){
 			"id"			INTEGER NOT NULL UNIQUE,
 			"ledger"		INTEGER NOT NULL,
 			"date"			INTEGER NOT NULL,
-			"tokens"	INTEGER NOT NULL,
+			"trustlines"	INTEGER NOT NULL,
 			"supply"		TEXT NOT NULL,
 			"marketcap"		TEXT NOT NULL,
 			"bid"			TEXT NOT NULL,

@@ -13,7 +13,7 @@ export function set(heads){
 			table: 'Heads',
 			data: {
 				key,
-				sequence
+				sequence: sequence || 0
 			},
 			duplicate: 'update'
 		})

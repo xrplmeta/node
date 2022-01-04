@@ -6,7 +6,7 @@ export function init(){
 			"issuer"		TEXT NOT NULL,
 			"full"			TEXT NOT NULL,
 			"condensed"		TEXT NOT NULL,
-			"accounts"		INTEGER NOT NULL,
+			"trustlines"	INTEGER NOT NULL,
 			"marketcap"		REAL NOT NULL,
 			"volume"		REAL NOT NULL
 		);
@@ -20,8 +20,8 @@ export function init(){
 		("issuer");
 
 		CREATE INDEX IF NOT EXISTS 
-		"TokensAccounts" ON "Tokens" 
-		("accounts");
+		"TokensTrustlines" ON "Tokens" 
+		("trustlines");
 
 		CREATE INDEX IF NOT EXISTS 
 		"TokensMarketcap" ON "Tokens" 
@@ -33,21 +33,16 @@ export function init(){
 	)
 }
 
-export function all({currency, minAccounts, limit}, full){
-	let rows
-
-	if(currency){
-		rows = this.all(
-			`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Tokens
-			WHERE currency = ?
-			AND accounts >= ?
-			ORDER BY volume DESC
-			LIMIT ?`,
-			currency,
-			minAccounts || 0,
-			limit || 999999999
-		)
-	}
+export function all({limit, offset, minTrustlines, full}){
+	let rows  = this.all(
+		`SELECT id, currency, issuer, ${full ? 'full' : 'condensed'} as meta FROM Tokens
+		WHERE trustlines >= ?
+		ORDER BY volume DESC
+		LIMIT ?, ?`,
+		minTrustlines || 0,
+		offset || 0,
+		limit || 999999999
+	)
 
 	return rows.map(row => decode(row))
 }
@@ -71,7 +66,7 @@ export function insert({id, currency, issuer, full, condensed}){
 			issuer,
 			full: JSON.stringify(full),
 			condensed: JSON.stringify(condensed),
-			accounts: full.stats.tokens,
+			trustlines: full.stats.trustlines,
 			marketcap: parseFloat(full.stats.marketcap),
 			volume: parseFloat(full.stats.volume),
 		},

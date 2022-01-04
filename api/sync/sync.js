@@ -1,10 +1,11 @@
 import * as exchanges from './exchanges.js'
 import * as tokens from './tokens.js'
 import * as stats from './stats.js'
-import log from '@xrplmeta/log'
 import { wait } from '@xrplmeta/utils'
+import mainlog from '@xrplmeta/log'
 
-log.config({
+
+const log = mainlog.branch({
 	name: 'sync',
 	color: 'cyan'
 })
