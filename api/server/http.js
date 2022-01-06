@@ -9,8 +9,8 @@ export default class extends Router{
 		this.ctx = ctx
 
 		this.get(
-			'/currencies', 
-			this.wrappedProcedure('currencies')
+			'/tokens', 
+			this.wrappedProcedure('tokens')
 		)
 
 		this.get(
@@ -42,8 +42,8 @@ export default class extends Router{
 				'exchanges', 
 				parameters => ({
 					...parameters,
-					base: parsePairURIComponent(parameters.base),
-					quote: parsePairURIComponent(parameters.quote),
+					base: this.parseTokenURI(parameters.base),
+					quote: this.parseTokenURI(parameters.quote),
 				})
 			)
 		)
@@ -78,8 +78,10 @@ export default class extends Router{
 					...this.ctx, 
 					parameters
 				})
-			}catch(error){
-				if(error.expose){
+			}catch(e){
+				let { expose, ...error } = e
+
+				if(expose){
 					ctx.status = 400
 					ctx.body = error
 				}else{

@@ -85,7 +85,7 @@ export async function exchanges(ctx){
 		: null
 
 	if(baseId === undefined || quoteId === undefined)
-		throw {message: 'symbol not listed', expose: true}
+		throw {message: 'pair not listed', expose: true}
 
 
 	if(format === 'raw'){

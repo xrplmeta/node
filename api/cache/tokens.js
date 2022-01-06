@@ -57,6 +57,10 @@ export function get({currency, issuer}, full){
 	))
 }
 
+export function count(){
+	return this.getv(`SELECT COUNT(1) FROM Tokens`)
+}
+
 export function insert({id, currency, issuer, full, condensed}){
 	this.insert({
 		table: 'Tokens',
@@ -75,6 +79,9 @@ export function insert({id, currency, issuer, full, condensed}){
 }
 
 function decode(row){
+	if(!row)
+		return null
+
 	let { meta, ...token } = row
 
 	return {

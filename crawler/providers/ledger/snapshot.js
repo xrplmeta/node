@@ -293,10 +293,14 @@ function fillQueue(xrpl, index){
 	let lastMarker
 	let queue = []
 	let done = false
+	let failed = false
+	let unavailable = 0
 	let next = async () => {
 		while(queue.length === 0)
 			if(done)
 				return null
+			else if(failed)
+				throw 'NO_NODE_AVAILABLE'
 			else
 				await wait(100)
 
@@ -318,9 +322,17 @@ function fillQueue(xrpl, index){
 					limit: 100000,
 					priority: 100
 				})
+
+				unavailable = 0
 			}catch(e){
-				//if(e === 'NO_NODE_AVAILABLE')
-				//	throw e
+				if(e === 'NO_NODE_AVAILABLE'){
+					unavailable++
+
+					if(unavailable >= 3){
+						failed = true
+						return
+					}
+				}
 
 				log.info(`could not obtain ledger data temporarily:\n`, e)
 				await wait(1000)
