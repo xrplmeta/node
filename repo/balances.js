@@ -8,7 +8,7 @@ export function init(){
 		);
 
 		CREATE INDEX IF NOT EXISTS 
-		"BalancesToken" ON "Balances" 
+		"BalancesTrustline" ON "Balances" 
 		("token");`
 	)
 }
