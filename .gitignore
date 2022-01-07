@@ -3,4 +3,5 @@ package-lock.json
 .DS_Store
 .env
 **/dist/**
-config.toml
+crawler.toml
+api.toml
