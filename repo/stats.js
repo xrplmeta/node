@@ -65,8 +65,8 @@ export function all(token){
 }
 
 
-export function get(token, ledger){
-	if(ledger === undefined){
+export function get(token, date){
+	if(date === undefined){
 		return this.get(
 			`SELECT Stats.*, Ledgers.date
 			FROM Stats
@@ -81,10 +81,10 @@ export function get(token, ledger){
 			FROM Stats
 			INNER JOIN Ledgers ON ("index" = Stats.ledger)
 			WHERE token = ?
-			AND ledger >= ?
+			AND Ledgers.date >= ?
 			ORDER BY ledger ASC`,
 			token.id,
-			ledger
+			date
 		)
 	}
 	

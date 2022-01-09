@@ -4,7 +4,7 @@ import initRepo from '@xrplmeta/repo'
 
 let repo = initRepo({
 	data: {
-		dir: 'V:/xrpl/xrplmeta'
+		dir: '/Users/mwni/Documents/xrpl'
 	}
 })
 

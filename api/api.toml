@@ -1,5 +1,5 @@
 [DATA]
-dir = "V:/xrpl/xrplmeta"
+dir = "/Users/mwni/Documents/xrpl"
 
 [CACHE]
 in_memory = false

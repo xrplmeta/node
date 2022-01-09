@@ -68,20 +68,27 @@ function compose(token){
 	)
 	let stats = {
 		marketcap: new Decimal(0),
-		volume: new Decimal(0),
+		volume: {
+			day: new Decimal(0),
+			week: new Decimal(0),
+		},
 		trustlines: 0
 	}
 
 	if(currentStats){
-		stats.trustlines = currentStats.trustlines
 		stats.supply = currentStats.supply
 		stats.liquidity = {ask: currentStats.ask, bid: currentStats.bid}
+		stats.trustlines = currentStats.trustlines
 
-		yesterdayStats = this.repo.stats.get(token, currentStats.date - 60*60*24)
+		let yesterday = this.repo.stats.get(token, currentStats.date - 60*60*24)
+		let lastWeek = this.repo.stats.get(token, currentStats.date - 60*60*24*7)
 
-		/*if(yesterdayStats){
-			stats.trustlines_change = Math.round((currentStats.accounts / yesterdayStats.accounts - 1) * 10000) / 100
-		}*/
+		if(yesterday){
+			stats.trustlines_change = {
+				day: currentStats.trustlines - yesterday.trustlines,
+				week: currentStats.trustlines - lastWeek.trustlines
+			}
+		}
 	}
 
 	if(candles.length > 0){
@@ -89,12 +96,15 @@ function compose(token){
 		let lastWeeksCandle = candles[0]
 
 		stats.price = newestCandle.c
-		stats.price_change = Math.round((newestCandle.c / newestCandle.o - 1) * 1000)/10
+		stats.price_change = {
+			day: newestCandle.c - newestCandle.o,
+			week: newestCandle.c - lastWeeksCandle.o
+		}
 		stats.marketcap = Decimal.mul(stats.supply || 0, newestCandle.c)
-		stats.volume = Decimal.sum(...candles
-			.slice(candles.indexOf(lastWeeksCandle))
-			.map(candle => candle.v)
-		)
+		stats.volume = {
+			day: newestCandle.v,
+			week: Decimal.sum(...candles.map(candle => candle.v))
+		}
 	}
 
 	let full = {stats, meta}
