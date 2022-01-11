@@ -63,7 +63,7 @@ function compose(token){
 	let yesterdayStats
 	let now = unixNow()
 	let candles = this.cache.candles.all(
-		{base: id, quote: null, interval: 86400},
+		{base: id, quote: null, interval: 3600},
 		now - 60*60*24*7
 	)
 	let stats = {
@@ -93,17 +93,25 @@ function compose(token){
 
 	if(candles.length > 0){
 		let newestCandle = candles[candles.length - 1]
+		let yesterdaysCandle = candles.find(candle => candle.t >= newestCandle.t - 60*60*24)
 		let lastWeeksCandle = candles[0]
 
 		stats.price = newestCandle.c
 		stats.price_change = {
-			day: newestCandle.c - newestCandle.o,
+			day: newestCandle.c - yesterdaysCandle.o,
 			week: newestCandle.c - lastWeeksCandle.o
 		}
 		stats.marketcap = Decimal.mul(stats.supply || 0, newestCandle.c)
 		stats.volume = {
-			day: newestCandle.v,
-			week: Decimal.sum(...candles.map(candle => candle.v))
+			day: Decimal.sum(
+				...candles
+					.slice(candles.indexOf(yesterdaysCandle))
+					.map(candle => candle.v)
+			),
+			week: Decimal.sum(
+				...candles
+					.map(candle => candle.v)
+			)
 		}
 	}
 
