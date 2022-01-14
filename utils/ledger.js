@@ -53,6 +53,82 @@ export function deriveExchanges(tx){
 	return exchanges
 }
 
+export function deriveBalanceChanges(tx){
+	let parties = {}
+	let bookChange = ({currency, issuer, account, previous, final}) => {
+		let party = parties[account]
+
+		if(!party)
+			party = parties[account] = []
+
+		if(party.some(e => e.currency === currency && e.issuer === issuer))
+			throw 'no way'
+
+		party.push({
+			currency,
+			issuer,
+			previous,
+			final,
+			change: Decimal.sub(final, previous)
+		})
+	}
+
+	for(let affected of (tx.meta || tx.metaData).AffectedNodes){
+		let key = Object.keys(affected)[0]
+		let node = affected[key]
+		let finalFields = node.FinalFields || node.NewFields
+		let previousFields = node.PreviousFields
+
+		if(node.LedgerEntryType === 'RippleState'){
+			let currency = finalFields.Balance.currency
+			let final = new Decimal(finalFields?.Balance?.value || '0')
+			let previous = new Decimal(previousFields?.Balance?.value || '0')
+			let issuer
+			let account
+
+			if(finalFields.HighLimit.value === '0'){
+				issuer = finalFields.HighLimit.issuer
+				account = finalFields.LowLimit.issuer
+			}else if(finalFields.LowLimit.value === '0'){
+				issuer = finalFields.LowLimit.issuer
+				account = finalFields.HighLimit.issuer
+				final = final.times(-1)
+				previous = previous.times(-1)
+			}else{
+				//ಠ_ಠ
+			}
+
+			bookChange({
+				currency, 
+				issuer, 
+				account, 
+				previous,
+				final
+			})
+		}else if(node.LedgerEntryType === 'AccountRoot'){
+			if(!finalFields)
+				continue
+
+			let account = finalFields.Account
+			let final = new Decimal(finalFields?.Balance || '0')
+				.div('1000000')
+			let previous = new Decimal(previousFields?.Balance || '0')
+				.div('1000000')
+
+
+			bookChange({
+				currency: 'XRP',
+				issuer: null, 
+				account, 
+				previous,
+				final
+			})
+		}
+	}
+
+	return parties
+}
+
 
 export function currencyHexToUTF8(code){
 	if(code.length === 3)
