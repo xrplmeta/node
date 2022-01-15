@@ -56,6 +56,9 @@ export function deriveExchanges(tx){
 export function deriveBalanceChanges(tx){
 	let parties = {}
 	let bookChange = ({currency, issuer, account, previous, final}) => {
+		if(previous === final)
+			return
+
 		let party = parties[account]
 
 		if(!party)
