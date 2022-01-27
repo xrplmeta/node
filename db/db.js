@@ -19,25 +19,33 @@ export default class{
 		this.con = new Adapter(config.file, {readonly: config.readonly || false})
 		this.statementCache = {}
 
-		if(config.journalMode)
-			this.pragma(`journal_mode=${config.journalMode}`)
+		try{
+			if(config.journalMode)
+				this.pragma(`journal_mode=${config.journalMode}`)
 
-		if(config.cacheSize)
-			this.pragma(`cache_size=${config.cacheSize}`)
+			if(config.cacheSize)
+				this.pragma(`cache_size=${config.cacheSize}`)
 
-		if(config.modules){
-			for(let [key, mod] of Object.entries(config.modules)){
-				this[key] = Object.entries(mod)
-					.reduce(
-						(methods, [key, method]) => ({
-							...methods, 
-							[key]: method.bind(this)
-						}),
-						{}
-					)
+			if(config.modules){
+				for(let [key, mod] of Object.entries(config.modules)){
+					this[key] = Object.entries(mod)
+						.reduce(
+							(methods, [key, method]) => ({
+								...methods, 
+								[key]: method.bind(this)
+							}),
+							{}
+						)
 
-				if(this[key].init)
-					this[key].init()
+					if(this[key].init)
+						this[key].init()
+				}
+			}
+		}catch(e){
+			if(e.code === 'SQLITE_CORRUPT'){
+				this.corrupt = true
+			}else{
+				throw e
 			}
 		}
 	}

@@ -82,23 +82,25 @@ export function deriveBalanceChanges(tx){
 		let finalFields = node.FinalFields || node.NewFields
 		let previousFields = node.PreviousFields
 
+
 		if(node.LedgerEntryType === 'RippleState'){
+			if(key === 'ModifiedNode' && !previousFields.Balance)
+				continue
+
 			let currency = finalFields.Balance.currency
 			let final = new Decimal(finalFields?.Balance?.value || '0')
 			let previous = new Decimal(previousFields?.Balance?.value || '0')
 			let issuer
 			let account
 
-			if(finalFields.HighLimit.value === '0'){
+			if(previous.gt(0) || final.gt(0)){
 				issuer = finalFields.HighLimit.issuer
 				account = finalFields.LowLimit.issuer
-			}else if(finalFields.LowLimit.value === '0'){
+			}else if(previous.lt(0) || final.lt(0)){
 				issuer = finalFields.LowLimit.issuer
 				account = finalFields.HighLimit.issuer
 				final = final.times(-1)
 				previous = previous.times(-1)
-			}else{
-				//ಠ_ಠ
 			}
 
 			bookChange({

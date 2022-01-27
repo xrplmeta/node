@@ -12,7 +12,7 @@ export function all(series, start, end){
 		`SELECT t, o, h, l, c, v, n FROM ${table}
 		WHERE t >= ? AND t <= ?
 		ORDER BY t ASC`,
-		start || 0,
+		Math.floor((start || 0) / series.interval) * series.interval,
 		end || unixNow()
 	)
 }

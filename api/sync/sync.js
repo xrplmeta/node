@@ -12,18 +12,18 @@ const log = mainlog.branch({
 
 
 export default async ctx => {
-	if(ctx.cache.isEmpty()){
-		allocate(ctx)
-	}else{
-		try{
+	try{
+		if(ctx.cache.isEmpty()){
+			allocate(ctx)
+		}else{
 			if(Object.keys(ctx.cache.heads.all()).length === 0)
 				throw 'incomplete'
-		}catch(e){
-			log.error(`caching database corrupted (${e})\n -> recreating from scratch`)
-
-			ctx.cache.wipe()
-			allocate(ctx)
 		}
+	}catch(e){
+		log.error(`caching database corrupted (${e})\n -> recreating from scratch`)
+
+		ctx.cache.wipe()
+		allocate(ctx)
 	}
 
 	loop(ctx)

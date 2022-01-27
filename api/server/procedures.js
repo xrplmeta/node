@@ -59,7 +59,7 @@ export async function token(ctx){
 }
 
 export async function token_history(ctx){
-	let { currency, issuer, start, end } = ctx.parameters
+	let { token: { currency, issuer }, start, end } = ctx.parameters
 	let { id, ...token } = ctx.cache.tokens.get({currency, issuer})
 
 	if(!token){
@@ -73,6 +73,26 @@ export async function token_history(ctx){
 	)
 
 	return stats
+		.map(({id, bid, ask, ...row}) => {
+			let distribution = {}
+
+			for(let key in row){
+				if(key.startsWith('percent')){
+					let cleanKey = key
+						.slice(7)
+						.replace(/^0/, '0.')
+
+					distribution[cleanKey] = row[key]
+					delete row[key]
+				}
+			}
+
+			return {
+				...row,
+				liquidity: {bid, ask},
+				distribution
+			}
+		})
 }
 
 export async function exchanges(ctx){

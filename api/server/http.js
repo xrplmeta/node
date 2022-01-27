@@ -31,7 +31,7 @@ export default class extends Router{
 				'token_history', 
 				parameters => ({
 					...parameters,
-					...this.parseTokenURI(parameters.token)
+					token: this.parseTokenURI(parameters.token)
 				})
 			)
 		)

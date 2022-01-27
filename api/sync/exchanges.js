@@ -106,7 +106,7 @@ export function register({ ranges }){
 				continue
 		}
 
-		for(let interval of intervals){
+		for(let interval of Object.values(this.config.exchanges.candleIntervals)){
 			this.cache.candles.integrate(
 				{base: exchange.base, quote: exchange.quote, interval},
 				exchangeBQ
