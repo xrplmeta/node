@@ -14,16 +14,57 @@ export default ({repo, config, loopTimeTask}) => {
 
 	loopTimeTask(
 		{
-			task: 'twitter',
-			interval: config.twitter.refreshInterval
+			task: 'twitter.posts',
+			interval: config.twitter.refreshIntervalPosts,
+			subject: 'A'
+		},
+		async (t, account) => {
+			let meta = repo.metas.get({account, key: 'socials.twitter'})
+			
+			if(meta){
+				let username = meta.value
+				let lookup = await api.get(`users/by/username/${username}`)
+				let id = lookup.data?.id
+
+				if(!id)
+					throw lookup.errors[0].detail
+
+				let { data, error } = await api.get(`users/${id}/tweets`,{
+					'exclude': 'retweets,replies',
+					'tweet.fields': 'created_at,entities,public_metrics',
+					'user.fields': 'name,profile_image_url,username,verified'
+				})
+
+				if(data && data.length > 0){
+					repo.updates.insert({
+						platform: 'twitter',
+						account,
+						updates: data
+							.map(tweet => ({
+								uid: tweet.id,
+								data: tweet,
+								date: Math.floor(Date.parse(tweet.created_at) / 1000)
+							}))
+					})
+
+					log.info(`stored ${data.length} tweets for ${username}`)
+				}
+			}
+		}
+	)
+
+	loopTimeTask(
+		{
+			task: 'twitter.meta',
+			interval: config.twitter.refreshIntervalMeta
 		},
 		async t => {
 			log.info(`collecting targets`)
 
 			let targets = {}
 
-			for(let { id } of await repo.accounts.all()){
-				let meta = await repo.metas.get({account: id, key: 'socials.twitter'})
+			for(let { id } of repo.accounts.all()){
+				let meta = repo.metas.get({account: id, key: 'socials.twitter'})
 				let twitter = meta?.value
 
 				if(!twitter)

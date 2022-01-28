@@ -1,5 +1,5 @@
 [DATA]
-dir = "/Users/mwni/Documents/xrpl"
+dir = "V:/xrpl/xrplmeta"
 
 
 [LEDGER]
@@ -28,7 +28,8 @@ refresh_interval = 600
 
 [TWITTER]
 bearer_token = "AAAAAAAAAAAAAAAAAAAAAFCXVgEAAAAARJEkKINMeyvtq6FLJbyNlYxTASM%3Dsl47vKmkUJUnGNwXx3f6ooessFAgTOGwQGhEZ5pQi0tDw3PEjO"
-refresh_interval = 3600
+refresh_interval_meta = 3600
+refresh_interval_posts = 3600
 max_requests_per_minute = 60
 
 [GRAVATAR]

@@ -21,6 +21,8 @@ export function getNext(task, entity){
 		? 'Accounts'
 		: 'Tokens'
 
+	//WHERE clause currently only supports Accounts
+
 	return this.get(
 		`SELECT
 			Operations.*, ${table}.id as entity
@@ -31,6 +33,8 @@ export function getNext(task, entity){
 					Operations.task = ?
 					AND
 					Operations.subject = (? || ${table}.id)
+		WHERE
+			(SELECT COUNT(1) FROM Tokens WHERE issuer = ${table}.id) > 0
 		GROUP BY
 			Operations.subject
 		ORDER BY

@@ -216,7 +216,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						})
 					}
 
-					if(!accounts.some(account => account.address === token.issuer)){
+					if(accounts.every(account => account.address !== token.issuer)){
 						accounts.push({
 							address: token.issuer,
 							domain: token.issuerDomain,

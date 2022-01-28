@@ -2,17 +2,16 @@ const tablemap = {
 	tokens: 'Tokens',
 	stats: 'Stats',
 	metas: 'Metas',
-	exchanges: 'Exchanges'
+	exchanges: 'Exchanges',
+	updates: 'Updates'
 }
 
 
 export function all(){
-	return {
-		tokens: this.getv(`SELECT MAX(id) FROM Tokens`),
-		stats: this.getv(`SELECT MAX(id) FROM Stats`),
-		metas: this.getv(`SELECT MAX(id) FROM Metas`),
-		exchanges: this.getv(`SELECT MAX(id) FROM Exchanges`),
-	}
+	return Object.entries(tablemap)
+		.reduce((map, [key, table]) => ({
+			[key]: this.getv(`SELECT MAX(id) FROM ${table}`)
+		}))
 }
 
 export function diff(key, from, to){

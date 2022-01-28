@@ -37,6 +37,17 @@ export default class extends Router{
 		)
 
 		this.get(
+			'/token/:token/updates', 
+			this.wrappedProcedure(
+				'token_updates', 
+				parameters => ({
+					...parameters,
+					token: this.parseTokenURI(parameters.token)
+				})
+			)
+		)
+
+		this.get(
 			'/exchanges/:base/:quote/:format', 
 			this.wrappedProcedure(
 				'exchanges', 

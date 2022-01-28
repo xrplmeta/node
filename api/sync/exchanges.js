@@ -25,11 +25,13 @@ export function allocate(heads){
 		if(!base || !quote){
 			//align exchange so volume is XRP
 			exchanges = exchanges
-				.filter(exchange => this.repo.exchanges.align(
-					exchange,
-					base ? base : quote,
-					base ? quote : base
-				).volume.gte('0.01'))
+				.filter(exchange => 
+					this.repo.exchanges.align(
+						exchange,
+						base ? base : quote,
+						base ? quote : base
+					).volume.gte('0.01')
+				)
 		}
 
 		exchanges.sort((a, b) => a.date - b.date)

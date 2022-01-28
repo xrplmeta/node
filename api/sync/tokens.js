@@ -32,7 +32,7 @@ export function allocate(heads){
 
 export function register({ affected }){
 	let relevant = affected.filter(({contexts}) => 
-		contexts.some(context => ['exchange', 'meta', 'stat'].includes(context)))
+		contexts.some(context => ['exchange', 'meta', 'stat', 'updates'].includes(context)))
 
 	for(let { type, id } of relevant){
 		if(type === 'token'){
@@ -57,8 +57,7 @@ function compose(token){
 			this.config.meta.sourcePriorities
 		)
 	}
-
-
+	let updates = this.repo.updates.all({account: issuerId})
 	let currentStats = this.repo.stats.get(token)
 	let yesterdayStats
 	let now = unixNow()
@@ -115,35 +114,13 @@ function compose(token){
 		}
 	}
 
-	let full = {stats, meta}
-	let condensed = {
-		stats: {
-			...stats,
-			liquidity: undefined
-		}, 
-		meta: {
-			currency: collapseMetas(
-				meta.currency, 
-				this.config.meta.sourcePriorities
-			),
-			issuer: collapseMetas(
-				{
-					...meta.issuer,
-					emailHash: undefined,
-					socials: undefined,
-					description: undefined
-				}, 
-				this.config.meta.sourcePriorities
-			)
-		}
-	}
-
 	this.cache.tokens.insert({
 		id,
 		currency, 
 		issuer: issuer.address,
-		condensed,
-		full
+		meta,
+		stats,
+		updates
 	})
 }
 

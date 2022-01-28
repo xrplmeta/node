@@ -27,13 +27,13 @@ export default class{
 			try{
 				if(request.command === 'subscribe'){
 					socket.send(JSON.stringify({
-						request: request.id, 
-						data: await this.subscribe(client, request.payload)
+						result: await this.subscribe(client, request),
+						id: request.id, 
 					}))
 				}else{
 					socket.send(JSON.stringify({
-						request: request.id, 
-						data: await this.serveRequest(client, request.payload)
+						result: await this.serveRequest(client, request),
+						id: request.id, 
 					}))
 				}
 			}catch(error){
@@ -49,7 +49,7 @@ export default class{
 					response = {message: 'internal server error'}
 				}
 
-				socket.send(JSON.stringify({request: request.id, error: response}))
+				socket.send(JSON.stringify({id: request.id, error: response}))
 			}
 		})
 

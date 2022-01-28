@@ -4,6 +4,7 @@ import * as tokens from './tokens.js'
 import * as candles from './candles.js'
 import * as trades from './trades.js'
 import * as stats from './stats.js'
+import * as updates from './updates.js'
 
 
 export default config => new DB({
@@ -17,6 +18,7 @@ export default config => new DB({
 		tokens,
 		candles,
 		trades,
-		stats
+		stats,
+		updates
 	}
 })

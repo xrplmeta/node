@@ -1,4 +1,5 @@
 import { unixNow } from '@xrplmeta/utils'
+import { collapseMetas } from './utils.js'
 
 
 
@@ -43,8 +44,23 @@ export async function tokens(ctx){
 	let offset = ctx.parameters.offset || 0
 	let filter = ctx.parameters.filter
 	let total = ctx.cache.tokens.count()
+	let sourcePriorities = ctx.config.meta.sourcePriorities
 
 	return ctx.cache.tokens.all({limit, offset})
+		.map(token => ({
+			...token,
+			meta: {
+				currency: collapseMetas(
+					token.meta.currency, 
+					sourcePriorities
+				),
+				issuer: collapseMetas(
+					token.meta.issuer,
+					sourcePriorities
+				)
+			},
+			updates: undefined
+		}))
 }
 
 export async function token(ctx){
@@ -94,6 +110,19 @@ export async function token_history(ctx){
 			}
 		})
 }
+
+
+export async function token_updates(ctx){
+	let { token: { currency, issuer } } = ctx.parameters
+	let { id, ...token } = ctx.cache.tokens.get({currency, issuer})
+
+	if(!token){
+		throw {message: `token not listed`, expose: true}
+	}
+
+	return token.updates
+}
+
 
 export async function exchanges(ctx){
 	let { base, quote, format, start, end } = ctx.parameters
