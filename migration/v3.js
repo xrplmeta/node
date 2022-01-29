@@ -4,7 +4,7 @@ import initRepo from '@xrplmeta/repo'
 
 let repo = initRepo({
 	data: {
-		dir: 'V:/xrpl/xrplmeta'
+		dir: '/Users/mwni/Documents/xrpl'
 	}
 })
 
@@ -19,4 +19,5 @@ repo.tx(() => {
 	repo.exec(`DROP TABLE "Operations"`)
 	repo.exec(`ALTER TABLE "main"."Trustlines" RENAME TO "Tokens"`)
 	repo.exec(`UPDATE Coverages SET task='backfill' WHERE task='ledgertx'`)
+	repo.exec(`VACUUM`)
 })

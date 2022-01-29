@@ -34,9 +34,9 @@ function allocate(ctx){
 
 	log.time(`sync.prepare`, `building caching database`)
 
-	//exchanges.allocate.call(ctx, repoHeads)
+	exchanges.allocate.call(ctx, repoHeads)
 	tokens.allocate.call(ctx, repoHeads)
-	//stats.allocate.call(ctx, repoHeads)
+	stats.allocate.call(ctx, repoHeads)
 
 	log.time(`sync.prepare`, `built whole caching database in %`)
 

@@ -99,7 +99,7 @@ function deriveTypeSubject(entity){
 
 function decode(row){
 	return {
-		...rows,
-		value: JSON.parse(value)
+		...row,
+		value: JSON.parse(row.value)
 	}
 }

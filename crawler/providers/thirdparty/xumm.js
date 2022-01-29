@@ -87,7 +87,6 @@ export default ({repo, config, loopTimeTask, count}) => {
 		}
 	)
 
-
 	loopTimeTask(
 		{
 			task: 'xumm.avatar',

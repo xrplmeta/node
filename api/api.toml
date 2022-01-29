@@ -1,5 +1,5 @@
 [DATA]
-dir = "V:/xrpl/xrplmeta"
+dir = "/Users/mwni/Documents/xrpl"
 
 [CACHE]
 in_memory = false
@@ -8,7 +8,7 @@ in_memory = false
 port=4080
 
 [META]
-source_priorities = ['ledger', 'website', 'xumm.app', 'xumm.pro', 'bithomp.com', 'xrpscan.com', 'twitter.com', 'gravatar.com']
+source_priorities = ['ledger', 'website', 'xumm', 'bithomp', 'xrpscan', 'twitter', 'gravatar']
 
 [EXCHANGES]
 candle_intervals = {15m = 900, 1H = 3600, 4H = 14400, 1D = 86400}
