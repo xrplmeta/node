@@ -25,6 +25,7 @@ export function all(entity){
 		WHERE type = ? AND subject = ? AND value NOT NULL`,
 		type, subject
 	)
+		.map(decode)
 }
 
 export function get({key, source, ...entity}){
@@ -46,7 +47,7 @@ export function get({key, source, ...entity}){
 	if(source)
 		return metas.find(meta => meta.source === source)
 
-	return metas[0]
+	return decode(metas[0])
 }
 
 export function insert(meta){
@@ -69,7 +70,7 @@ export function insert(meta){
 			type: type,
 			subject: subject,
 			key,
-			value,
+			value: value !== undefined ? JSON.stringify(value) : null,
 			source: meta.source,
 		})
 	}
@@ -94,4 +95,11 @@ function deriveTypeSubject(entity){
 	}
 
 	return {type, subject}
+}
+
+function decode(row){
+	return {
+		...rows,
+		value: JSON.parse(value)
+	}
 }

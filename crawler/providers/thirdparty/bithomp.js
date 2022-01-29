@@ -24,22 +24,15 @@ export default ({repo, config, loopTimeTask}) => {
 			log.info(`got`, services.length, `services`)
 
 			for(let service of services){
-				let meta = {
-					name: service.name,
-					domain: service.domain
-				}
-
-				if(service.socialAccounts){
-					for(let [social, locator] of Object.entries(service.socialAccounts)){
-						meta[`socials.${social}`] = locator
-					}
-				}
-
 				for(let { address } of service.addresses){
 					metas.push({
+						meta: {
+							name: service.name,
+							domain: service.domain,
+							twitter_user: service.socialAccounts?.twitter
+						},
 						account: address,
-						meta,
-						source: 'bithomp.com'
+						source: 'bithomp'
 					})
 				}
 			}

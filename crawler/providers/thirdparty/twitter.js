@@ -133,7 +133,7 @@ export default ({repo, config, loopTimeTask}) => {
 					accounts.forEach(account => repo.metas.insert({
 						meta,
 						account,
-						source: 'twitter.com'
+						source: 'twitter'
 					}))
 				}
 

@@ -16,7 +16,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 		},
 		async (t, accountId) => {
 			let { emailHash } = await repo.accounts.get({id: accountId})
-			let meta = {icon: null}
+			let meta = {icon: undefined}
 
 			if(emailHash){
 				let res = await api.get(`avatar/${emailHash.toLowerCase()}`, {d: 404}, {raw: true})
@@ -34,7 +34,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 			await repo.metas.insert({
 				meta,
 				account: accountId,
-				source: 'gravatar.com'
+				source: 'gravatar'
 			})
 		}
 	)

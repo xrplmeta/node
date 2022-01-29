@@ -32,22 +32,24 @@ export default ({repo, config, loopTimeTask, count}) => {
 						meta: {
 							name: issuer.name,
 							domain: issuer.domain,
-							icon: issuer.avatar
+							icon: issuer.avatar,
+							xumm_trusted: true
 						},
 						account: currency.issuer,
-						source: 'xumm.app'
+						source: 'xumm'
 					})
 
 					metas.push({
 						meta: {
 							name: currency.name,
-							icon: currency.avatar
+							icon: currency.avatar,
+							xumm_trusted: true
 						},
 						token: {
 							currency: currencyHexToUTF8(currency.currency),
 							issuer: currency.issuer
 						},
-						source: 'xumm.app'
+						source: 'xumm'
 					})
 				}
 			}
@@ -70,13 +72,16 @@ export default ({repo, config, loopTimeTask, count}) => {
 			let account = await repo.accounts.get({id: accountId})
 
 			let { kycApproved } = await api.get(`api/v1/platform/kyc-status/${account.address}`)
-			let meta = {kyc: kycApproved ? 'approved' : null}
 
-			repo.metas.insert({
-				meta,
-				account: account.id,
-				source: 'xumm.app'
-			})
+			if(kycApproved){
+				repo.metas.insert({
+					meta: {
+						xumm_kyc: true
+					},
+					account: account.id,
+					source: 'xumm'
+				})
+			}
 
 			count(`checked % KYCs`)
 		}
@@ -106,7 +111,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 			repo.metas.insert({
 				meta,
 				account: account.id,
-				source: 'xumm.pro'
+				source: 'xumm'
 			})
 
 			count(`checked % icons`)

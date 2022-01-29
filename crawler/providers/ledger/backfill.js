@@ -5,7 +5,7 @@ import { fromTxs as summarize } from '../../ledger/summary.js'
 export default ({repo, config, xrpl, loopLedgerTask, count}) => {
 	loopLedgerTask(
 		{
-			task: 'ledgertx',
+			task: 'backfill',
 			interval: 1,
 			backfillLedgers: config.ledger.stateTxLedgers,
 			backfillInterval: 1
