@@ -6,16 +6,15 @@ export function init(){
 			"issuer"		TEXT NOT NULL,
 			"stats"			TEXT NOT NULL,
 			"meta"			TEXT NOT NULL,
-			"updates"		TEXT NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
-			"trustlines24h"	INTEGER,
-			"trustlines7d"	INTEGER,
+			"trustlines24H"	INTEGER,
+			"trustlines7D"	INTEGER,
 			"marketcap"		REAL NOT NULL,
-			"volume24h"		REAL NOT NULL,
-			"volume7d"		REAL NOT NULL,
+			"volume24H"		REAL NOT NULL,
+			"volume7D"		REAL NOT NULL,
 			"price"			REAL,
-			"price24h"		REAL,
-			"price7d"		REAL
+			"price24H"		REAL,
+			"price7D"		REAL
 		);
 		
 		CREATE INDEX IF NOT EXISTS 
@@ -56,11 +55,12 @@ export function init(){
 	)
 }
 
-export function all({limit, offset, sort, minTrustlines}){
+export function all({limit, offset, sort, trusted, search, minTrustlines}){
 	let rows  = this.all(
 		`SELECT id, currency, issuer, meta, stats, updates FROM Tokens
 		WHERE trustlines >= ?
-		ORDER BY volume7d DESC
+		${trusted ? `AND trusted=1` : ``}
+		ORDER BY ${sort} DESC
 		LIMIT ?, ?`,
 		minTrustlines || 0,
 		offset || 0,
