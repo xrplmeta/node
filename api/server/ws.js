@@ -45,7 +45,7 @@ export default class{
 				}
 
 				if(!response){
-					log.info(`internal server error while serving client #${client.id}: ${error}`)
+					log.info(`internal server error while serving client #${client.id}:`, error)
 					response = {message: 'internal server error'}
 				}
 

@@ -2,7 +2,17 @@ import { unixNow } from '@xrplmeta/utils'
 import { collapseMetas } from './utils.js'
 
 
-const allowedSorts = ['volume24h', 'volume7d']
+const allowedSorts = [
+	'popular',
+	'marketcap',
+	'price_day',
+	'price_week',
+	'volume_week', 
+	'volume_day', 
+	'trustlines',
+	'trustlines_day',
+	'trustlines_week',
+]
 
 
 export async function currencies(ctx){
@@ -51,7 +61,7 @@ export async function tokens(ctx){
 	let sourcePriorities = ctx.config.meta.sourcePriorities
 
 	if(!allowedSorts.includes(sort))
-		throw {message: `sort "${sort}" is not allowed. Possible values are: ${allowedSorts.join(', ')}`}
+		throw {message: `sort "${sort}" is not allowed. Possible values are: ${allowedSorts.join(', ')}`, expose: true}
 
 	return ctx.cache.tokens.all({limit, offset, sort, trusted, search})
 		.map(token => ({

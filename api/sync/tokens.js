@@ -45,26 +45,30 @@ export function register({ affected }){
 function compose(token){
 	let { id, currency, issuer: issuerId } = token
 	let issuer = this.repo.accounts.get({id: issuerId})	
+
 	let currencyMetas = this.repo.metas.all({token})
 	let issuerMetas = this.repo.metas.all({account: issuerId})
 	let meta = {
 		currency: sortMetas(
-			nestDotNotated(mapMultiKey(currencyMetas, 'key', true)),
+			mapMultiKey(currencyMetas, 'key', true),
 			this.config.meta.sourcePriorities
 		),
 		issuer: sortMetas(
-			nestDotNotated(mapMultiKey(issuerMetas, 'key', true)),
+			mapMultiKey(issuerMetas, 'key', true),
 			this.config.meta.sourcePriorities
 		)
 	}
-	let updates = this.repo.updates.all({account: issuerId})
+
+	let trusted = [meta.currency, meta.issuer].some(({ trusted, xumm_trusted }) => {
+		if(trusted && trusted[0].value)
+			return true
+
+		if(xumm_trusted && xumm_trusted[0].value)
+			return true
+	})
+	
 	let currentStats = this.repo.stats.get(token)
 	let yesterdayStats
-	let now = unixNow()
-	let candles = this.cache.candles.all(
-		{base: id, quote: null, interval: 3600},
-		now - 60*60*24*7
-	)
 	let stats = {
 		marketcap: new Decimal(0),
 		volume: {
@@ -73,6 +77,13 @@ function compose(token){
 		},
 		trustlines: 0
 	}
+
+	let now = unixNow()
+	let candles = this.cache.candles.all(
+		{base: id, quote: null, interval: 3600},
+		now - 60*60*24*7
+	)
+
 
 	if(currentStats){
 		stats.supply = currentStats.supply
@@ -97,9 +108,10 @@ function compose(token){
 
 		stats.price = newestCandle.c
 		stats.price_change = {
-			day: newestCandle.c - yesterdaysCandle.o,
-			week: newestCandle.c - lastWeeksCandle.o
+			day: (newestCandle.c / yesterdaysCandle.o - 1) * 100,
+			week: (newestCandle.c / lastWeeksCandle.o - 1) * 100
 		}
+
 		stats.marketcap = Decimal.mul(stats.supply || 0, newestCandle.c)
 		stats.volume = {
 			day: Decimal.sum(
@@ -114,14 +126,31 @@ function compose(token){
 		}
 	}
 
-	this.cache.tokens.insert({
+	let composed = {
 		id,
 		currency, 
 		issuer: issuer.address,
 		meta,
 		stats,
-		updates
+		trusted
+	}
+
+	this.cache.tokens.insert({
+		...composed,
+		popular: calculatePopularityScore(composed)
 	})
+}
+
+function calculatePopularityScore(token){
+	let score = 0
+
+	if(token.stats.volume)
+		score += parseFloat(token.stats.volume.day)
+
+	if(token.trusted)
+		score *= 1.25
+
+	return score
 }
 
 

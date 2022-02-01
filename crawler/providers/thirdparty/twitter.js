@@ -107,7 +107,7 @@ export default ({repo, config, loopTimeTask}) => {
 		}
 	)
 
-	loopTimeTask(
+	/*loopTimeTask(
 		{
 			task: 'twitter.posts',
 			interval: config.twitter.refreshIntervalPosts,
@@ -142,5 +142,5 @@ export default ({repo, config, loopTimeTask}) => {
 				}
 			}
 		}
-	)
+	)*/
 }
