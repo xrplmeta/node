@@ -66,7 +66,7 @@ function compose(token){
 		if(xumm_trusted && xumm_trusted[0].value)
 			return true
 	})
-	
+
 	let currentStats = this.repo.stats.get(token)
 	let yesterdayStats
 	let stats = {
@@ -147,8 +147,14 @@ function calculatePopularityScore(token){
 	if(token.stats.volume)
 		score += parseFloat(token.stats.volume.day)
 
+	if(token.stats.trustlines)
+		score += token.stats.trustlines * 5
+
+	if(token.stats.trustlines_change)
+		score += token.stats.trustlines_change.day * 5
+
 	if(token.trusted)
-		score *= 1.25
+		score *= 1.5
 
 	return score
 }
