@@ -44,7 +44,7 @@ export default ({repo, config, loopTimeTask}) => {
 			log.info(`got`, targetTodo.length, `twitter pages to scrape (${targetBatches.length} batches)`)
 
 			for(let batch of targetBatches){
-				log.info(`scraping batch ${i} of ${targetBatches.length}`)
+				log.info(`collecting batch ${i} of ${targetBatches.length}`)
 
 				let { data, error } = await api.get(`users/by`, {
 					usernames: batch

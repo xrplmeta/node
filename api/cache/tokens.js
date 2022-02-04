@@ -3,7 +3,9 @@ export function init(){
 		`CREATE TABLE IF NOT EXISTS "Tokens" (
 			"id"				INTEGER NOT NULL UNIQUE,
 			"currency"			TEXT NOT NULL,
+			"currency_name"		TEXT,
 			"issuer"			TEXT NOT NULL,
+			"issuer_name"		TEXT,
 			"stats"				TEXT NOT NULL,
 			"meta"				TEXT NOT NULL,
 			"trusted"			INTEGER NOT NULL,
@@ -23,8 +25,16 @@ export function init(){
 		("currency");
 
 		CREATE INDEX IF NOT EXISTS 
+		"TokensCurrencyName" ON "Tokens" 
+		("currency_name");
+
+		CREATE INDEX IF NOT EXISTS 
 		"TokensIssuer" ON "Tokens" 
 		("issuer");
+
+		CREATE INDEX IF NOT EXISTS 
+		"TokensIssuerName" ON "Tokens" 
+		("issuer_name");
 
 		CREATE INDEX IF NOT EXISTS 
 		"TokensTrusted" ON "Tokens" 
@@ -73,7 +83,12 @@ export function all({limit, offset, sort, trusted, search, minTrustlines}){
 		`SELECT id, currency, issuer, meta, stats FROM Tokens
 		WHERE trustlines >= @minTrustlines
 		${trusted ? `AND trusted=1` : ``}
-		${search ? `AND currency LIKE @searchAny OR issuer LIKE @searchStarting` : ``}
+		${search ? `AND (1
+			OR currency LIKE @searchAny 
+			OR currency_name LIKE @searchAny 
+			OR issuer LIKE @searchStarting) 
+			OR issuer_name LIKE @searchStarting
+		)` : ``}
 		ORDER BY ${sort} DESC
 		LIMIT @offset, @limit`,
 		{
@@ -108,7 +123,13 @@ export function insert({id, currency, issuer, meta, stats, trusted, popular}){
 		data: {
 			id,
 			currency,
+			currency_name: meta.currency.name
+				? meta.currency.name[0].value
+				: null,
 			issuer,
+			issuer_name: meta.issuer.name
+				? meta.issuer.name[0].value
+				: null,
 			trusted: trusted ? 1 : 0,
 			popular,
 			meta: JSON.stringify(meta),
