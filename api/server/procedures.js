@@ -14,6 +14,20 @@ const allowedSorts = [
 	'trustlines_week',
 ]
 
+const collapseToken = (token, prios) => ({
+	...token,
+	meta: {
+		currency: collapseMetas(
+			token.meta.currency, 
+			prios
+		),
+		issuer: collapseMetas(
+			token.meta.issuer,
+			prios
+		)
+	}
+})
+
 
 export async function currencies(ctx){
 	let limit = ctx.parameters.limit || 100
@@ -64,20 +78,7 @@ export async function tokens(ctx){
 		throw {message: `sort "${sort}" is not allowed. Possible values are: ${allowedSorts.join(', ')}`, expose: true}
 
 	return ctx.cache.tokens.all({limit, offset, sort, trusted, search})
-		.map(token => ({
-			...token,
-			meta: {
-				currency: collapseMetas(
-					token.meta.currency, 
-					sourcePriorities
-				),
-				issuer: collapseMetas(
-					token.meta.issuer,
-					sourcePriorities
-				)
-			},
-			updates: undefined
-		}))
+		.map(token => collapseToken(token, sourcePriorities))
 }
 
 export async function token(ctx){
@@ -88,7 +89,7 @@ export async function token(ctx){
 		throw {message: `token not listed`, expose: true}
 	}
 
-	return token
+	return collapseToken(token, ctx.config.meta.sourcePriorities)
 }
 
 export async function token_history(ctx){

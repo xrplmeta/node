@@ -79,14 +79,15 @@ export function init(){
 }
 
 export function all({limit, offset, sort, trusted, search, minTrustlines}){
+
 	let rows  = this.all(
 		`SELECT id, currency, issuer, meta, stats FROM Tokens
 		WHERE trustlines >= @minTrustlines
 		${trusted ? `AND trusted=1` : ``}
-		${search ? `AND (1
-			OR currency LIKE @searchAny 
+		${search ? `AND (
+			currency LIKE @searchAny 
 			OR currency_name LIKE @searchAny 
-			OR issuer LIKE @searchStarting) 
+			OR issuer LIKE @searchStarting
 			OR issuer_name LIKE @searchStarting
 		)` : ``}
 		ORDER BY ${sort} DESC
@@ -99,6 +100,7 @@ export function all({limit, offset, sort, trusted, search, minTrustlines}){
 			searchStarting: search ? `${search}%` : undefined,
 		}
 	)
+
 
 	return rows.map(row => decode(row))
 }
