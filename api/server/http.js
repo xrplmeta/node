@@ -26,35 +26,12 @@ export default class extends Router{
 		)
 
 		this.get(
-			'/token/:token/history', 
+			'/token/:token/:metric/:timeframe', 
 			this.wrappedProcedure(
-				'token_history', 
+				'token_metric', 
 				parameters => ({
 					...parameters,
 					token: this.parseTokenURI(parameters.token)
-				})
-			)
-		)
-
-		this.get(
-			'/token/:token/updates', 
-			this.wrappedProcedure(
-				'token_updates', 
-				parameters => ({
-					...parameters,
-					token: this.parseTokenURI(parameters.token)
-				})
-			)
-		)
-
-		this.get(
-			'/exchanges/:base/:quote/:format', 
-			this.wrappedProcedure(
-				'exchanges', 
-				parameters => ({
-					...parameters,
-					base: this.parseTokenURI(parameters.base),
-					quote: this.parseTokenURI(parameters.quote),
 				})
 			)
 		)
@@ -91,6 +68,8 @@ export default class extends Router{
 				})
 			}catch(e){
 				let { expose, ...error } = e
+
+				console.log(e)
 
 				if(expose){
 					ctx.status = 400

@@ -26,9 +26,11 @@ export function allocate(heads){
 			continue
 
 		let candles = this.cache.candles.all(
-			{base: token.id, quote: null, interval: mcapCandle},
-			Math.floor(stats[0].date / mcapCandle) * mcapCandle,
-			Math.ceil(stats[stats.length-1].date / mcapCandle) * mcapCandle
+			{
+				base: token.id, 
+				quote: null, 
+				timeframe: Object.values(this.repo.config.tokens.stats.timeframes)[0]
+			}
 		)
 
 		let aligned = leftProximityZip(
@@ -51,8 +53,9 @@ export function allocate(heads){
 			}))
 			.map(({ token, ...stats }) => stats)
 
-		this.cache.stats.set(token, combined)
-
+		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+			this.cache.stats.allocate({token, timeframe}, combined)
+		}
 
 		let newProgress = Math.floor((i / tokens.length) * 100)
 
@@ -67,7 +70,7 @@ export function allocate(heads){
 
 export function register({ affected }){
 	let relevant = affected.filter(({contexts}) => 
-		contexts.some(context => ['stat'].includes(context)))
+		contexts.some(context => ['stats'].includes(context)))
 
 	for(let { type, id } of relevant){
 		if(type === 'token'){
@@ -75,19 +78,21 @@ export function register({ affected }){
 			let missing = this.cache.stats.vacuum({id}, ids)
 
 			for(let msid of missing){
-				let {token, ...stat} = this.repo.stats.get({id: msid})
+				let {token, ...stats} = this.repo.stats.get({id: msid})
 				let candle = this.cache.candles.all(
 					{base: token.id, quote: null, interval: mcapCandle},
-					Math.floor(stat.date / mcapCandle) * mcapCandle,
-					Math.ceil(stat.date / mcapCandle) * mcapCandle
+					Math.floor(stats.date / mcapCandle) * mcapCandle,
+					Math.ceil(stats.date / mcapCandle) * mcapCandle
 				)[0]
 
-				this.cache.stats.insert({id}, {
-					...stat,
-					marketcap: candle
-						? Decimal.mul(stat.supply, candle.c).toString()
-						: '0',
-				})
+				for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+					this.cache.stats.register({token, timeframe}, {
+						...stats,
+						marketcap: candle
+							? Decimal.mul(stats.supply, candle.c).toString()
+							: '0',
+					})
+				}
 			}
 
 			log.debug(`updated stats (TL${id})`)

@@ -24,7 +24,7 @@ export function allocate(pair, exchanges){
 	this.insert({
 		table,
 		data: exchanges
-			.slice(-this.config.cache.recentTradesPerPair)
+			.slice(-this.config.tokens.exchanges.limit)
 			.map(exchange => format(exchange))
 	})
 }
@@ -47,7 +47,7 @@ export function integrate(pair, exchange){
 		duplicate: 'update'
 	})
 
-	if(count+1 > this.config.cache.recentTradesPerPair)
+	if(count+1 > this.config.tokens.exchanges.limit)
 		this.exec(`DELETE FROM ${table} ORDER BY ledger ASC LIMIT 1`)
 }
 

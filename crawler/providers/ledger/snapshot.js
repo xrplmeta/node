@@ -259,7 +259,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 				`inserting:`,
 				accounts.length, `accounts,`,
 				balances.length, `balances,`,
-				stats.length, `tokens,`
+				stats.length, `stats,`
 			)
 
 			repo.states.insert({

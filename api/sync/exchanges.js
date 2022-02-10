@@ -23,7 +23,7 @@ export function allocate(heads){
 		]
 		
 		if(!base || !quote){
-			//align exchange so volume is XRP
+			//filter outliers, align exchange so volume is XRP
 			exchanges = exchanges
 				.filter(exchange => 
 					this.repo.exchanges.align(
@@ -50,14 +50,14 @@ export function allocate(heads){
 			))
 
 			this.cache.tx(() => {
-				for(let interval of Object.values(this.config.exchanges.candleIntervals)){
+				for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
 					this.cache.candles.allocate(
-						{base: base, quote: quote, interval},
+						{base: base, quote: quote, timeframe},
 						exchangesBQ
 					)
 
 					this.cache.candles.allocate(
-						{base: quote, quote: base, interval},
+						{base: quote, quote: base, timeframe},
 						exchangesQB
 					)
 				}
@@ -108,14 +108,14 @@ export function register({ ranges }){
 				continue
 		}
 
-		for(let interval of Object.values(this.config.exchanges.candleIntervals)){
+		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
 			this.cache.candles.integrate(
-				{base: exchange.base, quote: exchange.quote, interval},
+				{base: exchange.base, quote: exchange.quote, timeframe},
 				exchangeBQ
 			)
 
 			this.cache.candles.integrate(
-				{base: exchange.quote, quote: exchange.base, interval},
+				{base: exchange.quote, quote: exchange.base, timeframe},
 				exchangeQB
 			)
 		}

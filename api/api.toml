@@ -10,6 +10,11 @@ port=4080
 [META]
 source_priorities = ['ledger', 'website', 'xumm', 'bithomp', 'xrpscan', 'twitter', 'gravatar']
 
-[EXCHANGES]
-candle_intervals = {15m = 900, 1H = 3600, 4H = 14400, 1D = 86400}
-raw_limit = 1000
+[TOKENS.MARKET]
+timeframes = {15m = 900, 1H = 3600, 4H = 14400, 1D = 86400}
+
+[TOKENS.STATS]
+timeframes = {4H = 14400, 1D = 86400}
+
+[TOKENS.EXCHANGES]
+limit = 1000

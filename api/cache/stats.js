@@ -1,5 +1,5 @@
-export function all(token, start, end){
-	let table = deriveTable(token)
+export function all(series, start, end){
+	let table = deriveTable(series)
 
 	return this.all(
 		`SELECT * FROM ${table}
@@ -7,50 +7,94 @@ export function all(token, start, end){
 		start,
 		end
 	)
+		.map(({id, bid, ask, ...row}) => {
+			let distribution = {}
+
+			for(let key in row){
+				if(key.startsWith('percent')){
+					let cleanKey = key
+						.slice(7)
+						.replace(/^0/, '0.')
+
+					distribution[cleanKey] = row[key]
+					delete row[key]
+				}
+			}
+
+			return {
+				...row,
+				liquidity: {bid, ask},
+				distribution
+			}
+		})
 }
 
-export function set(token, stats){
-	if(stats.length === 0)
-		return
+export function allocate(series, stats){
+	let table = deriveTable(series)
+	let timeframe = series.timeframe
+	let points = []
 
-	let table = deriveTable(token)
-	let cols = Object.keys(stats[0])
-	let percentCols = cols.filter(col => col.startsWith('percent'))
+	for(let stat of stats){
+		let t = Math.floor(stat.date / timeframe) * timeframe
+		let point = {
+			...stat,
+			date: t,
+			head: stat.ledger,
+			tail: stat.ledger
+		}
+		let lastPoint = points[points.length - 1]
 
-	ensureTable.call(this, table, percentCols)
-
-	this.insert({
-		table,
-		data: stats
-	})
-}
-
-export function insert(token, stat){
-	let table = deriveTable(token)
-
-	this.insert({
-		table,
-		data: stat
-	})
-}
-
-export function vacuum(token, ids){
-	let table = deriveTable(token)
-	let existing = this.all(`SELECT id FROM ${table}`)
-	let missing = ids.filter(id => !existing.includes(id))
-	let excess = existing.filter(id => !ids.includes(id))
-
-	for(let id of excess){
-		this.run(
-			`DELETE FROM ${table}
-			WHERE id = ?`,
-			id
-		)
+		if(lastPoint?.date === t){
+			Object.assign(lastPoint, point)
+			
+			point.head = Math.max(point.head, stat.ledger)
+			point.tail = Math.min(point.tail, stat.ledger)
+		}else{
+			points.push(point)
+		}
 	}
 
-	return missing
+	if(points.length === 0)
+		return
+
+	ensureTable.call(this, table, points[0])
+
+	this.insert({
+		table,
+		data: points
+	})
 }
 
+
+export function integrate(series, stats){
+	let table = deriveTable(series)
+	let timeframe = series.timeframe
+	let t = Math.floor(stats.date / timeframe) * timeframe
+
+	ensureTable.call(this, table, stats)
+	
+	let point = this.get(`SELECT * FROM ${table} WHERE date = ?`, t)
+
+	if(point){
+		if(stats.ledger > point.head){
+			point.head = stats.ledger
+			Object.assign(point, stats, {date: t})
+		}
+	}else{
+		point = {
+			...stat,
+			date: t,
+			head: stat.ledger,
+			tail: stats.ledger
+		}
+	}
+
+	this.insert({
+		table,
+		data: point,
+		duplicate: 'update'
+	})
+}
 
 
 function doesTableExist(table){
@@ -63,10 +107,12 @@ function doesTableExist(table){
 	)
 }
 
-function ensureTable(table, percentCols){
+function ensureTable(table, reference){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "${table}" (
 			"id"			INTEGER NOT NULL UNIQUE,
+			"head"		INTEGER NOT NULL,
+			"tail"		INTEGER NOT NULL,
 			"ledger"		INTEGER NOT NULL,
 			"date"			INTEGER NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
@@ -75,7 +121,8 @@ function ensureTable(table, percentCols){
 			"bid"			TEXT NOT NULL,
 			"ask"			TEXT NOT NULL,
 			${
-				percentCols
+				Object.keys(reference)
+					.filter(col => col.startsWith('percent'))
 					.map(col => `"${col}"	REAL`)
 					.join(', ')
 			}
@@ -87,6 +134,6 @@ function ensureTable(table, percentCols){
 	)
 }
 
-function deriveTable(token){
-	return `Stats${token.id}`
+function deriveTable({ token, timeframe }){
+	return `Stats${token.id}T${timeframe}`
 }

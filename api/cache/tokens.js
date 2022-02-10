@@ -6,7 +6,7 @@ export function init(){
 			"currency_name"		TEXT,
 			"issuer"			TEXT NOT NULL,
 			"issuer_name"		TEXT,
-			"stats"				TEXT NOT NULL,
+			"stats"			TEXT NOT NULL,
 			"meta"				TEXT NOT NULL,
 			"trusted"			INTEGER NOT NULL,
 			"popular"			REAL NOT NULL,

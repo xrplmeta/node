@@ -12,14 +12,14 @@ export function all(series, start, end){
 		`SELECT t, o, h, l, c, v, n FROM ${table}
 		WHERE t >= ? AND t <= ?
 		ORDER BY t ASC`,
-		Math.floor((start || 0) / series.interval) * series.interval,
+		Math.floor((start || 0) / series.timeframe) * series.timeframe,
 		end || unixNow()
 	)
 }
 
 export function allocate(series, exchanges){
 	let table = deriveTable(series)
-	let interval = series.interval
+	let timeframe = series.timeframe
 	let candles = []
 	let candle = null
 	let lastCandle = null
@@ -27,7 +27,7 @@ export function allocate(series, exchanges){
 	ensureTable.call(this, table)
 
 	for(let exchange of exchanges){
-		let t = Math.floor(exchange.date / interval) * interval
+		let t = Math.floor(exchange.date / timeframe) * timeframe
 		let price = exchange.price
 		let volume = exchange.volume
 		
@@ -81,8 +81,8 @@ export function allocate(series, exchanges){
 
 export function integrate(series, exchange){
 	let table = deriveTable(series)
-	let interval = series.interval
-	let t = Math.floor(exchange.date / interval) * interval
+	let timeframe = series.timeframe
+	let t = Math.floor(exchange.date / timeframe) * timeframe
 
 	ensureTable.call(this, table)
 	
@@ -159,6 +159,6 @@ function ensureTable(table){
 	)
 }
 
-function deriveTable({base, quote, interval}){
-	return `CandlesB${base || 'X'}Q${quote || 'X'}I${interval}`
+function deriveTable({base, quote, timeframe}){
+	return `CandlesB${base || 'X'}Q${quote || 'X'}T${timeframe}`
 }

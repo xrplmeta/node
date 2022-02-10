@@ -39,7 +39,9 @@ function camelify(obj){
 	let camelified = {}
 
 	for(let [key, value] of Object.entries(obj)){
-		let camelKey = key.replace(/_([a-z])/g, match => match[1].toUpperCase())
+		let camelKey = key === key.toUpperCase()
+			? key.toLowerCase()
+			: key.replace(/_([a-z])/g, match => match[1].toUpperCase())
 
 		camelified[camelKey] = value
 	}

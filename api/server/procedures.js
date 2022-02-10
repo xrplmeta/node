@@ -14,6 +14,11 @@ const allowedSorts = [
 	'trustlines_week',
 ]
 
+const metricDivisions = {
+	market: ['candle', 'price', 'volume'],
+	stats: ['trustlines', 'marketcap', 'supply', 'liquidity', 'distribution']
+}
+
 const collapseToken = (token, prios) => ({
 	...token,
 	meta: {
@@ -81,9 +86,10 @@ export async function tokens(ctx){
 		.map(token => collapseToken(token, sourcePriorities))
 }
 
+
 export async function token(ctx){
-	let { currency, issuer, full } = ctx.parameters
-	let { id, ...token } = ctx.cache.tokens.get({currency, issuer}, full)
+	let { token: { currency, issuer }, full } = ctx.parameters
+	let token = ctx.cache.tokens.get({currency, issuer}, full)
 	
 	if(!token){
 		throw {message: `token not listed`, expose: true}
@@ -92,95 +98,75 @@ export async function token(ctx){
 	return collapseToken(token, ctx.config.meta.sourcePriorities)
 }
 
-export async function token_history(ctx){
-	let { token: { currency, issuer }, start, end } = ctx.parameters
-	let { id, ...token } = ctx.cache.tokens.get({currency, issuer})
+
+export async function token_metric(ctx){
+	let { token: { currency, issuer }, metric, timeframe, start, end } = ctx.parameters
+	let token = ctx.cache.tokens.get({currency, issuer})
+	let division = Object.keys(metricDivisions)
+		.find(key => metricDivisions[key].includes(metric))
 
 	if(!token){
-		throw {message: `token not listed`, expose: true}
-	}
-
-	let stats = ctx.cache.stats.all(
-		{id}, 
-		start || 0,
-		end || unixNow()
-	)
-
-	return stats
-		.map(({id, bid, ask, ...row}) => {
-			let distribution = {}
-
-			for(let key in row){
-				if(key.startsWith('percent')){
-					let cleanKey = key
-						.slice(7)
-						.replace(/^0/, '0.')
-
-					distribution[cleanKey] = row[key]
-					delete row[key]
-				}
-			}
-
-			return {
-				...row,
-				liquidity: {bid, ask},
-				distribution
-			}
-		})
-}
-
-
-export async function token_updates(ctx){
-	let { token: { currency, issuer } } = ctx.parameters
-	let { id, ...token } = ctx.cache.tokens.get({currency, issuer})
-
-	if(!token){
-		throw {message: `token not listed`, expose: true}
-	}
-
-	return token.updates
-}
-
-
-export async function exchanges(ctx){
-	let { base, quote, format, start, end } = ctx.parameters
-	let baseId = base.currency !== 'XRP'
-		? ctx.cache.tokens.get(base)?.id
-		: null
-	let quoteId = quote.currency !== 'XRP'
-		? ctx.cache.tokens.get(quote)?.id
-		: null
-
-	if(baseId === undefined || quoteId === undefined)
-		return []
-		//throw {message: 'pair not listed', expose: true}
-
-
-	if(format === 'raw'){
-		return ctx.cache.trades.all(
-			{
-				base: baseId, 
-				quote: quoteId
-			},
-			start,
-			end
-		)
-	}else{
-		if(!ctx.config.exchanges.candleIntervals[format]){
-			throw {
-				message: `format not available - available formats: raw, ${Object.keys(ctx.config.exchanges.candleIntervals).join(', ')}`, 
-				expose: true
-			}
+		throw {
+			message: `token not listed`, 
+			expose: true
 		}
+	}
 
-		return ctx.cache.candles.all(
+	if(!division){
+		throw {
+			message: `metric "${metric}" is not available. available metrics are: ${
+				[...metricDivisions.market, ...metricDivisions.stats].join(', ')
+			}`, 
+			expose: true
+		}
+	}
+
+	if(!ctx.config.tokens[division].timeframes[timeframe]){
+		throw {
+			message: `timeframe "${timeframe}" not available - available timeframes are: ${
+				Object.keys(ctx.config.tokens[division].timeframes).join(', ')
+			}`, 
+			expose: true
+		}
+	}
+
+	if(division === 'market'){
+		let candles = ctx.cache.candles.all(
 			{
-				base: baseId, 
-				quote: quoteId, 
-				interval: ctx.config.exchanges.candleIntervals[format]
+				base: token.id, 
+				quote: null, 
+				timeframe: ctx.config.tokens.market.timeframes[timeframe]
 			},
 			start,
 			end
 		)
+
+		if(metric === 'price'){
+			return candles.map(candle => ({
+				t: candle.t,
+				v: candle.c
+			}))
+		}else if(metric === 'volume'){
+			return candles.map(candle => ({
+				t: candle.t,
+				v: candle.v
+			}))
+		}else{
+			return candles
+		}
+	}else if(division === 'stats'){
+		let stats = ctx.cache.stats.all(
+			{
+				token, 
+				timeframe: ctx.config.tokens.stats.timeframes[timeframe]
+			}, 
+			start || 0,
+			end || unixNow()
+		)
+
+		return stats.map(stat => ({
+			t: stat.date,
+			v: stat[metric]
+		}))
 	}
 }
