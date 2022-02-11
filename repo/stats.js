@@ -51,16 +51,30 @@ export function insert({ledger, token, replaceAfter, ...stats}){
 }
 
 
-export function all(token){
+export function all({token, from, to}){
 	let tokenId = this.tokens.id(token)
 
-	return this.all(
-		`SELECT Stats.*, Ledgers.date
+	let sql = `
+		SELECT Stats.*, Ledgers.date
 		FROM Stats
 		INNER JOIN Ledgers ON ("index" = Stats.ledger)
-		WHERE token = ?
-		ORDER BY ledger ASC`,
-		tokenId
+	`
+
+	if(token){
+		sql += `WHERE token = @token`
+	}else if(from || to){
+		sql += `WHERE id >= @from AND id <= @to`
+	}
+
+	sql += ` ORDER BY LEDGER`
+
+	return this.all(
+		sql,
+		{
+			token: tokenId,
+			from,
+			to
+		}
 	)
 }
 

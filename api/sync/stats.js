@@ -20,7 +20,7 @@ export function allocate(heads){
 	
 	for(let i=0; i<tokens.length; i++){
 		let token = tokens[i]
-		let stats = this.repo.stats.all(token)
+		let stats = this.repo.stats.all({token})
 
 		if(stats.length === 0)
 			continue
@@ -68,34 +68,40 @@ export function allocate(heads){
 	log.time(`sync.stats`, `built stats cache in %`)
 }
 
-export function register({ affected }){
-	let relevant = affected.filter(({contexts}) => 
-		contexts.some(context => ['stats'].includes(context)))
+export function register({ affected, ranges }){
+	let timeframeCandles = Object.values(this.repo.config.tokens.stats.timeframes)[0]
 
-	for(let { type, id } of relevant){
-		if(type === 'token'){
-			let ids = this.repo.all(`SELECT id FROM Stats WHERE token = ?`, id)
-			let missing = this.cache.stats.vacuum({id}, ids)
+	if(!ranges.stats)
+		return
 
-			for(let msid of missing){
-				let {token, ...stats} = this.repo.stats.get({id: msid})
-				let candle = this.cache.candles.all(
-					{base: token.id, quote: null, interval: mcapCandle},
-					Math.floor(stats.date / mcapCandle) * mcapCandle,
-					Math.ceil(stats.date / mcapCandle) * mcapCandle
-				)[0]
+	let newStats = this.repo.stats.all({
+		from: ranges.exchanges[0],
+		to: ranges.exchanges[1]
+	})
 
-				for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
-					this.cache.stats.register({token, timeframe}, {
-						...stats,
-						marketcap: candle
-							? Decimal.mul(stats.supply, candle.c).toString()
-							: '0',
-					})
+	for(let stats of newStats){
+		let candle = this.cache.candles.all(
+			{
+				base: stats.token, 
+				quote: null, 
+				timeframe: timeframeCandles
+			},
+			Math.floor(stats.date / timeframeCandles) * timeframeCandles,
+			Math.ceil(stats.date / timeframeCandles) * timeframeCandles
+		)[0]
+
+		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+			this.cache.stats.register(
+				{
+					token, 
+					timeframe}, 
+				{
+					...stats,
+					marketcap: candle
+						? Decimal.mul(stats.supply, candle.c).toString()
+						: '0',
 				}
-			}
-
-			log.debug(`updated stats (TL${id})`)
+			)
 		}
 	}
 }

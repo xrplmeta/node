@@ -20,7 +20,7 @@ export default async ctx => {
 				throw 'incomplete'
 		}
 	}catch(e){
-		log.error(`caching database corrupted (${e})\n -> recreating from scratch`)
+		log.error(`caching database corrupted (${e}) -> recreating from scratch`)
 
 		ctx.cache.wipe()
 		allocate(ctx)
@@ -71,7 +71,7 @@ async function loop(ctx){
 							affected.push({
 								type: {A: 'account', T: 'token'}[row.type],
 								id: row.subject,
-								context: 'stats'
+								context: 'self'
 							})
 						}
 						break
@@ -101,7 +101,7 @@ async function loop(ctx){
 							affected.push({
 								type: {A: 'account', T: 'token'}[row.type],
 								id: row.subject,
-								context: 'stats'
+								context: 'meta'
 							})
 						}
 						break
@@ -156,7 +156,6 @@ async function loop(ctx){
 			ctx.cache.tx(() => {
 				exchanges.register.call(ctx, {ranges, affected})
 				tokens.register.call(ctx, {ranges, affected})
-				currencies.register.call(ctx, {ranges, affected})
 				stats.register.call(ctx, {ranges, affected})
 
 				ctx.cache.heads.set(repoHeads)

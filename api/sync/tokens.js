@@ -32,7 +32,7 @@ export function allocate(heads){
 
 export function register({ affected }){
 	let relevant = affected.filter(({contexts}) => 
-		contexts.some(context => ['exchange', 'meta', 'stat', 'updates'].includes(context)))
+		contexts.some(context => ['exchange', 'meta', 'stats', 'self'].includes(context)))
 
 	for(let { type, id } of relevant){
 		if(type === 'token'){
@@ -80,7 +80,7 @@ function compose(token){
 
 	let now = unixNow()
 	let candles = this.cache.candles.all(
-		{base: id, quote: null, interval: 3600},
+		{base: id, quote: null, timeframe: 3600},
 		now - 60*60*24*7
 	)
 
