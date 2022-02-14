@@ -3,5 +3,5 @@ package-lock.json
 .DS_Store
 .env
 **/dist/**
-crawler.toml
-api.toml
+crawler/crawler.toml
+server/server.toml
