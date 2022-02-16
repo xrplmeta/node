@@ -27,6 +27,14 @@ export default ({repo, config, loopTimeTask}) => {
 				for(let { address } of service.addresses){
 					metas.push({
 						meta: {
+							...Object.entries(service.socialAccounts || {})
+								.reduce(
+									(accounts, [key, user]) => ({
+										...accounts,
+										[key]: user
+									}),
+									{}
+								),
 							name: service.name,
 							domain: service.domain,
 							twitter_user: service.socialAccounts?.twitter

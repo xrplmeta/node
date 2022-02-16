@@ -15,6 +15,9 @@ const configPath = args.config || 'crawler.toml'
 
 switch(args._[0]){
 	case 'flush-wal': {
+		const config = loadConfig(configPath)
+		const repo = initRepo(config)
+		
 		log.info(`one-time flushing database WAL file...`)
 		repo.flushWAL()
 		process.exit(0)

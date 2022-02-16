@@ -7,7 +7,7 @@ import WSManager from './ws.js'
 
 
 log.config({
-	name: 'server',
+	name: 'api',
 	color: 'green'
 })
 

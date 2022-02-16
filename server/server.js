@@ -5,11 +5,11 @@ import { assignDeep } from '@xrplmeta/utils'
 import initRepo from '@xrplmeta/repo'
 import initCache from './cache/cache.js'
 import initSync from './sync/sync.js'
-import initServer from './server/server.js'
+import initApi from './api/api.js'
 
 
 const args = minimist(process.argv.slice(2))
-const configPath = args.config || 'api.toml'
+const configPath = args.config || 'server.toml'
 	
 log.config({
 	name: 'main',
@@ -27,4 +27,4 @@ const cache = initCache(config)
 
 
 await initSync({config, repo, cache})
-await initServer({config, cache})
+await initApi({config, cache})

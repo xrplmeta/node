@@ -25,8 +25,8 @@ export default ({repo, config, loopTimeTask}) => {
 					meta: {
 						name,
 						domain,
+						twitter,
 						xrpscan_verified: verified,
-						twitter_user: twitter,
 					},
 					account,
 					source: 'xrpscan'

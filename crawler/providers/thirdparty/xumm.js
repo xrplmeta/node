@@ -95,7 +95,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 		},
 		async (t, accountId) => {
 			let account = await repo.accounts.get({id: accountId})
-			let meta = {icon: null}
+			let meta = {icon: undefined}
 			let res = await api.get(
 				`/avatar/${account.address}.png`, 
 				null, 

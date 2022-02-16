@@ -37,7 +37,7 @@ export function register({ affected }){
 	for(let { type, id } of relevant){
 		if(type === 'token'){
 			compose.call(this, this.repo.tokens.get({id}))
-			log.debug(`updated token (TL${id})`)
+			//log.debug(`updated token (TL${id})`)
 		}
 	}
 }

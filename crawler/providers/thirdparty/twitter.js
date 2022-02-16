@@ -15,7 +15,7 @@ export default ({repo, config, loopTimeTask}) => {
 	loopTimeTask(
 		{
 			task: 'twitter.meta',
-			interval: config.twitter.refreshIntervalMeta
+			interval: config.twitter.refreshInterval
 		},
 		async t => {
 			log.info(`collecting targets`)
@@ -23,7 +23,7 @@ export default ({repo, config, loopTimeTask}) => {
 			let targets = {}
 
 			for(let { id } of repo.accounts.all()){
-				let meta = repo.metas.get({account: id, key: 'twitter_user'})
+				let meta = repo.metas.get({account: id, key: 'twitter'})
 				let twitter = meta?.value
 
 				if(!twitter)
@@ -60,22 +60,20 @@ export default ({repo, config, loopTimeTask}) => {
 				for(let {twitter, accounts} of batch){
 					let profile = data.find(entry => entry.username.toLowerCase() === twitter.toLowerCase())
 					let meta = {
-						twitter_id: null,
 						twitter_followers: null,
-						name: null,
-						icon: null,
-						description: null,
-						domain: null
+						name: undefined,
+						icon: undefined,
+						description: undefined,
+						domain: undefined
 					}
 
 					if(profile){
-						meta.twitter_id = profile.id
 						meta.twitter_followers = profile.public_metrics.followers_count
-						meta.name = profile.name || null
-						meta.description = profile.description || null
+						meta.name = profile.name
+						meta.description = profile.description
 						meta.icon = profile.profile_image_url
 							? profile.profile_image_url.replace('_normal', '')
-							: null
+							: undefined
 
 						if(profile.entities?.url?.urls){
 							meta.domain = profile.entities.url.urls[0].expanded_url
