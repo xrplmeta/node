@@ -16,6 +16,9 @@ export function init(){
 }
 
 export function id(token, create=true){
+	if(!token)
+		return
+
 	if(typeof token === 'number')
 		return token
 

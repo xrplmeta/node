@@ -463,12 +463,12 @@ function deriveExchanges(tx){
 
 		let takerPaid = {
 			...finalTakerPays, 
-			value: previousTakerPays.value.minus(finalTakerPays.value)
+			value: Decimal.sub(previousTakerPays.value, finalTakerPays.value)
 		};
 
 		let takerGot = {
 			...finalTakerGets, 
-			value: previousTakerGets.value.minus(finalTakerGets.value)
+			value: Decimal.sub(previousTakerGets.value, finalTakerGets.value)
 		};
 
 		exchanges.push({
@@ -484,14 +484,13 @@ function deriveExchanges(tx){
 				currency: currencyHexToUTF8(takerGot.currency), 
 				issuer: takerGot.issuer
 			},
-			price: takerGot.value.div(takerPaid.value),
+			price: Decimal.div(takerGot.value, takerPaid.value),
 			volume: takerPaid.value
 		});
 	}
 
 	return exchanges
 }
-
 
 function currencyHexToUTF8(code){
 	if(code.length === 3)
@@ -523,12 +522,13 @@ function fromLedgerAmount(amount){
 		return {
 			currency: 'XRP',
 			value: Decimal.div(amount, '1000000')
+				.toString()
 		}
 	
 	return {
 		currency: amount.currency,
 		issuer: amount.issuer,
-		value: new Decimal(amount.value)
+		value: amount.value
 	}
 }
 
@@ -998,6 +998,9 @@ function init$7(){
 }
 
 function id(token, create=true){
+	if(!token)
+		return
+
 	if(typeof token === 'number')
 		return token
 
@@ -1305,7 +1308,7 @@ function insert$2({ledger, token, replaceAfter, ...stats}){
 }
 
 
-function all$1({token, from, to}){
+function all$1({ token, from, to }){
 	let tokenId = this.tokens.id(token);
 
 	let sql = `

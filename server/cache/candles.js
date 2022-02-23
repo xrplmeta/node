@@ -84,9 +84,15 @@ export function integrate(series, exchange){
 	let timeframe = series.timeframe
 	let t = Math.floor(exchange.date / timeframe) * timeframe
 
+	console.log(series)
+
+	console.time('ensure')
 	ensureTable.call(this, table)
+	console.timeEnd('ensure')
 	
+	console.time('select')
 	let candle = this.get(`SELECT * FROM ${table} WHERE t = ?`, t)
+	console.timeEnd('select')
 	let price = exchange.price
 	let volume = exchange.volume
 
@@ -117,6 +123,7 @@ export function integrate(series, exchange){
 		}
 	}
 
+	console.time('insert')
 	this.insert({
 		table,
 		data: {
@@ -129,6 +136,7 @@ export function integrate(series, exchange){
 		},
 		duplicate: 'update'
 	})
+	console.timeEnd('insert')
 }
 
 function doesTableExist(table){
@@ -142,8 +150,11 @@ function doesTableExist(table){
 }
 
 function ensureTable(table){
+	if(doesTableExist.call(this, table))
+		return
+
 	this.exec(
-		`CREATE TABLE IF NOT EXISTS "${table}" (
+		`CREATE TABLE "${table}" (
 			"id"		INTEGER NOT NULL UNIQUE,
 			"head"		INTEGER NOT NULL,
 			"tail"		INTEGER NOT NULL,

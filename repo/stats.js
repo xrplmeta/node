@@ -51,7 +51,7 @@ export function insert({ledger, token, replaceAfter, ...stats}){
 }
 
 
-export function all({token, from, to}){
+export function all({ token, from, to }){
 	let tokenId = this.tokens.id(token)
 
 	let sql = `

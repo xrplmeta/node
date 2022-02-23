@@ -949,6 +949,9 @@ function init$9(){
 }
 
 function id(token, create=true){
+	if(!token)
+		return
+
 	if(typeof token === 'number')
 		return token
 
@@ -1256,7 +1259,7 @@ function insert$3({ledger, token, replaceAfter, ...stats}){
 }
 
 
-function all$6({token, from, to}){
+function all$6({ token, from, to }){
 	let tokenId = this.tokens.id(token);
 
 	let sql = `
@@ -2308,9 +2311,9 @@ function integrate(series, stats){
 		}
 	}else {
 		point = {
-			...stat,
+			...stats,
 			date: t,
-			head: stat.ledger,
+			head: stats.ledger,
 			tail: stats.ledger
 		};
 	}
@@ -2350,7 +2353,7 @@ function ensureTable(table, reference){
 }
 
 function deriveTable({ token, timeframe }){
-	return `Stats${token.id}T${timeframe}`
+	return `Stats${token}T${timeframe}`
 }
 
 var stats = /*#__PURE__*/Object.freeze({
@@ -2365,7 +2368,7 @@ var initCache = config => new DB({
 	file: config.cache.inMemory
 		? ':memory:'
 		: `${config.data.dir}/${config.cache.dbName || 'cache'}.db`,
-	journalMode: 'MEMORY',
+	journalMode: config.cache.journalMode || 'MEMORY',
 	modules: {
 		heads,
 		tokens: tokens$1,
@@ -2750,15 +2753,15 @@ function register({ affected, ranges }){
 		return
 
 	let newStats = this.repo.stats.all({
-		from: ranges.exchanges[0],
-		to: ranges.exchanges[1]
+		from: ranges.stats[0],
+		to: ranges.stats[1]
 	});
 
-	for(let stats of newStats){
+	for(let { token, ...stats } of newStats){
 		let candle = this.cache.candles.all(
 			{
-				base: stats.token, 
-				quote: null, 
+				base: token,
+				quote: null,
 				timeframe: timeframeCandles
 			},
 			Math.floor(stats.date / timeframeCandles) * timeframeCandles,
@@ -2766,10 +2769,11 @@ function register({ affected, ranges }){
 		)[0];
 
 		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
-			this.cache.stats.register(
+			this.cache.stats.integrate(
 				{
-					token, 
-					timeframe}, 
+					token,
+					timeframe
+				},
 				{
 					...stats,
 					marketcap: candle
@@ -2811,8 +2815,8 @@ function allocate(ctx){
 	log.time(`sync.prepare`, `building caching database`);
 
 	allocate$3.call(ctx, repoHeads);
-	allocate$2.call(ctx, repoHeads);
 	allocate$1.call(ctx, repoHeads);
+	allocate$2.call(ctx, repoHeads);
 
 	log.time(`sync.prepare`, `built whole caching database in %`);
 
@@ -2930,9 +2934,17 @@ async function loop(ctx){
 		
 		try{
 			ctx.cache.tx(() => {
+				log.time(`sync.update.exchanges`);
 				register$2.call(ctx, {ranges, affected});
-				register$1.call(ctx, {ranges, affected});
+				log.time(`sync.update.exchanges`, `applied exchanges in %`);
+
+				log.time(`sync.update.stats`);
 				register.call(ctx, {ranges, affected});
+				log.time(`sync.update.stats`, `applied stats in %`);
+
+				log.time(`sync.update.tokens`);
+				register$1.call(ctx, {ranges, affected});
+				log.time(`sync.update.tokens`, `applied tokens in %`);
 
 				ctx.cache.heads.set(repoHeads);
 			});
@@ -3047,7 +3059,7 @@ async function tokens(ctx){
 }
 
 
-async function token$1(ctx){
+async function token(ctx){
 	let { token: { currency, issuer }, full } = ctx.parameters;
 	let token = ctx.cache.tokens.get({currency, issuer}, full);
 	
@@ -3135,7 +3147,7 @@ var procedures = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	currencies: currencies,
 	tokens: tokens,
-	token: token$1,
+	token: token,
 	token_metric: token_metric
 });
 

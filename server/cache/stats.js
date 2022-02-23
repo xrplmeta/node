@@ -82,9 +82,9 @@ export function integrate(series, stats){
 		}
 	}else{
 		point = {
-			...stat,
+			...stats,
 			date: t,
-			head: stat.ledger,
+			head: stats.ledger,
 			tail: stats.ledger
 		}
 	}
@@ -108,8 +108,11 @@ function doesTableExist(table){
 }
 
 function ensureTable(table, reference){
+	if(doesTableExist.call(this, table))
+		return
+
 	this.exec(
-		`CREATE TABLE IF NOT EXISTS "${table}" (
+		`CREATE TABLE "${table}" (
 			"id"			INTEGER NOT NULL UNIQUE,
 			"head"		INTEGER NOT NULL,
 			"tail"		INTEGER NOT NULL,
@@ -135,5 +138,5 @@ function ensureTable(table, reference){
 }
 
 function deriveTable({ token, timeframe }){
-	return `Stats${token.id}T${timeframe}`
+	return `Stats${token}T${timeframe}`
 }

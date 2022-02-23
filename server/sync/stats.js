@@ -75,15 +75,15 @@ export function register({ affected, ranges }){
 		return
 
 	let newStats = this.repo.stats.all({
-		from: ranges.exchanges[0],
-		to: ranges.exchanges[1]
+		from: ranges.stats[0],
+		to: ranges.stats[1]
 	})
 
-	for(let stats of newStats){
+	for(let { token, ...stats } of newStats){
 		let candle = this.cache.candles.all(
 			{
-				base: stats.token, 
-				quote: null, 
+				base: token,
+				quote: null,
 				timeframe: timeframeCandles
 			},
 			Math.floor(stats.date / timeframeCandles) * timeframeCandles,
@@ -91,10 +91,11 @@ export function register({ affected, ranges }){
 		)[0]
 
 		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
-			this.cache.stats.register(
+			this.cache.stats.integrate(
 				{
-					token, 
-					timeframe}, 
+					token,
+					timeframe
+				},
 				{
 					...stats,
 					marketcap: candle

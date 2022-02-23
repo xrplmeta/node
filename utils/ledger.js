@@ -24,12 +24,12 @@ export function deriveExchanges(tx){
 
 		let takerPaid = {
 			...finalTakerPays, 
-			value: previousTakerPays.value.minus(finalTakerPays.value)
+			value: Decimal.sub(previousTakerPays.value, finalTakerPays.value)
 		}
 
 		let takerGot = {
 			...finalTakerGets, 
-			value: previousTakerGets.value.minus(finalTakerGets.value)
+			value: Decimal.sub(previousTakerGets.value, finalTakerGets.value)
 		}
 
 		exchanges.push({
@@ -45,7 +45,7 @@ export function deriveExchanges(tx){
 				currency: currencyHexToUTF8(takerGot.currency), 
 				issuer: takerGot.issuer
 			},
-			price: takerGot.value.div(takerPaid.value),
+			price: Decimal.div(takerGot.value, takerPaid.value),
 			volume: takerPaid.value
 		})
 	}
@@ -134,6 +134,52 @@ export function deriveBalanceChanges(tx){
 	return parties
 }
 
+export function deriveCurrencies(tx){
+	let currencies = []
+	let add = entry => {
+		if(typeof entry === 'string')
+			entry = {currency: 'XRP'}
+
+		if(currencies.every(currency => !sameCurrency(currency, entry))){
+			currencies.push(entry)
+		}
+	}
+
+	for(let node of (tx.meta || tx.metaData).AffectedNodes){
+		let nodeKey = Object.keys(node)[0]
+		let nodeData = node[nodeKey]
+		let fields = nodeData.FinalFields || nodeData.NewFields
+
+		if(fields && fields.TakerGets){
+			add(fields.TakerGets)
+			add(fields.TakerPays)
+		}
+	}
+
+	return currencies
+}
+
+export function sameCurrency(a, b){
+	if(typeof a === 'string')
+		a = {currency: 'XRP'}
+	else
+		a = {
+			currency: currencyUTF8ToHex(a.currency), 
+			issuer: a.issuer
+		}
+
+	if(typeof b === 'string')
+		b = {currency: 'XRP'}
+	else
+		b = {
+			currency: currencyUTF8ToHex(b.currency), 
+			issuer: b.issuer
+		}
+
+	return true
+		&& a.currency === b.currency
+		&& a.issuer == b.issuer
+}
 
 export function currencyHexToUTF8(code){
 	if(code.length === 3)
@@ -183,22 +229,24 @@ export function fromLedgerAmount(amount){
 		return {
 			currency: 'XRP',
 			value: Decimal.div(amount, '1000000')
+				.toString()
 		}
 	
 	return {
 		currency: amount.currency,
 		issuer: amount.issuer,
-		value: new Decimal(amount.value)
+		value: amount.value
 	}
 }
 
 
 export function toLedgerAmount(amount){
 	if(amount.currency === 'XRP')
-		return amount.value.times(1000000).toString()
-
+		return Decimal.mul(amount.value, '1000000')
+			.round()
+			.toString()
 	return {
-		currency: amount.currency,
+		currency: currencyUTF8ToHex(amount.currency),
 		issuer: amount.issuer,
 		value: amount.value.toString()
 	}

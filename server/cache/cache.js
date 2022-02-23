@@ -10,7 +10,7 @@ export default config => new DB({
 	file: config.cache.inMemory
 		? ':memory:'
 		: `${config.data.dir}/${config.cache.dbName || 'cache'}.db`,
-	journalMode: 'MEMORY',
+	journalMode: config.cache.journalMode || 'WAL',
 	modules: {
 		heads,
 		tokens,

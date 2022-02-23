@@ -35,8 +35,8 @@ function allocate(ctx){
 	log.time(`sync.prepare`, `building caching database`)
 
 	exchanges.allocate.call(ctx, repoHeads)
-	tokens.allocate.call(ctx, repoHeads)
 	stats.allocate.call(ctx, repoHeads)
+	tokens.allocate.call(ctx, repoHeads)
 
 	log.time(`sync.prepare`, `built whole caching database in %`)
 
@@ -154,9 +154,17 @@ async function loop(ctx){
 		
 		try{
 			ctx.cache.tx(() => {
+				log.time(`sync.update.exchanges`)
 				exchanges.register.call(ctx, {ranges, affected})
-				tokens.register.call(ctx, {ranges, affected})
+				log.time(`sync.update.exchanges`, `applied exchanges in %`)
+
+				log.time(`sync.update.stats`)
 				stats.register.call(ctx, {ranges, affected})
+				log.time(`sync.update.stats`, `applied stats in %`)
+
+				log.time(`sync.update.tokens`)
+				tokens.register.call(ctx, {ranges, affected})
+				log.time(`sync.update.tokens`, `applied tokens in %`)
 
 				ctx.cache.heads.set(repoHeads)
 			})

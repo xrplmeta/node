@@ -74,8 +74,11 @@ function doesTableExist(table){
 }
 
 function ensureTable(table){
+	if(doesTableExist.call(this, table))
+		return
+
 	this.exec(
-		`CREATE TABLE IF NOT EXISTS "${table}" (
+		`CREATE TABLE "${table}" (
 			"id"		INTEGER NOT NULL UNIQUE,
 			"ledger"	INTEGER NOT NULL,
 			"date"		INTEGER NOT NULL,
