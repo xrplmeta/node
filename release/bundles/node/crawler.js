@@ -179,17 +179,24 @@ function camelify(obj){
 	if(Array.isArray(obj))
 		return obj.map(o => camelify(o))
 
-	let camelified = {};
+	if(typeof obj === 'object'){
+		let camelified = {};
 
-	for(let [key, value] of Object.entries(obj)){
-		let camelKey = key === key.toUpperCase()
-			? key.toLowerCase()
-			: key.replace(/_([a-z])/g, match => match[1].toUpperCase());
+		for(let [key, value] of Object.entries(obj)){
+			if(key === key.toUpperCase()){
+				key = key.toLowerCase();
+				value = camelify(value);
+			}else {
+				key = key.replace(/_([a-z])/g, match => match[1].toUpperCase());
+			}
 
-		camelified[camelKey] = value;
+			camelified[key] = value;
+		}
+
+		return camelified
 	}
 
-	return camelified
+	return obj
 }
 
 function keySort(array, key, compare){

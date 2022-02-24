@@ -2,32 +2,53 @@ import { unixNow } from '@xrplmeta/utils'
 import Decimal from 'decimal.js'
 
 
-export function all(series, start, end){
-	let table = deriveTable(series)
-	
-	if(!doesTableExist.call(this, table))
-		return []
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Candles" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"base"		INTEGER,
+			"quote"		INTEGER,
+			"timeframe"	INTEGER NOT NULL,
+			"head"		INTEGER NOT NULL,
+			"tail"		INTEGER NOT NULL,
+			"t"			INTEGER NOT NULL,
+			"o"			TEXT NOT NULL,
+			"h"			TEXT NOT NULL,
+			"l"			TEXT NOT NULL,
+			"c"			TEXT NOT NULL,
+			"v"			TEXT NOT NULL,
+			"n"			INTEGER NOT NULL,
+			PRIMARY KEY ("id" AUTOINCREMENT),
+			UNIQUE ("base", "quote", "timeframe", "t")
+		);`
+	)
+}
 
+
+export function all(series, start, end){
 	return this.all(
-		`SELECT t, o, h, l, c, v, n FROM ${table}
-		WHERE t >= ? AND t <= ?
+		`SELECT t, o, h, l, c, v, n FROM Candles
+		WHERE base IS @base
+		AND quote IS @quote
+		AND timeframe = @timeframe
+		AND t >= @start
+		AND t <= @end
 		ORDER BY t ASC`,
-		Math.floor((start || 0) / series.timeframe) * series.timeframe,
-		end || unixNow()
+		{
+			...series,
+			start: Math.floor((start || 0) / series.timeframe) * series.timeframe,
+			end: end || unixNow()
+		}
 	)
 }
 
 export function allocate(series, exchanges){
-	let table = deriveTable(series)
-	let timeframe = series.timeframe
 	let candles = []
 	let candle = null
 	let lastCandle = null
 
-	ensureTable.call(this, table)
-
 	for(let exchange of exchanges){
-		let t = Math.floor(exchange.date / timeframe) * timeframe
+		let t = Math.floor(exchange.date / series.timeframe) * series.timeframe
 		let price = exchange.price
 		let volume = exchange.volume
 		
@@ -65,9 +86,10 @@ export function allocate(series, exchanges){
 
 
 	this.insert({
-		table,
+		table: 'Candles',
 		data: candles.map(candle => ({
 			...candle,
+			...series,
 			o: candle.o.toString(),
 			h: candle.h.toString(),
 			l: candle.l.toString(),
@@ -80,19 +102,20 @@ export function allocate(series, exchanges){
 
 
 export function integrate(series, exchange){
-	let table = deriveTable(series)
 	let timeframe = series.timeframe
 	let t = Math.floor(exchange.date / timeframe) * timeframe
+	let candle = this.get(
+		`SELECT * FROM Candles 
+		WHERE base IS @base
+		AND quote IS @quote
+		AND timeframe = @timeframe
+		AND t = @t`,
+		{
+			...series,
+			t
+		}
+	)
 
-	console.log(series)
-
-	console.time('ensure')
-	ensureTable.call(this, table)
-	console.timeEnd('ensure')
-	
-	console.time('select')
-	let candle = this.get(`SELECT * FROM ${table} WHERE t = ?`, t)
-	console.timeEnd('select')
 	let price = exchange.price
 	let volume = exchange.volume
 
@@ -111,9 +134,9 @@ export function integrate(series, exchange){
 		}
 	}else{
 		candle = {
-			t,
 			head: exchange.ledger,
 			tail: exchange.ledger,
+			t,
 			o: price,
 			h: price,
 			l: price,
@@ -123,11 +146,11 @@ export function integrate(series, exchange){
 		}
 	}
 
-	console.time('insert')
 	this.insert({
-		table,
+		table: 'Candles',
 		data: {
 			...candle,
+			...series,
 			o: candle.o.toString(),
 			h: candle.h.toString(),
 			l: candle.l.toString(),
@@ -136,40 +159,4 @@ export function integrate(series, exchange){
 		},
 		duplicate: 'update'
 	})
-	console.timeEnd('insert')
-}
-
-function doesTableExist(table){
-	return !!this.getv(
-		`SELECT COUNT(1) 
-		FROM sqlite_master 
-		WHERE type='table' 
-		AND name = ?`,
-		table
-	)
-}
-
-function ensureTable(table){
-	if(doesTableExist.call(this, table))
-		return
-
-	this.exec(
-		`CREATE TABLE "${table}" (
-			"id"		INTEGER NOT NULL UNIQUE,
-			"head"		INTEGER NOT NULL,
-			"tail"		INTEGER NOT NULL,
-			"t"			INTEGER NOT NULL UNIQUE,
-			"o"			TEXT NOT NULL,
-			"h"			TEXT NOT NULL,
-			"l"			TEXT NOT NULL,
-			"c"			TEXT NOT NULL,
-			"v"			TEXT NOT NULL,
-			"n"			INTEGER NOT NULL,
-			PRIMARY KEY ("id" AUTOINCREMENT)
-		);`
-	)
-}
-
-function deriveTable({base, quote, timeframe}){
-	return `CandlesB${base || 'X'}Q${quote || 'X'}T${timeframe}`
 }

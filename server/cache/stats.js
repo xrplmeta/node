@@ -1,11 +1,46 @@
-export function all(series, start, end){
-	let table = deriveTable(series)
+export function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Stats" (
+			"id"			INTEGER NOT NULL UNIQUE,
+			"token"			INTEGER NOT NULL,
+			"timeframe"		INTEGER NOT NULL,
+			"head"			INTEGER NOT NULL,
+			"tail"			INTEGER NOT NULL,
+			"ledger"		INTEGER NOT NULL,
+			"date"			INTEGER NOT NULL,
+			"trustlines"	INTEGER NOT NULL,
+			"supply"		TEXT NOT NULL,
+			"marketcap"		TEXT NOT NULL,
+			"bid"			TEXT NOT NULL,
+			"ask"			TEXT NOT NULL,
+			${
+				this.config.tokens.stats.topPercenters
+					.map(p => `"percent${p.toString().replace('.', '')}"	REAL`)
+					.join(', ')
+			},
+			PRIMARY KEY ("id" AUTOINCREMENT),
+			UNIQUE("token", "timeframe", "ledger")
+		);
 
+		CREATE INDEX IF NOT EXISTS
+		"StatsDate" ON "Stats"
+		("date");`
+	)
+}
+
+
+export function all(series, start, end){
 	return this.all(
-		`SELECT * FROM ${table}
-		WHERE date >=? AND date <= ?`,
-		start,
-		end
+		`SELECT * FROM "Stats"
+		WHERE token = @token
+		AND timeframe = @timeframe
+		AND date >= @start 
+		AND date <= @end`,
+		{
+			...series,
+			start,
+			end
+		}
 	)
 		.map(({id, bid, ask, ...row}) => {
 			let distribution = {}
@@ -30,7 +65,6 @@ export function all(series, start, end){
 }
 
 export function allocate(series, stats){
-	let table = deriveTable(series)
 	let timeframe = series.timeframe
 	let points = []
 
@@ -38,6 +72,7 @@ export function allocate(series, stats){
 		let t = Math.floor(stat.date / timeframe) * timeframe
 		let point = {
 			...stat,
+			...series,
 			date: t,
 			head: stat.ledger,
 			tail: stat.ledger
@@ -57,23 +92,26 @@ export function allocate(series, stats){
 	if(points.length === 0)
 		return
 
-	ensureTable.call(this, table, points[0])
-
 	this.insert({
-		table,
+		table: 'Stats',
 		data: points
 	})
 }
 
 
 export function integrate(series, stats){
-	let table = deriveTable(series)
 	let timeframe = series.timeframe
 	let t = Math.floor(stats.date / timeframe) * timeframe
-
-	ensureTable.call(this, table, stats)
-	
-	let point = this.get(`SELECT * FROM ${table} WHERE date = ?`, t)
+	let point = this.get(
+		`SELECT * FROM "Stats"
+		WHERE token = @token
+		AND timeframe = @timeframe
+		AND date = @t`,
+		{
+			...series,
+			t
+		}
+	)
 
 	if(point){
 		if(stats.ledger > point.head){
@@ -83,6 +121,7 @@ export function integrate(series, stats){
 	}else{
 		point = {
 			...stats,
+			...series,
 			date: t,
 			head: stats.ledger,
 			tail: stats.ledger
@@ -90,53 +129,8 @@ export function integrate(series, stats){
 	}
 
 	this.insert({
-		table,
+		table: 'Stats',
 		data: point,
 		duplicate: 'update'
 	})
-}
-
-
-function doesTableExist(table){
-	return !!this.getv(
-		`SELECT COUNT(1) 
-		FROM sqlite_master 
-		WHERE type='table' 
-		AND name = ?`,
-		table
-	)
-}
-
-function ensureTable(table, reference){
-	if(doesTableExist.call(this, table))
-		return
-
-	this.exec(
-		`CREATE TABLE "${table}" (
-			"id"			INTEGER NOT NULL UNIQUE,
-			"head"		INTEGER NOT NULL,
-			"tail"		INTEGER NOT NULL,
-			"ledger"		INTEGER NOT NULL,
-			"date"			INTEGER NOT NULL,
-			"trustlines"	INTEGER NOT NULL,
-			"supply"		TEXT NOT NULL,
-			"marketcap"		TEXT NOT NULL,
-			"bid"			TEXT NOT NULL,
-			"ask"			TEXT NOT NULL,
-			${
-				Object.keys(reference)
-					.filter(col => col.startsWith('percent'))
-					.map(col => `"${col}"	REAL`)
-					.join(', ')
-			}
-		);
-
-		CREATE UNIQUE INDEX IF NOT EXISTS
-		"${table}Date" ON "${table}"
-		("date");`
-	)
-}
-
-function deriveTable({ token, timeframe }){
-	return `Stats${token}T${timeframe}`
 }

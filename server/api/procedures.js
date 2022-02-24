@@ -157,7 +157,7 @@ export async function token_metric(ctx){
 	}else if(division === 'stats'){
 		let stats = ctx.cache.stats.all(
 			{
-				token, 
+				token: token.id, 
 				timeframe: ctx.config.tokens.stats.timeframes[timeframe]
 			}, 
 			start || 0,

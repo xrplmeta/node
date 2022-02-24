@@ -176,17 +176,24 @@ function camelify(obj){
 	if(Array.isArray(obj))
 		return obj.map(o => camelify(o))
 
-	let camelified = {};
+	if(typeof obj === 'object'){
+		let camelified = {};
 
-	for(let [key, value] of Object.entries(obj)){
-		let camelKey = key === key.toUpperCase()
-			? key.toLowerCase()
-			: key.replace(/_([a-z])/g, match => match[1].toUpperCase());
+		for(let [key, value] of Object.entries(obj)){
+			if(key === key.toUpperCase()){
+				key = key.toLowerCase();
+				value = camelify(value);
+			}else {
+				key = key.replace(/_([a-z])/g, match => match[1].toUpperCase());
+			}
 
-		camelified[camelKey] = value;
+			camelified[key] = value;
+		}
+
+		return camelified
 	}
 
-	return camelified
+	return obj
 }
 
 function mapMultiKey(items, key, deleteKey){
@@ -777,7 +784,7 @@ class DB{
 	}
 }
 
-function init$c(){
+function init$e(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Ledgers" (
 			"index"		INTEGER NOT NULL UNIQUE,
@@ -811,11 +818,11 @@ function insert$9(data){
 
 var ledgers = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$c,
+	init: init$e,
 	insert: insert$9
 });
 
-function init$b(){
+function init$d(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "States" (
 			"index"			INTEGER NOT NULL UNIQUE,
@@ -840,11 +847,11 @@ function insert$8(data){
 
 var states = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$b,
+	init: init$d,
 	insert: insert$8
 });
 
-function init$a(){
+function init$c(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Accounts" (
 			"id"		INTEGER NOT NULL UNIQUE,
@@ -923,7 +930,7 @@ function count$5(){
 
 var accounts = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$a,
+	init: init$c,
 	id: id$1,
 	get: get$6,
 	all: all$a,
@@ -931,7 +938,7 @@ var accounts = /*#__PURE__*/Object.freeze({
 	count: count$5
 });
 
-function init$9(){
+function init$b(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Tokens" (
 			"id"			INTEGER NOT NULL UNIQUE,
@@ -1017,7 +1024,7 @@ function count$4(){
 
 var tokens$2 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$9,
+	init: init$b,
 	id: id,
 	get: get$5,
 	all: all$9,
@@ -1025,7 +1032,7 @@ var tokens$2 = /*#__PURE__*/Object.freeze({
 	count: count$4
 });
 
-function init$8(){
+function init$a(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Balances" (
 			"account"	INTEGER NOT NULL,
@@ -1085,14 +1092,14 @@ function count$3(){
 
 var balances = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$8,
+	init: init$a,
 	get: get$4,
 	all: all$8,
 	insert: insert$5,
 	count: count$3
 });
 
-function init$7(){
+function init$9(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Metas" (
 			"id"		INTEGER NOT NULL UNIQUE,
@@ -1200,13 +1207,13 @@ function decode$2(row){
 
 var metas = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$7,
+	init: init$9,
 	all: all$7,
 	get: get$3,
 	insert: insert$4
 });
 
-function init$6(){
+function init$8(){
 	if(!this.config.ledger?.topPercenters)
 		return
 
@@ -1314,13 +1321,13 @@ function get$2(token, date){
 
 var stats$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$6,
+	init: init$8,
 	insert: insert$3,
 	all: all$6,
 	get: get$2
 });
 
-function init$5(){
+function init$7(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Exchanges" (
 			"id"		INTEGER NOT NULL UNIQUE,
@@ -1458,7 +1465,7 @@ function count$2(){
 
 var exchanges = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$5,
+	init: init$7,
 	insert: insert$2,
 	iter: iter,
 	decode: decode$1,
@@ -1468,7 +1475,7 @@ var exchanges = /*#__PURE__*/Object.freeze({
 	count: count$2
 });
 
-function init$4(){
+function init$6(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Offers" (
 			"account"	INTEGER NOT NULL,
@@ -1514,12 +1521,12 @@ function count$1(){
 
 var offers = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$4,
+	init: init$6,
 	insert: insert$1,
 	count: count$1
 });
 
-function init$3(){
+function init$5(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Operations" (
 			"id"		INTEGER NOT NULL UNIQUE,
@@ -1619,7 +1626,7 @@ function mark(task, subject, start, result){
 
 var operations = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$3,
+	init: init$5,
 	getNext: getNext,
 	hasCompleted: hasCompleted,
 	getMostRecent: getMostRecent,
@@ -1627,7 +1634,7 @@ var operations = /*#__PURE__*/Object.freeze({
 	mark: mark
 });
 
-function init$2(){
+function init$4(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Coverages" (
 			"id"			INTEGER NOT NULL UNIQUE,
@@ -1688,7 +1695,7 @@ function extend(task, head, tail){
 
 var coverages = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$2,
+	init: init$4,
 	get: get$1,
 	extend: extend
 });
@@ -1749,7 +1756,7 @@ var initRepo = config => new DB({
 	modules
 });
 
-function init$1(){
+function init$3(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Heads" (
 			"key"		TEXT NOT NULL UNIQUE,
@@ -1784,12 +1791,12 @@ function all$4(){
 
 var heads = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init$1,
+	init: init$3,
 	set: set,
 	all: all$4
 });
 
-function init(){
+function init$2(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Tokens" (
 			"id"				INTEGER NOT NULL UNIQUE,
@@ -1955,38 +1962,59 @@ function decode(row){
 
 var tokens$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	init: init,
+	init: init$2,
 	all: all$3,
 	get: get,
 	count: count,
 	insert: insert
 });
 
-function all$2(series, start, end){
-	let table = deriveTable$2(series);
-	
-	if(!doesTableExist$1.call(this, table))
-		return []
+function init$1(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Candles" (
+			"id"		INTEGER NOT NULL UNIQUE,
+			"base"		INTEGER,
+			"quote"		INTEGER,
+			"timeframe"	INTEGER NOT NULL,
+			"head"		INTEGER NOT NULL,
+			"tail"		INTEGER NOT NULL,
+			"t"			INTEGER NOT NULL,
+			"o"			TEXT NOT NULL,
+			"h"			TEXT NOT NULL,
+			"l"			TEXT NOT NULL,
+			"c"			TEXT NOT NULL,
+			"v"			TEXT NOT NULL,
+			"n"			INTEGER NOT NULL,
+			PRIMARY KEY ("id" AUTOINCREMENT),
+			UNIQUE ("base", "quote", "timeframe", "t")
+		);`
+	);
+}
 
+
+function all$2(series, start, end){
 	return this.all(
-		`SELECT t, o, h, l, c, v, n FROM ${table}
-		WHERE t >= ? AND t <= ?
+		`SELECT t, o, h, l, c, v, n FROM Candles
+		WHERE base IS @base
+		AND quote IS @quote
+		AND timeframe = @timeframe
+		AND t >= @start
+		AND t <= @end
 		ORDER BY t ASC`,
-		Math.floor((start || 0) / series.timeframe) * series.timeframe,
-		end || unixNow()
+		{
+			...series,
+			start: Math.floor((start || 0) / series.timeframe) * series.timeframe,
+			end: end || unixNow()
+		}
 	)
 }
 
 function allocate$6(series, exchanges){
-	let table = deriveTable$2(series);
-	let timeframe = series.timeframe;
 	let candles = [];
 	let candle = null;
 
-	ensureTable$2.call(this, table);
-
 	for(let exchange of exchanges){
-		let t = Math.floor(exchange.date / timeframe) * timeframe;
+		let t = Math.floor(exchange.date / series.timeframe) * series.timeframe;
 		let price = exchange.price;
 		let volume = exchange.volume;
 		
@@ -2023,9 +2051,10 @@ function allocate$6(series, exchanges){
 
 
 	this.insert({
-		table,
+		table: 'Candles',
 		data: candles.map(candle => ({
 			...candle,
+			...series,
 			o: candle.o.toString(),
 			h: candle.h.toString(),
 			l: candle.l.toString(),
@@ -2038,13 +2067,20 @@ function allocate$6(series, exchanges){
 
 
 function integrate$2(series, exchange){
-	let table = deriveTable$2(series);
 	let timeframe = series.timeframe;
 	let t = Math.floor(exchange.date / timeframe) * timeframe;
+	let candle = this.get(
+		`SELECT * FROM Candles 
+		WHERE base IS @base
+		AND quote IS @quote
+		AND timeframe = @timeframe
+		AND t = @t`,
+		{
+			...series,
+			t
+		}
+	);
 
-	ensureTable$2.call(this, table);
-	
-	let candle = this.get(`SELECT * FROM ${table} WHERE t = ?`, t);
 	let price = exchange.price;
 	let volume = exchange.volume;
 
@@ -2063,9 +2099,9 @@ function integrate$2(series, exchange){
 		}
 	}else {
 		candle = {
-			t,
 			head: exchange.ledger,
 			tail: exchange.ledger,
+			t,
 			o: price,
 			h: price,
 			l: price,
@@ -2076,9 +2112,10 @@ function integrate$2(series, exchange){
 	}
 
 	this.insert({
-		table,
+		table: 'Candles',
 		data: {
 			...candle,
+			...series,
 			o: candle.o.toString(),
 			h: candle.h.toString(),
 			l: candle.l.toString(),
@@ -2089,47 +2126,16 @@ function integrate$2(series, exchange){
 	});
 }
 
-function doesTableExist$1(table){
-	return !!this.getv(
-		`SELECT COUNT(1) 
-		FROM sqlite_master 
-		WHERE type='table' 
-		AND name = ?`,
-		table
-	)
-}
-
-function ensureTable$2(table){
-	this.exec(
-		`CREATE TABLE IF NOT EXISTS "${table}" (
-			"id"		INTEGER NOT NULL UNIQUE,
-			"head"		INTEGER NOT NULL,
-			"tail"		INTEGER NOT NULL,
-			"t"			INTEGER NOT NULL UNIQUE,
-			"o"			TEXT NOT NULL,
-			"h"			TEXT NOT NULL,
-			"l"			TEXT NOT NULL,
-			"c"			TEXT NOT NULL,
-			"v"			TEXT NOT NULL,
-			"n"			INTEGER NOT NULL,
-			PRIMARY KEY ("id" AUTOINCREMENT)
-		);`
-	);
-}
-
-function deriveTable$2({base, quote, timeframe}){
-	return `CandlesB${base || 'X'}Q${quote || 'X'}T${timeframe}`
-}
-
 var candles = /*#__PURE__*/Object.freeze({
 	__proto__: null,
+	init: init$1,
 	all: all$2,
 	allocate: allocate$6,
 	integrate: integrate$2
 });
 
 function all$1(pair, start, end){
-	let table = deriveTable$1(pair);
+	let table = deriveTable(pair);
 	
 	if(!doesTableExist.call(this, table))
 		return []
@@ -2144,9 +2150,9 @@ function all$1(pair, start, end){
 }
 
 function allocate$5(pair, exchanges){
-	let table = deriveTable$1(pair);
+	let table = deriveTable(pair);
 
-	ensureTable$1.call(this, table);
+	ensureTable.call(this, table);
 
 	this.insert({
 		table,
@@ -2158,9 +2164,9 @@ function allocate$5(pair, exchanges){
 
 
 function integrate$1(pair, exchange){
-	let table = deriveTable$1(pair);
+	let table = deriveTable(pair);
 
-	ensureTable$1.call(this, table);
+	ensureTable.call(this, table);
 
 	let recent = this.getv(`SELECT MAX(ledger) FROM ${table}`);
 	let count = this.getv(`SELECT COUNT(1) FROM ${table}`);
@@ -2200,9 +2206,12 @@ function doesTableExist(table){
 	)
 }
 
-function ensureTable$1(table){
+function ensureTable(table){
+	if(doesTableExist.call(this, table))
+		return
+
 	this.exec(
-		`CREATE TABLE IF NOT EXISTS "${table}" (
+		`CREATE TABLE "${table}" (
 			"id"		INTEGER NOT NULL UNIQUE,
 			"ledger"	INTEGER NOT NULL,
 			"date"		INTEGER NOT NULL,
@@ -2216,7 +2225,7 @@ function ensureTable$1(table){
 	);
 }
 
-function deriveTable$1({base, quote}){
+function deriveTable({base, quote}){
 	return `TradesB${base || 'X'}Q${quote || 'X'}`
 }
 
@@ -2227,14 +2236,49 @@ var trades = /*#__PURE__*/Object.freeze({
 	integrate: integrate$1
 });
 
-function all(series, start, end){
-	let table = deriveTable(series);
+function init(){
+	this.exec(
+		`CREATE TABLE IF NOT EXISTS "Stats" (
+			"id"			INTEGER NOT NULL UNIQUE,
+			"token"			INTEGER NOT NULL,
+			"timeframe"		INTEGER NOT NULL,
+			"head"			INTEGER NOT NULL,
+			"tail"			INTEGER NOT NULL,
+			"ledger"		INTEGER NOT NULL,
+			"date"			INTEGER NOT NULL,
+			"trustlines"	INTEGER NOT NULL,
+			"supply"		TEXT NOT NULL,
+			"marketcap"		TEXT NOT NULL,
+			"bid"			TEXT NOT NULL,
+			"ask"			TEXT NOT NULL,
+			${
+				this.config.tokens.stats.topPercenters
+					.map(p => `"percent${p.toString().replace('.', '')}"	REAL`)
+					.join(', ')
+			},
+			PRIMARY KEY ("id" AUTOINCREMENT),
+			UNIQUE("token", "timeframe", "ledger")
+		);
 
+		CREATE INDEX IF NOT EXISTS
+		"StatsDate" ON "Stats"
+		("date");`
+	);
+}
+
+
+function all(series, start, end){
 	return this.all(
-		`SELECT * FROM ${table}
-		WHERE date >=? AND date <= ?`,
-		start,
-		end
+		`SELECT * FROM "Stats"
+		WHERE token = @token
+		AND timeframe = @timeframe
+		AND date >= @start 
+		AND date <= @end`,
+		{
+			...series,
+			start,
+			end
+		}
 	)
 		.map(({id, bid, ask, ...row}) => {
 			let distribution = {};
@@ -2259,7 +2303,6 @@ function all(series, start, end){
 }
 
 function allocate$4(series, stats){
-	let table = deriveTable(series);
 	let timeframe = series.timeframe;
 	let points = [];
 
@@ -2267,6 +2310,7 @@ function allocate$4(series, stats){
 		let t = Math.floor(stat.date / timeframe) * timeframe;
 		let point = {
 			...stat,
+			...series,
 			date: t,
 			head: stat.ledger,
 			tail: stat.ledger
@@ -2286,23 +2330,26 @@ function allocate$4(series, stats){
 	if(points.length === 0)
 		return
 
-	ensureTable.call(this, table, points[0]);
-
 	this.insert({
-		table,
+		table: 'Stats',
 		data: points
 	});
 }
 
 
 function integrate(series, stats){
-	let table = deriveTable(series);
 	let timeframe = series.timeframe;
 	let t = Math.floor(stats.date / timeframe) * timeframe;
-
-	ensureTable.call(this, table, stats);
-	
-	let point = this.get(`SELECT * FROM ${table} WHERE date = ?`, t);
+	let point = this.get(
+		`SELECT * FROM "Stats"
+		WHERE token = @token
+		AND timeframe = @timeframe
+		AND date = @t`,
+		{
+			...series,
+			t
+		}
+	);
 
 	if(point){
 		if(stats.ledger > point.head){
@@ -2312,6 +2359,7 @@ function integrate(series, stats){
 	}else {
 		point = {
 			...stats,
+			...series,
 			date: t,
 			head: stats.ledger,
 			tail: stats.ledger
@@ -2319,45 +2367,15 @@ function integrate(series, stats){
 	}
 
 	this.insert({
-		table,
+		table: 'Stats',
 		data: point,
 		duplicate: 'update'
 	});
 }
 
-function ensureTable(table, reference){
-	this.exec(
-		`CREATE TABLE IF NOT EXISTS "${table}" (
-			"id"			INTEGER NOT NULL UNIQUE,
-			"head"		INTEGER NOT NULL,
-			"tail"		INTEGER NOT NULL,
-			"ledger"		INTEGER NOT NULL,
-			"date"			INTEGER NOT NULL,
-			"trustlines"	INTEGER NOT NULL,
-			"supply"		TEXT NOT NULL,
-			"marketcap"		TEXT NOT NULL,
-			"bid"			TEXT NOT NULL,
-			"ask"			TEXT NOT NULL,
-			${
-				Object.keys(reference)
-					.filter(col => col.startsWith('percent'))
-					.map(col => `"${col}"	REAL`)
-					.join(', ')
-			}
-		);
-
-		CREATE UNIQUE INDEX IF NOT EXISTS
-		"${table}Date" ON "${table}"
-		("date");`
-	);
-}
-
-function deriveTable({ token, timeframe }){
-	return `Stats${token}T${timeframe}`
-}
-
 var stats = /*#__PURE__*/Object.freeze({
 	__proto__: null,
+	init: init,
 	all: all,
 	allocate: allocate$4,
 	integrate: integrate
@@ -2368,7 +2386,7 @@ var initCache = config => new DB({
 	file: config.cache.inMemory
 		? ':memory:'
 		: `${config.data.dir}/${config.cache.dbName || 'cache'}.db`,
-	journalMode: config.cache.journalMode || 'MEMORY',
+	journalMode: config.cache.journalMode || 'WAL',
 	modules: {
 		heads,
 		tokens: tokens$1,
@@ -2439,15 +2457,15 @@ function allocate$3(heads){
 					);
 				}
 
-				this.cache.trades.allocate(
+				/*this.cache.trades.allocate(
 					{base: base, quote: quote},
 					exchangesBQ
-				);
+				)
 
 				this.cache.trades.allocate(
 					{base: quote, quote: base},
 					exchangesQB
-				);
+				)*/
 			});
 
 			processed += exchanges.length;
@@ -2497,15 +2515,15 @@ function register$2({ ranges }){
 			);
 		}
 
-		this.cache.trades.integrate(
+		/*this.cache.trades.integrate(
 			{base: exchange.base, quote: exchange.quote},
 			exchangeBQ
-		);
+		)
 
 		this.cache.trades.integrate(
 			{base: exchange.quote, quote: exchange.base},
 			exchangeQB
-		);
+		)*/
 	}
 }
 
@@ -2697,8 +2715,9 @@ function allocate$1(heads){
 	let progress = 0;
 	
 	for(let i=0; i<tokens.length; i++){
-		let token = tokens[i];
+		let token = tokens[i].id;
 		let stats = this.repo.stats.all({token});
+		let refTimeframe = Object.values(this.repo.config.tokens.stats.timeframes)[0];
 
 		if(stats.length === 0)
 			continue
@@ -2707,23 +2726,23 @@ function allocate$1(heads){
 			{
 				base: token.id, 
 				quote: null, 
-				timeframe: Object.values(this.repo.config.tokens.stats.timeframes)[0]
+				timeframe: refTimeframe
 			}
 		);
 
 		let aligned = leftProximityZip(
 			{
 				array: stats,
-				key: stat => Math.floor(stat.date / (60*60*4)),
+				key: stat => Math.floor(stat.date / refTimeframe),
 			},
 			{
 				array: candles,
-				key: candle => Math.floor(candle.t / (60*60*4)),
+				key: candle => Math.floor(candle.t / refTimeframe),
 			}
 		);
 
 		let combined = aligned
-			.map(([stat, candle]) => ({
+			.map(([{ id, ...stat }, candle]) => ({
 				...stat,
 				marketcap: candle
 					? Decimal.mul(stat.supply, candle.c).toString() 
@@ -2818,7 +2837,7 @@ function allocate(ctx){
 	allocate$1.call(ctx, repoHeads);
 	allocate$2.call(ctx, repoHeads);
 
-	log.time(`sync.prepare`, `built whole caching database in %`);
+	log.time(`sync.prepare`, `built complete caching database in %`);
 
 	ctx.cache.heads.set(repoHeads);
 }
@@ -3129,7 +3148,7 @@ async function token_metric(ctx){
 	}else if(division === 'stats'){
 		let stats = ctx.cache.stats.all(
 			{
-				token, 
+				token: token.id, 
 				timeframe: ctx.config.tokens.stats.timeframes[timeframe]
 			}, 
 			start || 0,

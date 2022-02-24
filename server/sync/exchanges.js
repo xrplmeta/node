@@ -62,7 +62,7 @@ export function allocate(heads){
 					)
 				}
 
-				this.cache.trades.allocate(
+				/*this.cache.trades.allocate(
 					{base: base, quote: quote},
 					exchangesBQ
 				)
@@ -70,7 +70,7 @@ export function allocate(heads){
 				this.cache.trades.allocate(
 					{base: quote, quote: base},
 					exchangesQB
-				)
+				)*/
 			})
 
 			processed += exchanges.length
@@ -98,7 +98,6 @@ export function register({ ranges }){
 	})
 
 	for(let exchange of newExchanges){
-		console.time('exchange')
 		let exchangeBQ = this.repo.exchanges.align(exchange, exchange.base, exchange.quote)
 		let exchangeQB = this.repo.exchanges.align(exchange, exchange.quote, exchange.base)
 
@@ -110,7 +109,6 @@ export function register({ ranges }){
 		}
 
 		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
-			console.time('candle '+timeframe)
 			this.cache.candles.integrate(
 				{base: exchange.base, quote: exchange.quote, timeframe},
 				exchangeBQ
@@ -120,11 +118,9 @@ export function register({ ranges }){
 				{base: exchange.quote, quote: exchange.base, timeframe},
 				exchangeQB
 			)
-			console.timeEnd('candle '+timeframe)
 		}
 
-		console.time('trade')
-		this.cache.trades.integrate(
+		/*this.cache.trades.integrate(
 			{base: exchange.base, quote: exchange.quote},
 			exchangeBQ
 		)
@@ -132,8 +128,6 @@ export function register({ ranges }){
 		this.cache.trades.integrate(
 			{base: exchange.quote, quote: exchange.base},
 			exchangeQB
-		)
-		console.timeEnd('trade')
-		console.timeEnd('exchange')
+		)*/
 	}
 }

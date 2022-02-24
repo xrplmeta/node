@@ -38,7 +38,7 @@ function allocate(ctx){
 	stats.allocate.call(ctx, repoHeads)
 	tokens.allocate.call(ctx, repoHeads)
 
-	log.time(`sync.prepare`, `built whole caching database in %`)
+	log.time(`sync.prepare`, `built complete caching database in %`)
 
 	ctx.cache.heads.set(repoHeads)
 }

@@ -19,8 +19,9 @@ export function allocate(heads){
 	let progress = 0
 	
 	for(let i=0; i<tokens.length; i++){
-		let token = tokens[i]
+		let token = tokens[i].id
 		let stats = this.repo.stats.all({token})
+		let refTimeframe = Object.values(this.repo.config.tokens.stats.timeframes)[0]
 
 		if(stats.length === 0)
 			continue
@@ -29,7 +30,7 @@ export function allocate(heads){
 			{
 				base: token.id, 
 				quote: null, 
-				timeframe: Object.values(this.repo.config.tokens.stats.timeframes)[0]
+				timeframe: refTimeframe
 			}
 		)
 
@@ -45,7 +46,7 @@ export function allocate(heads){
 		)
 
 		let combined = aligned
-			.map(([stat, candle]) => ({
+			.map(([{ id, ...stat }, candle]) => ({
 				...stat,
 				marketcap: candle
 					? Decimal.mul(stat.supply, candle.c).toString() 
