@@ -2724,7 +2724,7 @@ function allocate$1(heads){
 
 		let candles = this.cache.candles.all(
 			{
-				base: token.id, 
+				base: token, 
 				quote: null, 
 				timeframe: refTimeframe
 			}
@@ -2740,6 +2740,8 @@ function allocate$1(heads){
 				key: candle => Math.floor(candle.t / refTimeframe),
 			}
 		);
+
+		
 
 		let combined = aligned
 			.map(([{ id, ...stat }, candle]) => ({

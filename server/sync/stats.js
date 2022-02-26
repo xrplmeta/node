@@ -28,7 +28,7 @@ export function allocate(heads){
 
 		let candles = this.cache.candles.all(
 			{
-				base: token.id, 
+				base: token, 
 				quote: null, 
 				timeframe: refTimeframe
 			}
@@ -37,13 +37,15 @@ export function allocate(heads){
 		let aligned = leftProximityZip(
 			{
 				array: stats,
-				key: stat => Math.floor(stat.date / (60*60*4)),
+				key: stat => Math.floor(stat.date / refTimeframe),
 			},
 			{
 				array: candles,
-				key: candle => Math.floor(candle.t / (60*60*4)),
+				key: candle => Math.floor(candle.t / refTimeframe),
 			}
 		)
+
+		
 
 		let combined = aligned
 			.map(([{ id, ...stat }, candle]) => ({
