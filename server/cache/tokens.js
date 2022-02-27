@@ -1,3 +1,6 @@
+import { unixNow } from '@xrplmeta/utils'
+
+
 export function init(){
 	this.exec(
 		`CREATE TABLE IF NOT EXISTS "Tokens" (
@@ -17,7 +20,8 @@ export function init(){
 			"volume_day"		REAL NOT NULL,
 			"volume_week"		REAL NOT NULL,
 			"price_day"			REAL,
-			"price_week"		REAL
+			"price_week"		REAL,
+			"updated"			INTEGER
 		);
 		
 		CREATE INDEX IF NOT EXISTS 
@@ -74,33 +78,45 @@ export function init(){
 
 		CREATE INDEX IF NOT EXISTS 
 		"TokensPriceWeek" ON "Tokens" 
-		("price_week");`
+		("price_week");
+
+		CREATE INDEX IF NOT EXISTS 
+		"TokensUpdated" ON "Tokens" 
+		("updated");`
 	)
 }
 
-export function all({limit, offset, sort, trusted, search, minTrustlines}){
+export function all({limit, offset, sort, trusted, search, minTrustlines, updatedBefore}){
+	let rows
 
-	let rows  = this.all(
-		`SELECT id, currency, issuer, meta, stats FROM Tokens
-		WHERE trustlines >= @minTrustlines
-		${trusted ? `AND trusted=1` : ``}
-		${search ? `AND (
-			currency LIKE @searchAny 
-			OR currency_name LIKE @searchAny 
-			OR issuer LIKE @searchStarting
-			OR issuer_name LIKE @searchStarting
-		)` : ``}
-		ORDER BY ${sort} DESC
-		LIMIT @offset, @limit`,
-		{
-			minTrustlines: minTrustlines || 0,
-			offset: offset || 0,
-			limit: limit || 999999999,
-			searchAny: search ? `%${search}%` : undefined,
-			searchStarting: search ? `${search}%` : undefined,
-		}
-	)
-
+	if(updatedBefore){
+		rows = this.all(
+			`SELECT id, currency, issuer, meta, stats FROM Tokens
+			WHERE updated < ?`,
+			updatedBefore
+		)
+	}else{
+		rows = this.all(
+			`SELECT id, currency, issuer, meta, stats FROM Tokens
+			WHERE trustlines >= @minTrustlines
+			${trusted ? `AND trusted=1` : ``}
+			${search ? `AND (
+				currency LIKE @searchAny 
+				OR currency_name LIKE @searchAny 
+				OR issuer LIKE @searchStarting
+				OR issuer_name LIKE @searchStarting
+			)` : ``}
+			ORDER BY ${sort} DESC
+			LIMIT @offset, @limit`,
+			{
+				minTrustlines: minTrustlines || 0,
+				offset: offset || 0,
+				limit: limit || 999999999,
+				searchAny: search ? `%${search}%` : undefined,
+				searchStarting: search ? `${search}%` : undefined,
+			}
+		)
+	}
 
 	return rows.map(row => decode(row))
 }
@@ -144,6 +160,7 @@ export function insert({id, currency, issuer, meta, stats, trusted, popular}){
 			volume_week: parseFloat(stats.volume?.week),
 			price_week: stats.price_change?.week,
 			price_day: stats.price_change?.day,
+			updated: unixNow()
 		},
 		duplicate: 'update'
 	})

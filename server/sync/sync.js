@@ -1,7 +1,7 @@
 import * as exchanges from './exchanges.js'
 import * as tokens from './tokens.js'
 import * as stats from './stats.js'
-import { wait } from '@xrplmeta/utils'
+import { wait, unixNow } from '@xrplmeta/utils'
 import mainlog from '@xrplmeta/log'
 
 
@@ -120,6 +120,24 @@ async function loop(ctx){
 		}
 
 		if(affected.length === 0){
+			let outdatedTokens = ctx.cache.tokens.all({updatedBefore: unixNow() - 60 * 60})
+
+			if(outdatedTokens.length > 0){
+				log.time(`sync.tokensupdate`, `updating ${outdatedTokens.length} outdated tokens`)
+
+				try{
+					ctx.cache.tx(() => {
+						for(let token of outdatedTokens){
+							tokens.compose.call(ctx, token)
+						}
+					})
+				}catch(e){
+					log.error(`failed to commit token updates:\n`, e)
+				}
+
+				log.time(`sync.tokensupdate`, `updated outdated tokens in %`)
+			}
+
 			await wait(100)
 			continue
 		}
