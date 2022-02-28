@@ -127,8 +127,8 @@ async function loop(ctx){
 
 				try{
 					ctx.cache.tx(() => {
-						for(let token of outdatedTokens){
-							tokens.compose.call(ctx, token)
+						for(let { id } of outdatedTokens){
+							tokens.update.call(ctx, id)
 						}
 					})
 				}catch(e){

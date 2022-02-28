@@ -1804,7 +1804,7 @@ function init$2(){
 			"currency_name"		TEXT,
 			"issuer"			TEXT NOT NULL,
 			"issuer_name"		TEXT,
-			"stats"			TEXT NOT NULL,
+			"stats"				TEXT NOT NULL,
 			"meta"				TEXT NOT NULL,
 			"trusted"			INTEGER NOT NULL,
 			"popular"			REAL NOT NULL,
@@ -1815,7 +1815,8 @@ function init$2(){
 			"volume_day"		REAL NOT NULL,
 			"volume_week"		REAL NOT NULL,
 			"price_day"			REAL,
-			"price_week"		REAL
+			"price_week"		REAL,
+			"updated"			INTEGER
 		);
 		
 		CREATE INDEX IF NOT EXISTS 
@@ -1872,33 +1873,45 @@ function init$2(){
 
 		CREATE INDEX IF NOT EXISTS 
 		"TokensPriceWeek" ON "Tokens" 
-		("price_week");`
+		("price_week");
+
+		CREATE INDEX IF NOT EXISTS 
+		"TokensUpdated" ON "Tokens" 
+		("updated");`
 	);
 }
 
-function all$3({limit, offset, sort, trusted, search, minTrustlines}){
+function all$3({limit, offset, sort, trusted, search, minTrustlines, updatedBefore}){
+	let rows;
 
-	let rows  = this.all(
-		`SELECT id, currency, issuer, meta, stats FROM Tokens
-		WHERE trustlines >= @minTrustlines
-		${trusted ? `AND trusted=1` : ``}
-		${search ? `AND (
-			currency LIKE @searchAny 
-			OR currency_name LIKE @searchAny 
-			OR issuer LIKE @searchStarting
-			OR issuer_name LIKE @searchStarting
-		)` : ``}
-		ORDER BY ${sort} DESC
-		LIMIT @offset, @limit`,
-		{
-			minTrustlines: minTrustlines || 0,
-			offset: offset || 0,
-			limit: limit || 999999999,
-			searchAny: search ? `%${search}%` : undefined,
-			searchStarting: search ? `${search}%` : undefined,
-		}
-	);
-
+	if(updatedBefore){
+		rows = this.all(
+			`SELECT id, currency, issuer, meta, stats FROM Tokens
+			WHERE updated < ?`,
+			updatedBefore
+		);
+	}else {
+		rows = this.all(
+			`SELECT id, currency, issuer, meta, stats FROM Tokens
+			WHERE trustlines >= @minTrustlines
+			${trusted ? `AND trusted=1` : ``}
+			${search ? `AND (
+				currency LIKE @searchAny 
+				OR currency_name LIKE @searchAny 
+				OR issuer LIKE @searchStarting
+				OR issuer_name LIKE @searchStarting
+			)` : ``}
+			ORDER BY ${sort} DESC
+			LIMIT @offset, @limit`,
+			{
+				minTrustlines: minTrustlines || 0,
+				offset: offset || 0,
+				limit: (limit || 9999999) + (offset || 0),
+				searchAny: search ? `%${search}%` : undefined,
+				searchStarting: search ? `${search}%` : undefined,
+			}
+		);
+	}
 
 	return rows.map(row => decode(row))
 }
@@ -1942,6 +1955,7 @@ function insert({id, currency, issuer, meta, stats, trusted, popular}){
 			volume_week: parseFloat(stats.volume?.week),
 			price_week: stats.price_change?.week,
 			price_day: stats.price_change?.day,
+			updated: unixNow()
 		},
 		duplicate: 'update'
 	});
@@ -2566,6 +2580,10 @@ function register$1({ affected }){
 	}
 }
 
+function update(id){
+	compose.call(this, this.repo.tokens.get({id}));
+}
+
 function compose(token){
 	let { id, currency, issuer: issuerId } = token;
 	let issuer = this.repo.accounts.get({id: issuerId});	
@@ -2921,6 +2939,24 @@ async function loop(ctx){
 		}
 
 		if(affected.length === 0){
+			let outdatedTokens = ctx.cache.tokens.all({updatedBefore: unixNow() - 60 * 60});
+
+			if(outdatedTokens.length > 0){
+				log.time(`sync.tokensupdate`, `updating ${outdatedTokens.length} outdated tokens`);
+
+				try{
+					ctx.cache.tx(() => {
+						for(let { id } of outdatedTokens){
+							update.call(ctx, id);
+						}
+					});
+				}catch(e){
+					log.error(`failed to commit token updates:\n`, e);
+				}
+
+				log.time(`sync.tokensupdate`, `updated outdated tokens in %`);
+			}
+
 			await wait(100);
 			continue
 		}
@@ -3073,7 +3109,7 @@ async function tokens(ctx){
 	ctx.config.meta.sourcePriorities;
 
 	if(!allowedSorts.includes(sort))
-		throw {message: `sort "${sort}" is not allowed. Possible values are: ${allowedSorts.join(', ')}`, expose: true}
+		throw {message: `sort "${sort}" is not allowed. possible values are: ${allowedSorts.join(', ')}`, expose: true}
 
 	return ctx.cache.tokens.all({limit, offset, sort, trusted, search})
 		.map(token => collapseToken(token))

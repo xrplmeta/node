@@ -42,6 +42,10 @@ export function register({ affected }){
 	}
 }
 
+export function update(id){
+	compose.call(this, this.repo.tokens.get({id}))
+}
+
 function compose(token){
 	let { id, currency, issuer: issuerId } = token
 	let issuer = this.repo.accounts.get({id: issuerId})	

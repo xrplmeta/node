@@ -9,7 +9,7 @@ export function init(){
 			"currency_name"		TEXT,
 			"issuer"			TEXT NOT NULL,
 			"issuer_name"		TEXT,
-			"stats"			TEXT NOT NULL,
+			"stats"				TEXT NOT NULL,
 			"meta"				TEXT NOT NULL,
 			"trusted"			INTEGER NOT NULL,
 			"popular"			REAL NOT NULL,
@@ -111,7 +111,7 @@ export function all({limit, offset, sort, trusted, search, minTrustlines, update
 			{
 				minTrustlines: minTrustlines || 0,
 				offset: offset || 0,
-				limit: limit || 999999999,
+				limit: limit || 9999999,
 				searchAny: search ? `%${search}%` : undefined,
 				searchStarting: search ? `${search}%` : undefined,
 			}

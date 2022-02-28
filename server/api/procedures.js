@@ -71,7 +71,7 @@ export async function currencies(ctx){
 }
 
 export async function tokens(ctx){
-	let limit = ctx.parameters.limit || 100
+	let limit = Math.min(1000, ctx.parameters.limit || 100)
 	let offset = ctx.parameters.offset || 0
 	let sort = ctx.parameters.sort || allowedSorts[0]
 	let trusted = ctx.parameters.trusted
@@ -80,7 +80,7 @@ export async function tokens(ctx){
 	let sourcePriorities = ctx.config.meta.sourcePriorities
 
 	if(!allowedSorts.includes(sort))
-		throw {message: `sort "${sort}" is not allowed. Possible values are: ${allowedSorts.join(', ')}`, expose: true}
+		throw {message: `sort "${sort}" is not allowed. possible values are: ${allowedSorts.join(', ')}`, expose: true}
 
 	return ctx.cache.tokens.all({limit, offset, sort, trusted, search})
 		.map(token => collapseToken(token, sourcePriorities))
