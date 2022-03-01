@@ -162,14 +162,23 @@ var log$4 = new Logger({
 });
 
 function load(path){
-	let config = toml.parse(fs.readFileSync(path).toString());
-	let adjusted = {};
+	return parse(fs.readFileSync(path, 'utf-8'))
+}
 
-	for(let [key, directive] of Object.entries(config)){
-		adjusted[key.toLowerCase()] = camelify(directive);
+function parse(str, raw){
+	let config = toml.parse(str);
+
+	if(!raw){
+		let adjusted = {};
+
+		for(let [key, directive] of Object.entries(config)){
+			adjusted[key.toLowerCase()] = camelify(directive);
+		}
+
+		return adjusted
+	}else {
+		return config
 	}
-
-	return adjusted
 }
 
 function camelify(obj){
@@ -1906,7 +1915,7 @@ function all$3({limit, offset, sort, trusted, search, minTrustlines, updatedBefo
 			{
 				minTrustlines: minTrustlines || 0,
 				offset: offset || 0,
-				limit: (limit || 9999999) + (offset || 0),
+				limit: limit || 9999999,
 				searchAny: search ? `%${search}%` : undefined,
 				searchStarting: search ? `${search}%` : undefined,
 			}
@@ -3100,7 +3109,7 @@ async function currencies(ctx){
 }
 
 async function tokens(ctx){
-	let limit = ctx.parameters.limit || 100;
+	let limit = Math.min(1000, ctx.parameters.limit || 100);
 	let offset = ctx.parameters.offset || 0;
 	let sort = ctx.parameters.sort || allowedSorts[0];
 	let trusted = ctx.parameters.trusted;
@@ -3225,7 +3234,7 @@ class HTTPRouter extends Router{
 				'token', 
 				parameters => ({
 					...parameters,
-					...this.parseTokenURI(parameters.token),
+					token: this.parseTokenURI(parameters.token),
 					full: parameters.hasOwnProperty('full')
 				})
 			)

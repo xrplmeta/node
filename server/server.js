@@ -1,6 +1,6 @@
 import minimist from 'minimist'
 import log from '@xrplmeta/log'
-import { load as loadConfig } from '@xrplmeta/config'
+import { load as loadConfig } from '@xrplmeta/toml'
 import { assignDeep } from '@xrplmeta/utils'
 import initRepo from '@xrplmeta/repo'
 import initCache from './cache/cache.js'

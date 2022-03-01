@@ -19,7 +19,7 @@ export default class extends Router{
 				'token', 
 				parameters => ({
 					...parameters,
-					...this.parseTokenURI(parameters.token),
+					token: this.parseTokenURI(parameters.token),
 					full: parameters.hasOwnProperty('full')
 				})
 			)

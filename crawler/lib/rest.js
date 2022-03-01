@@ -39,6 +39,7 @@ export default class Rest{
 	async makeRequest(method, route, data, options){
 		data = this.mergeData(data || {})
 		options = options || {}
+
 		let headers = options.headers || {}
 
 
@@ -104,13 +105,16 @@ export default class Rest{
 
 	getURL(route){
 		if(this.config.base)
-			route = this.stripDoubleSlashes(this.config.base + '/' + route)
+			route = this.sanitizeUrl(this.config.base + '/' + route)
 
 		return route
 	}
 
-	stripDoubleSlashes(str){
-		return str.slice(0, 8) + str.slice(8).replace(/\/\//g,'/')
+	sanitizeUrl(str){
+		return str.slice(0, 8) + str.slice(8)
+			.replace(/\/\//g,'/')
+			.replace(/\/\.$/, '')
+			.replace(/\/$/, '')
 	}
 
 	mergeData(data){

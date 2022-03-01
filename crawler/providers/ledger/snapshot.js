@@ -294,7 +294,7 @@ function fillQueue(xrpl, index){
 	let queue = []
 	let done = false
 	let failed = false
-	let unavailable = 0
+	let attempts = 0
 	let next = async () => {
 		while(queue.length === 0)
 			if(done)
@@ -314,6 +314,8 @@ function fillQueue(xrpl, index){
 			while(queue.length >= chunkSize * 3)
 				await wait(100)
 
+			attempts++
+
 			try{
 				ledgerData = await xrpl.request({
 					command: 'ledger_data',
@@ -323,24 +325,27 @@ function fillQueue(xrpl, index){
 					priority: 100
 				})
 
-				unavailable = 0
 			}catch(e){
 				if(e === 'NO_NODE_AVAILABLE'){
-					unavailable++
-
-					if(unavailable >= 3){
+					if(attempts >= 3){
+						failed = true
+						return
+					}
+				}else{
+					if(attempts >= 10){
 						failed = true
 						return
 					}
 				}
 
-				log.info(`could not obtain ledger data temporarily:\n`, e)
-				await wait(1000)
+				log.info(`could not obtain ledger data chunk:\n`, e)
+				await wait(3000)
 				continue
 			}
 
 			queue.push(ledgerData.state)
 			lastMarker = ledgerData.marker
+			attempts = 0
 
 			if(!lastMarker){
 				done = true

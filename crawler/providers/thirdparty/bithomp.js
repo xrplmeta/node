@@ -37,7 +37,7 @@ export default ({repo, config, loopTimeTask}) => {
 								),
 							name: service.name,
 							domain: service.domain,
-							twitter_user: service.socialAccounts?.twitter
+							...service.socialAccounts
 						},
 						account: address,
 						source: 'bithomp'

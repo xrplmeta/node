@@ -2,14 +2,23 @@ import fs from 'fs'
 import toml from 'toml'
 
 export function load(path){
-	let config = toml.parse(fs.readFileSync(path).toString())
-	let adjusted = {}
+	return parse(fs.readFileSync(path, 'utf-8'))
+}
 
-	for(let [key, directive] of Object.entries(config)){
-		adjusted[key.toLowerCase()] = camelify(directive)
+export function parse(str, raw){
+	let config = toml.parse(str)
+
+	if(!raw){
+		let adjusted = {}
+
+		for(let [key, directive] of Object.entries(config)){
+			adjusted[key.toLowerCase()] = camelify(directive)
+		}
+
+		return adjusted
+	}else{
+		return config
 	}
-
-	return adjusted
 }
 
 export function override(config, args){

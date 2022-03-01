@@ -4,7 +4,7 @@
   "version": "3.0.0-alpha",
   "main": "cli.js",
   "dependencies": {
-    "@xrplmeta/config": "3.0.0-alpha",
+    "@xrplmeta/toml": "3.0.0-alpha",
     "@xrplmeta/db": "3.0.0-alpha",
     "@xrplmeta/repo": "3.0.0-alpha",
     "@xrplmeta/log": "3.0.0-alpha",

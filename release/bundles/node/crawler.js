@@ -165,14 +165,23 @@ var log = new Logger({
 });
 
 function load(path){
-	let config = toml.parse(fs.readFileSync(path).toString());
-	let adjusted = {};
+	return parse$1(fs.readFileSync(path, 'utf-8'))
+}
 
-	for(let [key, directive] of Object.entries(config)){
-		adjusted[key.toLowerCase()] = camelify(directive);
+function parse$1(str, raw){
+	let config = toml.parse(str);
+
+	if(!raw){
+		let adjusted = {};
+
+		for(let [key, directive] of Object.entries(config)){
+			adjusted[key.toLowerCase()] = camelify(directive);
+		}
+
+		return adjusted
+	}else {
+		return config
 	}
-
-	return adjusted
 }
 
 function camelify(obj){
@@ -2097,6 +2106,7 @@ class Rest{
 	async makeRequest(method, route, data, options){
 		data = this.mergeData(data || {});
 		options = options || {};
+
 		let headers = options.headers || {};
 
 
@@ -2162,13 +2172,16 @@ class Rest{
 
 	getURL(route){
 		if(this.config.base)
-			route = this.stripDoubleSlashes(this.config.base + '/' + route);
+			route = this.sanitizeUrl(this.config.base + '/' + route);
 
 		return route
 	}
 
-	stripDoubleSlashes(str){
-		return str.slice(0, 8) + str.slice(8).replace(/\/\//g,'/')
+	sanitizeUrl(str){
+		return str.slice(0, 8) + str.slice(8)
+			.replace(/\/\//g,'/')
+			.replace(/\/\.$/, '')
+			.replace(/\/$/, '')
 	}
 
 	mergeData(data){
@@ -2817,7 +2830,7 @@ function fillQueue(xrpl, index){
 	let queue = [];
 	let done = false;
 	let failed = false;
-	let unavailable = 0;
+	let attempts = 0;
 	let next = async () => {
 		while(queue.length === 0)
 			if(done)
@@ -2837,6 +2850,8 @@ function fillQueue(xrpl, index){
 			while(queue.length >= chunkSize * 3)
 				await wait(100);
 
+			attempts++;
+
 			try{
 				ledgerData = await xrpl.request({
 					command: 'ledger_data',
@@ -2846,24 +2861,27 @@ function fillQueue(xrpl, index){
 					priority: 100
 				});
 
-				unavailable = 0;
 			}catch(e){
 				if(e === 'NO_NODE_AVAILABLE'){
-					unavailable++;
-
-					if(unavailable >= 3){
+					if(attempts >= 3){
+						failed = true;
+						return
+					}
+				}else {
+					if(attempts >= 10){
 						failed = true;
 						return
 					}
 				}
 
-				log.info(`could not obtain ledger data temporarily:\n`, e);
-				await wait(1000);
+				log.info(`could not obtain ledger data chunk:\n`, e);
+				await wait(3000);
 				continue
 			}
 
 			queue.push(ledgerData.state);
 			lastMarker = ledgerData.marker;
+			attempts = 0;
 
 			if(!lastMarker){
 				done = true;
@@ -2916,6 +2934,146 @@ var backfill = ({repo, config, xrpl, loopLedgerTask, count}) => {
 			count(`saved % exchange(s)`, exchanges.length, `(${ledger.close_time_human.slice(0, 20)})`);
 		}
 	);
+};
+
+const issuerFields = [
+	'address',
+	'name',
+	'trusted',
+	'description',
+	'icon',
+	'domain',
+	'twitter',
+	'telegram',
+	'discord',
+	'youtube',
+	'facebook',
+	'reddit',
+	'medium',
+];
+
+const currencyFields = [
+	'code',
+	'issuer',
+	'name',
+	'trusted',
+	'description',
+	'icon',
+	'domain',
+	'twitter',
+	'telegram',
+	'discord',
+	'youtube',
+	'facebook',
+	'reddit',
+	'medium',
+];
+
+
+function parse(str){
+	let toml = parse$1(str);
+	let issuers = [];
+	let currencies = [];
+
+	if(toml.issuers){
+		for(let issuer of toml.issuers){
+			issuers.push(
+				Object.entries(issuer)
+					.reduce((clean, [key, value]) => 
+						issuerFields.includes(key)
+							? {...clean, [key]: value}
+							: clean
+					,{})
+			);
+		}
+
+		for(let currency of toml.currencies){
+			currencies.push(
+				Object.entries(currency)
+					.reduce((clean, [key, value]) => 
+						currencyFields.includes(key)
+							? {...clean, [key]: value}
+							: clean
+					,{})
+			);
+		}
+	}
+
+	return {
+		issuers,
+		currencies
+	}
+}
+
+var aux = ({repo, config, loopTimeTask}) => {
+	if(!config.aux)
+		return
+
+	for(let aux of config.aux){
+		let api = new Rest({
+			base: aux.url
+		});
+
+		log.info(`will read ${aux.url} every ${aux.refreshInterval} seconds`);
+
+		loopTimeTask(
+			{
+				task: `aux.${aux.name}`,
+				interval: aux.refreshInterval
+			},
+			async t => {
+				log.info(`reading ${aux.url}`);
+
+				try{
+					var response = await api.get('.', null, {raw: true});
+				
+					if(!response.ok){
+						throw `HTTP ${response.status}`
+					}
+				}catch(error){
+					throw error.message
+				}
+
+				let toml = await response.text();
+				let { issuers, currencies } = parse(toml);
+				let metas = [];
+
+				for(let { address, ...meta } of issuers){
+					metas.push({
+						meta,
+						account: address,
+						source: aux.name
+					});
+				}
+
+				for(let { code, issuer, ...meta } of currencies){
+					metas.push({
+						meta,
+						token: {
+							currency: currencyHexToUTF8(code),
+							issuer
+						},
+						source: aux.name
+					});
+				}
+
+				if(!aux.trusted){
+					for(let { meta } of metas){
+						delete meta.trusted;
+					}
+				}
+
+
+				log.info(`writing`, metas.length, `metas to db...`);
+
+				for(let meta of metas){
+					repo.metas.insert(meta);
+				}
+
+				log.info(`${aux.name} aux scan complete`);
+			}
+		);
+	}
 };
 
 var xumm = ({repo, config, loopTimeTask, count}) => {
@@ -3067,7 +3225,7 @@ var bithomp = ({repo, config, loopTimeTask}) => {
 								),
 							name: service.name,
 							domain: service.domain,
-							twitter_user: service.socialAccounts?.twitter
+							...service.socialAccounts
 						},
 						account: address,
 						source: 'bithomp'
@@ -3312,6 +3470,7 @@ var providers = {
 	stream: stream,
 	snapshot: snapshot,
 	backfill: backfill,
+	aux: aux,
 	xumm: xumm,
 	bithomp: bithomp,
 	xrpscan: xrpscan,
