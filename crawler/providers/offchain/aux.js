@@ -23,14 +23,11 @@ export default ({repo, config, loopTimeTask}) => {
 			async t => {
 				log.info(`reading ${aux.url}`)
 
-				try{
-					var response = await api.get('.', null, {raw: true})
-				
-					if(!response.ok){
-						throw `HTTP ${response.status}`
-					}
-				}catch(error){
-					throw error.message
+
+				let response = await api.get('.', null, {raw: true})
+			
+				if(!response.ok){
+					throw `HTTP ${response.status}`
 				}
 
 				let toml = await response.text()

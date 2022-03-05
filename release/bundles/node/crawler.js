@@ -3024,14 +3024,11 @@ var aux = ({repo, config, loopTimeTask}) => {
 			async t => {
 				log.info(`reading ${aux.url}`);
 
-				try{
-					var response = await api.get('.', null, {raw: true});
-				
-					if(!response.ok){
-						throw `HTTP ${response.status}`
-					}
-				}catch(error){
-					throw error.message
+
+				let response = await api.get('.', null, {raw: true});
+			
+				if(!response.ok){
+					throw `HTTP ${response.status}`
 				}
 
 				let toml = await response.text();
@@ -3312,6 +3309,9 @@ var twitter = ({repo, config, loopTimeTask}) => {
 				let twitter = meta?.value;
 
 				if(!twitter)
+					continue
+
+				if(!/^[A-Za-z0-9_]{1,15}$/.test(twitter))
 					continue
 
 				if(!targets[twitter])

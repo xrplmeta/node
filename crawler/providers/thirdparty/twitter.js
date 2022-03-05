@@ -29,6 +29,9 @@ export default ({repo, config, loopTimeTask}) => {
 				if(!twitter)
 					continue
 
+				if(!/^[A-Za-z0-9_]{1,15}$/.test(twitter))
+					continue
+
 				if(!targets[twitter])
 					targets[twitter] = []
 
