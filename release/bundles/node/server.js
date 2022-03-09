@@ -2389,9 +2389,11 @@ function integrate(series, stats){
 		};
 	}
 
+	let { id, ...override } = point;
+
 	this.insert({
 		table: 'Stats',
-		data: point,
+		data: override,
 		duplicate: 'update'
 	});
 }
@@ -2590,7 +2592,10 @@ function register$1({ affected }){
 }
 
 function update(id){
-	compose.call(this, this.repo.tokens.get({id}));
+	let token = this.repo.tokens.get({id});
+
+	if(token)
+		compose.call(this, token);
 }
 
 function compose(token){

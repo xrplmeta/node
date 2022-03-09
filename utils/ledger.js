@@ -224,7 +224,7 @@ export function currencyUTF8ToHex(code){
 }
 
 
-export function fromLedgerAmount(amount){
+export function fromLedgerAmount(amount, convertCurrencyCode){
 	if(typeof amount === 'string')
 		return {
 			currency: 'XRP',
@@ -233,7 +233,9 @@ export function fromLedgerAmount(amount){
 		}
 	
 	return {
-		currency: amount.currency,
+		currency: convertCurrencyCode
+			? currencyHexToUTF8(amount.currency)
+			: amount.currency,
 		issuer: amount.issuer,
 		value: amount.value
 	}

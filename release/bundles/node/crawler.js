@@ -533,7 +533,7 @@ function hexToBytes(hex){
 }
 
 
-function fromLedgerAmount(amount){
+function fromLedgerAmount(amount, convertCurrencyCode){
 	if(typeof amount === 'string')
 		return {
 			currency: 'XRP',
@@ -542,7 +542,9 @@ function fromLedgerAmount(amount){
 		}
 	
 	return {
-		currency: amount.currency,
+		currency: convertCurrencyCode
+			? currencyHexToUTF8(amount.currency)
+			: amount.currency,
 		issuer: amount.issuer,
 		value: amount.value
 	}

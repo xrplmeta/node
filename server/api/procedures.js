@@ -160,8 +160,8 @@ export async function token_metric(ctx){
 				token: token.id, 
 				timeframe: ctx.config.tokens.stats.timeframes[timeframe]
 			}, 
-			start || 0,
-			end || unixNow()
+			start,
+			end
 		)
 
 		return stats.map(stat => ({

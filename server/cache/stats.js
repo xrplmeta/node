@@ -128,9 +128,11 @@ export function integrate(series, stats){
 		}
 	}
 
+	let { id, ...override } = point
+
 	this.insert({
 		table: 'Stats',
-		data: point,
+		data: override,
 		duplicate: 'update'
 	})
 }
