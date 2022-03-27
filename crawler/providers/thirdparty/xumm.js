@@ -33,7 +33,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 							name: issuer.name,
 							domain: issuer.domain,
 							icon: issuer.avatar,
-							xumm_trusted: true
+							trusted: true
 						},
 						account: currency.issuer,
 						source: 'xumm'
@@ -43,7 +43,7 @@ export default ({repo, config, loopTimeTask, count}) => {
 						meta: {
 							name: currency.name,
 							icon: currency.avatar,
-							xumm_trusted: true
+							trusted: true
 						},
 						token: {
 							currency: currencyHexToUTF8(currency.currency),

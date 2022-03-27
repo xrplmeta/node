@@ -1235,6 +1235,7 @@ function init$8(){
 			"token"			INTEGER NOT NULL,
 			"ledger"		INTEGER NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
+			"holders"		INTEGER NOT NULL,
 			"supply"		TEXT NOT NULL,
 			"bid"			TEXT NOT NULL,
 			"ask"			TEXT NOT NULL,
@@ -3138,7 +3139,9 @@ async function token(ctx){
 		throw {message: `token not listed`, expose: true}
 	}
 
-	return collapseToken(token, ctx.config.meta.sourcePriorities)
+	return full
+		? token
+		: collapseToken(token, ctx.config.meta.sourcePriorities)
 }
 
 
@@ -3203,8 +3206,8 @@ async function token_metric(ctx){
 				token: token.id, 
 				timeframe: ctx.config.tokens.stats.timeframes[timeframe]
 			}, 
-			start || 0,
-			end || unixNow()
+			start,
+			end
 		);
 
 		return stats.map(stat => ({

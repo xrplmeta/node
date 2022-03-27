@@ -30,7 +30,6 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let queue = fillQueue(xrpl, index)
 			let chunk
 			let scanned = 0
-			let start = Date.now()
 
 			if(log.level === 'debug')
 				snapshot.enableQueryProfiling()
@@ -125,7 +124,6 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 			let accounts = []
 			let balances = []
 			let stats = []
-			let distributions = []
 			let liquidity = new Decimal(0)
 
 			let relevantTokens = snapshot.iterate(
@@ -234,6 +232,7 @@ export default ({repo, config, xrpl, loopLedgerTask}) => {
 						issuer: token.issuer
 					},
 					trustlines: count,
+					holders: holders,
 					supply: supply.toString(),
 					bid: bid.toString(),
 					ask: ask.toString(),

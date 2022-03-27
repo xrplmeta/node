@@ -11,6 +11,7 @@ export function init(){
 			"token"			INTEGER NOT NULL,
 			"ledger"		INTEGER NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
+			"holders"		INTEGER NOT NULL,
 			"supply"		TEXT NOT NULL,
 			"bid"			TEXT NOT NULL,
 			"ask"			TEXT NOT NULL,

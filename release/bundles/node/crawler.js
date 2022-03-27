@@ -1286,6 +1286,7 @@ function init$4(){
 			"token"			INTEGER NOT NULL,
 			"ledger"		INTEGER NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
+			"holders"		INTEGER NOT NULL,
 			"supply"		TEXT NOT NULL,
 			"bid"			TEXT NOT NULL,
 			"ask"			TEXT NOT NULL,
@@ -2772,6 +2773,7 @@ var snapshot = ({repo, config, xrpl, loopLedgerTask}) => {
 						issuer: token.issuer
 					},
 					trustlines: count,
+					holders: holders,
 					supply: supply.toString(),
 					bid: bid.toString(),
 					ask: ask.toString(),
@@ -3105,7 +3107,7 @@ var xumm = ({repo, config, loopTimeTask, count}) => {
 							name: issuer.name,
 							domain: issuer.domain,
 							icon: issuer.avatar,
-							xumm_trusted: true
+							trusted: true
 						},
 						account: currency.issuer,
 						source: 'xumm'
@@ -3115,7 +3117,7 @@ var xumm = ({repo, config, loopTimeTask, count}) => {
 						meta: {
 							name: currency.name,
 							icon: currency.avatar,
-							xumm_trusted: true
+							trusted: true
 						},
 						token: {
 							currency: currencyHexToUTF8(currency.currency),
@@ -3265,7 +3267,7 @@ var xrpscan = ({repo, config, loopTimeTask}) => {
 						name,
 						domain,
 						twitter,
-						xrpscan_verified: verified,
+						verified: verified,
 					},
 					account,
 					source: 'xrpscan'

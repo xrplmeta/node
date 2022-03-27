@@ -95,7 +95,9 @@ export async function token(ctx){
 		throw {message: `token not listed`, expose: true}
 	}
 
-	return collapseToken(token, ctx.config.meta.sourcePriorities)
+	return full
+		? token
+		: collapseToken(token, ctx.config.meta.sourcePriorities)
 }
 
 
