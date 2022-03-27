@@ -9,6 +9,7 @@ export function init(){
 			"ledger"		INTEGER NOT NULL,
 			"date"			INTEGER NOT NULL,
 			"trustlines"	INTEGER NOT NULL,
+			"holders"		INTEGER NOT NULL,
 			"supply"		TEXT NOT NULL,
 			"marketcap"		TEXT NOT NULL,
 			"bid"			TEXT NOT NULL,
