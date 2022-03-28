@@ -5,3 +5,4 @@ package-lock.json
 **/dist/**
 crawler/crawler.toml
 server/server.toml
+release/bundles/**
