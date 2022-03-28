@@ -2,18 +2,24 @@ import log from '@xrplmeta/log'
 import * as procedures from './procedures.js'
 
 
+const keepAliveInterval = 10000
+
+
 export default class{
 	constructor(ctx){
 		this.ctx = ctx
 		this.clients = []
 		this.counter = 0
+
+		setInterval(() => this.ping(), keepAliveInterval)
 	}
 
 	register(socket){
 		 let client = {
 			id: ++this.counter,
 			socket, 
-			subscriptions: []
+			subscriptions: [],
+			alive: true
 		}
 
 		socket.on('message', async message => {
@@ -53,6 +59,10 @@ export default class{
 			}
 		})
 
+		socket.on('pong', () => {
+			client.alive = true
+		})
+
 		socket.on('close', () => {
 			this.clients.splice(this.clients.indexOf(client))
 			log.info(`client #${client.id} disconnected`)
@@ -75,5 +85,18 @@ export default class{
 
 	async subscribe(client, request){
 		
+	}
+
+	ping(){
+		for(let client of this.clients){
+			if(!client.alive){
+				client.socket.close()
+				log.info(`client #${client.id} inactivity kick`)
+				continue
+			}
+
+			client.alive = false
+			client.socket.ping()
+		}
 	}
 }
