@@ -1,6 +1,5 @@
 import Rest from '../../lib/rest.js'
 import log from '@xrplmeta/log'
-import { wait } from '@xrplmeta/utils'
 
 
 export default ({repo, config, loopTimeTask}) => {
