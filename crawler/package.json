@@ -4,13 +4,14 @@
   "version": "1.0.0-alpha",
   "main": "cli.js",
   "dependencies": {
-    "@xrplmeta/toml": "1.0.0-alpha",
-    "@xrplmeta/repo": "1.0.0-alpha",
     "@xrplmeta/log": "1.0.0-alpha",
+    "@xrplmeta/repo": "1.0.0-alpha",
+    "@xrplmeta/toml": "1.0.0-alpha",
     "@xrplmeta/utils": "1.0.0-alpha",
+    "@xrplworks/socket": "1.1.0",
+    "decimal.js": "^10.3.1",
     "limiter": "=2.0.1",
     "minimist": "^1.2.5",
-    "node-fetch": "^3.0.0",
-    "xrpl": "^2.0.0"
+    "node-fetch": "^3.0.0"
   }
 }

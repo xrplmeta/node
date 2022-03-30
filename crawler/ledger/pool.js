@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import xrpl from 'xrpl'
+import Socket from '@xrplworks/socket'
 import log from '@xrplmeta/log'
 import { wait } from '@xrplmeta/utils'
 
@@ -20,18 +20,18 @@ export default class extends EventEmitter{
 			let connections = spec.connections || 1
 
 			for(let i=0; i<connections; i++){
-				let client = new xrpl.Client(spec.url, {timeout: 60000})
+				let socket = new Socket(spec.url)
+				let client = {socket, spec}
 
-				//yes
-				client.spec = spec
 
-				client.on('transaction', tx => {
+				socket.on('transaction', tx => {
 					if(!this.hasSeen(`tx${tx.transaction.hash}`))
 						this.emit('transaction', tx)
 				})
-				client.on('ledgerClosed', ledger => {
+
+				socket.on('ledgerClosed', ledger => {
 					if(ledger.validated_ledgers){
-						client.spec.ledgers = ledger.validated_ledgers
+						spec.ledgers = ledger.validated_ledgers
 							.split(',')
 							.map(range => range
 								.split('-')
@@ -42,21 +42,22 @@ export default class extends EventEmitter{
 					if(!this.hasSeen(`ledger${ledger.ledger_index}`))
 						this.emit('ledger', ledger)
 				})
-				client.on('connected', () => {
+
+				socket.on('connected', () => {
 					this.printConnections(`${client.spec.url} established`)
 					this.subscribeClient(client)
 				})
-				client.on('disconnected', async code => {
-					this.printConnections(`${client.spec.url} disconnected: code ${code}`)
-					this.relentlesslyConnect(client)
+
+				socket.on('disconnected', async event => {
+					this.printConnections(`${client.spec.url} disconnected: ${event.reason ? event.reason : `code ${event.code}`}`)
 				})
-				client.on('error', error => {
-					this.log.error(`${client.spec.url} error: ${error}`)
+
+				socket.on('error', error => {
+					this.log.error(`${client.spec.url} error: ${error.message ? error.message : 'connection failure'}`)
 				})
 				
 
 				this.clients.push(client)
-				this.relentlesslyConnect(client)
 			}
 		}
 
@@ -110,7 +111,7 @@ export default class extends EventEmitter{
 	}
 
 	bidForJob(client, job){
-		if(!client.isConnected())
+		if(!client.socket.connected)
 			return
 
 		if(client.spec.busy)
@@ -127,7 +128,7 @@ export default class extends EventEmitter{
 		client.spec.busy = true
 
 		try{
-			let { result } = await client.request(job.request)
+			let result = await client.socket.request(job.request)
 
 			job.resolve(result)
 		}catch(error){
@@ -136,7 +137,6 @@ export default class extends EventEmitter{
 
 		client.spec.busy = false
 	}
-
 
 	request({priority, ...request}){
 		priority = priority || 0
@@ -158,24 +158,14 @@ export default class extends EventEmitter{
 		if(client.spec.allowedCommands && !client.spec.allowedCommands.includes('subscribe'))
 			return
 
-		let result = await client.request({
+		let result = await client.socket.request({
 			command: 'subscribe',
 			streams: ['ledger', 'transactions']
 		})
 	}
 
-	async relentlesslyConnect(client){
-		while(!client.isConnected()){
-			try{
-				await client.connect()
-			}catch(error){
-				await wait(3000)
-			}
-		}
-	}
-
 	printConnections(recent){
-		let online = this.clients.filter(client => client.isConnected()).length
+		let online = this.clients.filter(client => client.socket.connected).length
 
 		this.log.info(`connected to ${online} / ${this.clients.length} nodes ${recent ? `(${recent})` : ''}`)
 	}
