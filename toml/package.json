@@ -1,7 +1,7 @@
 {
   "name": "@xrplmeta/toml",
   "type": "module",
-  "version": "3.0.0-alpha",
+  "version": "1.0.0-alpha",
   "main": "index.js",
   "dependencies": {
     "toml": "^3.0.0"

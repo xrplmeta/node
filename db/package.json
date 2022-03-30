@@ -1,11 +1,11 @@
 {
   "name": "@xrplmeta/db",
   "type": "module",
-  "version": "3.0.0-alpha",
+  "version": "1.0.0-alpha",
   "main": "db.js",
   "dependencies": {
-    "@xrplmeta/log": "3.0.0-alpha",
-    "@xrplmeta/utils": "3.0.0-alpha",
-    "better-sqlite3": "^7.4.5"
+    "@xrplmeta/log": "1.0.0-alpha",
+    "@xrplmeta/utils": "1.0.0-alpha",
+    "better-sqlite3": "^7.5.0"
   }
 }

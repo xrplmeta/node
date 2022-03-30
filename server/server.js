@@ -25,6 +25,5 @@ const config = assignDeep(rawconf, args)
 const repo = initRepo({...config, readonly: false})
 const cache = initCache(config)
 
-
 await initSync({config, repo, cache})
 await initApi({config, cache})

@@ -1,7 +1,7 @@
 {
   "name": "@xrplmeta/migration",
   "type": "module",
-  "version": "3.0.0-alpha",
+  "version": "1.0.0-alpha",
   "description": "",
   "main": "transfer.js",
   "scripts": {
@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@xrplmeta/repo": "3.0.0-alpha"
+    "@xrplmeta/repo": "1.0.0-alpha"
   }
 }

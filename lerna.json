@@ -1,14 +1,12 @@
 {
-  "version": "3.0.0-alpha",
+  "version": "1.0.0-alpha",
   "npmClient": "npm",
   "command": {
     "publish": {
       "ignoreChanges": [
         "ignored-file",
         "*.md"
-      ],
-      "message": "chore(release): publish",
-      "registry": "https://npm.pkg.github.com"
+      ]
     },
     "bootstrap": {
       "npmClientArgs": [
