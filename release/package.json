@@ -8,14 +8,15 @@
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.1.3",
+    "gulp": "^4.0.2",
     "rollup": "^2.67.2",
     "rollup-plugin-natives": "^0.7.5"
   },
-  "dependencies": {
-    "gulp": "^4.0.2",
-    "pkg": "^5.5.2"
-  },
   "scripts": {
     "build": "npx gulp -f build.js"
+  },
+  "dependencies": {
+    "caxa": "^2.1.0",
+    "pkg": "^5.5.2"
   }
 }

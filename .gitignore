@@ -6,3 +6,4 @@ package-lock.json
 crawler/crawler.toml
 server/server.toml
 release/bundles/**
+release/intermediate/**

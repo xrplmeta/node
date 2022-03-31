@@ -15,12 +15,10 @@ const entries = [
 	'../server/server.js'
 ]
 
-const nativeModules = [
-	'better-sqlite3'
-]
-
 const state = {
-	modules: []
+	modules: [],
+	platform: process.platform
+		.replace('win32', 'win')
 }
 
 
@@ -58,30 +56,35 @@ async function createIntermediateBundles(){
 		let bundle = await rollup({
 			input: entry,
 			inlineDynamicImports: true,
-			external: nativeModules,
 			plugins: [
-				transform(),
-				resolve({
-					preferBuiltins: true,
-					skip: nativeModules
+				natives({
+					copyTo: 'intermediate/node_modules/addons',
+					destDir: './node_modules/addons'
 				}),
-				commonjs(),
+				transform(),
+				resolve({preferBuiltins: true}),
+				commonjs({ignoreDynamicRequires: true}),
 				json()
 			],
-			//onwarn: () => null
+			onwarn: () => null
 		})
 
-		let { output } = await bundle.write({
-			format: 'cjs',
-			file: outputFile
+		let { output } = await bundle.generate({
+			format: 'cjs'
 		})
+
+
+		fs.writeFileSync(
+			outputFile,
+			output[0].code
+				.replace(/bindings\.exports\(\'/g, `require('./node_modules/addons/`)
+		)
 	}
 }
 
 async function compileBinaries(){
-	let platform = process.platform
-	let platformDir = path.join('bundles', platform)
-	let binaryExt = platform === 'win32'
+	let platformDir = path.join('bundles', state.platform)
+	let binaryExt = state.platform === 'win'
 		 ? '.exe'
 		 : ''
 
@@ -93,8 +96,7 @@ async function compileBinaries(){
 
 		await compile([
 			bundleFile, 
-			'--target', `${platform}`,
-			'--config', path.join('intermediate', 'package.json'),
+			'--target', `${state.platform}`,
 			'--output', binaryFile
 		])
 	}
@@ -144,34 +146,17 @@ async function createNodeDescriptor(){
 	)
 }
 
-async function createIntermediateDescriptor(){
-	fs.writeFileSync(
-		path.join('intermediate', 'package.json'),
-		JSON.stringify({
-			pkg: {
-				assets: [
-					'node_modules/better-sqlite3/build/Release/*'
-				]
-			}
-		})
-	)
-}
-
-async function copyNativeExtensions(){
-	gulp.src('../db/node_modules/better-sqlite3/**')
-		.pipe(gulp.dest(`./intermediate/node_modules/better-sqlite3/`))
-}
 
 async function copyTemplates(){
 	gulp.src('./templates/**')
 		.pipe(gulp.dest(`./bundles/node/`))
-		.pipe(gulp.dest(`./bundles/${process.platform}/`))
+		.pipe(gulp.dest(`./bundles/${state.platform}/`))
 }
 
 
 function transform(){
 	return {
-		transform: code => {
+		transform: (code, file) => {
 			if(/^await/gm.test(code)){
 				let lines = code.split('\n')
 				let firstAwaitIndex = lines.findIndex(line => line.startsWith('await'))
@@ -187,7 +172,7 @@ function transform(){
 				]
 					.join('\n')
 			}
-	
+
 			return code
 				.replace(/fileURLToPath\(import\.meta\.url\)/g, '__filename')
 		}
@@ -198,8 +183,6 @@ export default gulp.series(
 	createNodeBundles,
 	createNodeDescriptor,
 	createIntermediateBundles,
-	createIntermediateDescriptor,
-	copyNativeExtensions,
 	compileBinaries,
 	copyTemplates
 )
