@@ -34,41 +34,6 @@ const collapseToken = (token, prios) => ({
 })
 
 
-export async function currencies(ctx){
-	let limit = ctx.parameters.limit || 100
-	let offset = ctx.parameters.offset || 0
-	let minTokens = ctx.parameters.min_tokens || 100
-	let filter = ctx.parameters.filter
-	let total = ctx.cache.currencies.count()
-	let currencies = ctx.cache.currencies.all({limit, offset, filter})
-	let stacks = []
-
-
-	for(let { currency, marketcap, volume } of currencies){
-		let tokens = ctx.cache.tokens.all({
-			currency,
-			minAccounts: minTokens,
-			limit: 3
-		})
-
-		if(tokens.length === 0)
-			continue
-
-		stacks.push({
-			currency,
-			tokens,
-			stats: {
-				marketcap: marketcap.toString(),
-				volume: volume.toString()
-			}
-		})
-	}
-
-	return {
-		currencies: stacks, 
-		count: total
-	}
-}
 
 export async function tokens(ctx){
 	let limit = Math.min(1000, ctx.parameters.limit || 100)
@@ -101,7 +66,7 @@ export async function token(ctx){
 }
 
 
-export async function token_metric(ctx){
+export async function token_series(ctx){
 	let { token: { currency, issuer }, metric, timeframe, start, end } = ctx.parameters
 	let token = ctx.cache.tokens.get({currency, issuer})
 	let division = Object.keys(metricDivisions)

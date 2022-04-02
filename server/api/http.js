@@ -1,5 +1,5 @@
 import Router from '@koa/router'
-import * as procedures from './procedures.js'
+import * as methods from './methods.js'
 
 
 export default class extends Router{
@@ -28,7 +28,7 @@ export default class extends Router{
 		this.get(
 			'/token/:token/:metric/:timeframe', 
 			this.wrappedProcedure(
-				'token_metric', 
+				'token_series', 
 				parameters => ({
 					...parameters,
 					token: this.parseTokenURI(parameters.token)
@@ -48,7 +48,7 @@ export default class extends Router{
 
 	wrappedProcedure(name, transformParameters){
 		return async ctx => {
-			if(!procedures[name]){
+			if(!methods[name]){
 				ctx.throw(404)
 				return
 			}
@@ -62,7 +62,7 @@ export default class extends Router{
 				if(transformParameters)
 					parameters = transformParameters(parameters)
 
-				ctx.body = await procedures[name]({
+				ctx.body = await methods[name]({
 					...this.ctx, 
 					parameters
 				})

@@ -1,5 +1,5 @@
 import log from '@xrplmeta/log'
-import * as procedures from './procedures.js'
+import * as methods from './methods.js'
 
 
 const keepAliveInterval = 10000
@@ -73,11 +73,11 @@ export default class{
 	}
 
 	async serveRequest(client, request){
-		if(!procedures[request.command]){
+		if(!methods[request.command]){
 			throw {message: 'unknown command', expose: true}
 		}
 
-		return await procedures[request.command]({
+		return await methods[request.command]({
 			...this.ctx,
 			parameters: request
 		})
