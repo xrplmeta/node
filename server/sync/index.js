@@ -4,6 +4,7 @@ import * as stats from './stats.js'
 import { wait, unixNow } from '@xrplworks/time'
 import log from '../../lib/log.js'
 import initCache from '../../lib/cache/index.js'
+import { accumulate as accumulateUpdates } from '../../lib/status.js'
 
 
 export function willRun(config){
@@ -164,13 +165,13 @@ async function loop(ctx){
 		affected = uniqueAffected
 
 
-		log.time(
+		/*log.time(
 			`sync.update`,
 			`tracked updates:`,
 			Object.entries(ranges)
 				.map(([key, [o, n]]) => `${key} ${o} -> ${n}`)
 				.join(`, `)
-		)
+		)*/
 		
 		try{
 			ctx.cache.tx(() => {
@@ -194,6 +195,10 @@ async function loop(ctx){
 			continue
 		}
 
-		log.time(`sync.update`, `committed updates in %`)
+		//log.time(`sync.update`, `committed updates in %`)
+
+		for(let [key, [o, n]] of Object.entries(ranges)){
+			accumulateUpdates({[key]: n-o})
+		}
 	}
 }

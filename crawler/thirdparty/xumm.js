@@ -1,5 +1,6 @@
 import log from '../../lib/log.js'
 import { createFetch } from '../../lib/http.js'
+import { accumulate as accumulateUpdates } from '../../lib/status.js'
 import { decode as decodeCurrency } from '@xrplworks/currency'
 import { scheduleTimeRoutine } from '../routine.js'
 
@@ -88,7 +89,7 @@ export function run({ config, repo }){
 				})
 			}
 
-			return {'KYCs checked': 1}
+			accumulateUpdates({'KYCs checked': 1})
 		}
 	})
 	
@@ -113,7 +114,7 @@ export function run({ config, repo }){
 				})
 			}
 
-			return {'avatars checked': 1}
+			accumulateUpdates({'avatars checked': 1})
 		}
 	})
 }

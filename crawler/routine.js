@@ -1,6 +1,6 @@
 import { wait, unixNow } from '@xrplworks/time'
 import log from '../lib/log.js'
-import { accumulate as accumulateUpdates } from '../lib/status.js'
+
 
 let repo
 let xrpl
@@ -24,12 +24,10 @@ export async function scheduleTimeRoutine({ id, interval, forEvery, routine }){
 				continue
 			}
 
-			accumulateUpdates(
-				await repo.operations.record(
-					id, 
-					`${subject}${operation.entity}`, 
-					routine(now, operation.entity)
-				)
+			await repo.operations.record(
+				id, 
+				`${subject}${operation.entity}`, 
+				routine(now, operation.entity)
 			)
 		}else{
 			let recent = await repo.operations.getMostRecent(id)
@@ -39,12 +37,10 @@ export async function scheduleTimeRoutine({ id, interval, forEvery, routine }){
 				continue
 			}
 
-			accumulateUpdates(
-				await repo.operations.record(
-					id, 
-					null, 
-					routine(now)
-				)
+			await repo.operations.record(
+				id, 
+				null, 
+				routine(now)
 			)
 		}
 	}
@@ -66,10 +62,7 @@ export async function scheduleLedgerRoutine({ id, interval, routine }){
 				covered = await repo.coverages.get(id, chosen)
 			}
 
-			accumulateUpdates(
-				await routine(chosen, chosen < head)
-			)
-
+			await routine(chosen, chosen < head)
 			await repo.coverages.extend(id, chosen)
 		}catch(e){
 			log.info(`ledger routine "${id}" failed:\n`, e)

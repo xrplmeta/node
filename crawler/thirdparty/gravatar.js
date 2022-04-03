@@ -1,6 +1,6 @@
 import { createFetch } from '../../lib/http.js'
+import { accumulate as accumulateUpdates } from '../../lib/status.js'
 import { scheduleTimeRoutine } from '../routine.js'
-
 
 
 export function willRun(config){
@@ -38,7 +38,7 @@ export function run({ repo, config }){
 				source: 'gravatar'
 			})
 
-			return {'avatars checked': 1}
+			accumulateUpdates({'avatars checked': 1})
 		}
 	})
 }
