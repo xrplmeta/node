@@ -19,6 +19,7 @@ export async function scheduleTimeRoutine({ id, interval, forEvery, routine }){
 			let subject = {account: 'A', token: 'T'}[forEvery]
 			let operation = await repo.operations.getNext(id, subject)
 
+
 			if(!operation || (operation.result === 'success' && operation.start + interval > now)){
 				await wait(1000)
 				continue

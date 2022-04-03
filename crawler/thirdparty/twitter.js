@@ -5,7 +5,7 @@ import { scheduleTimeRoutine } from '../routine.js'
 
 
 export function willRun(config){
-	return !!config.twitter
+	return !!config.twitter?.bearerToken
 }
 
 
@@ -57,13 +57,16 @@ export function run({ repo, config }){
 					.map(({twitter}) => twitter)
 					.join(',')
 
-				let { data: {data, errors} } = await fetch(
+				let { status, data: {data, errors} } = await fetch(
 					'users/by?user.fields=name,profile_image_url,description,entities,public_metrics'
 					+ `&usernames=${encodeURIComponent(usernamesQuery)}`
 				)
+
+				if(status !== 200)
+					throw `HTTP ${status}`
 			
-				if(!data && errors && errors.length > 0){
-					throw errors
+				if(!data){
+					throw errors[0]
 				}
 
 				log.info(`got`, data.length, `profiles`)
