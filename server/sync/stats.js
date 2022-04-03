@@ -1,14 +1,6 @@
 import Decimal from 'decimal.js'
-import { leftProximityZip } from '@xrplmeta/utils'
-import mainlog from '@xrplmeta/log'
-
-
-const log = mainlog.branch({
-	name: 'sync:stats',
-	color: 'cyan'
-})
-
-const mcapCandle = 60*60*4
+import { leftProximityZip } from '../../lib/utils.js'
+import log from '../../lib/log.js'
 
 
 
@@ -21,7 +13,7 @@ export function allocate(heads){
 	for(let i=0; i<tokens.length; i++){
 		let token = tokens[i].id
 		let stats = this.repo.stats.all({token})
-		let refTimeframe = Object.values(this.repo.config.tokens.stats.timeframes)[0]
+		let refTimeframe = Object.values(this.repo.config.server.snapshotTimeframes)[0]
 
 		if(stats.length === 0)
 			continue
@@ -56,7 +48,7 @@ export function allocate(heads){
 			}))
 			.map(({ token, ...stats }) => stats)
 
-		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+		for(let timeframe of Object.values(this.config.server.snapshotTimeframes)){
 			this.cache.stats.allocate({token, timeframe}, combined)
 		}
 
@@ -72,7 +64,7 @@ export function allocate(heads){
 }
 
 export function register({ affected, ranges }){
-	let timeframeCandles = Object.values(this.repo.config.tokens.stats.timeframes)[0]
+	let timeframeCandles = Object.values(this.repo.config.server.snapshotTimeframes)[0]
 
 	if(!ranges.stats)
 		return
@@ -93,7 +85,7 @@ export function register({ affected, ranges }){
 			Math.ceil(stats.date / timeframeCandles) * timeframeCandles
 		)[0]
 
-		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+		for(let timeframe of Object.values(this.config.server.snapshotTimeframes)){
 			this.cache.stats.integrate(
 				{
 					token,

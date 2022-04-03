@@ -1,4 +1,3 @@
-import { unixNow } from '@xrplmeta/utils'
 import { collapseMetas } from './utils.js'
 
 
@@ -16,7 +15,7 @@ const allowedSorts = [
 
 const metricDivisions = {
 	market: ['candle', 'price', 'volume'],
-	stats: ['trustlines', 'marketcap', 'supply', 'liquidity', 'distribution']
+	snapshot: ['trustlines', 'marketcap', 'supply', 'liquidity', 'distribution']
 }
 
 const collapseToken = (token, prios) => ({
@@ -42,10 +41,12 @@ export async function tokens(ctx){
 	let trusted = ctx.parameters.trusted
 	let search = ctx.parameters.search
 	let total = ctx.cache.tokens.count()
-	let sourcePriorities = ctx.config.meta.sourcePriorities
+	let sourcePriorities = ctx.config.server.sourcePriorities
+
 
 	if(!allowedSorts.includes(sort))
 		throw {message: `sort "${sort}" is not allowed. possible values are: ${allowedSorts.join(', ')}`, expose: true}
+
 
 	return ctx.cache.tokens.all({limit, offset, sort, trusted, search})
 		.map(token => collapseToken(token, sourcePriorities))
@@ -82,16 +83,16 @@ export async function token_series(ctx){
 	if(!division){
 		throw {
 			message: `metric "${metric}" is not available. available metrics are: ${
-				[...metricDivisions.market, ...metricDivisions.stats].join(', ')
+				[...metricDivisions.market, ...metricDivisions.snapshot].join(', ')
 			}`, 
 			expose: true
 		}
 	}
 
-	if(!ctx.config.tokens[division].timeframes[timeframe]){
+	if(!ctx.config.server[`${division}Timeframes`][timeframe]){
 		throw {
 			message: `timeframe "${timeframe}" not available - available timeframes are: ${
-				Object.keys(ctx.config.tokens[division].timeframes).join(', ')
+				Object.keys(ctx.config.server[`${division}Timeframes`]).join(', ')
 			}`, 
 			expose: true
 		}
@@ -102,7 +103,7 @@ export async function token_series(ctx){
 			{
 				base: token.id, 
 				quote: null, 
-				timeframe: ctx.config.tokens.market.timeframes[timeframe]
+				timeframe: ctx.config.server.marketTimeframes[timeframe]
 			},
 			start,
 			end
@@ -121,11 +122,11 @@ export async function token_series(ctx){
 		}else{
 			return candles
 		}
-	}else if(division === 'stats'){
+	}else if(division === 'snapshot'){
 		let stats = ctx.cache.stats.all(
 			{
 				token: token.id, 
-				timeframe: ctx.config.tokens.stats.timeframes[timeframe]
+				timeframe: ctx.config.server.snapshotTimeframes[timeframe]
 			}, 
 			start,
 			end

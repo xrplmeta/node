@@ -1,9 +1,2 @@
-**/node_modules/**
-package-lock.json
 .DS_Store
-.env
-**/dist/**
-crawler/crawler.toml
-server/server.toml
-release/bundles/**
-release/intermediate/**
+node_modules

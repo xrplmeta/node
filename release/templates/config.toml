@@ -1,0 +1,64 @@
+[DATA]
+#dir = "<path>"
+
+
+[XRPL]
+snapshot_interval_live = 225 # 15m
+snapshot_interval_backfill = 3600 # 4h
+snapshot_in_memory = false
+min_trustlines = 3
+capture_whales = 100
+top_percenters = [0.01, 0.1, 1.0, 10.0, 25.0, 50.0]
+
+[[XRPL.NODES]]
+disabled = true
+url = "wss://s1.ripple.com"
+allowed_commands = ['subscribe']
+
+[[XRPL.NODES]]
+url = "ws://xdex.com:4920"
+connections = 3
+allowed_commands = ['subscribe', 'ledger', 'ledger_data']
+
+
+[[AUX]]
+name = "xrplmeta"
+url = "https://static.xrplmeta.org/trusted.toml"
+trusted = true
+refresh_interval = 30
+
+
+[XUMM]
+api_key = "<key>"
+api_secret = "<secret>"
+refresh_interval_assets = 600
+refresh_interval_kyc = 86400
+refresh_interval_avatar = 86400
+max_requests_per_minute = 60
+
+[BITHOMP]
+refresh_interval = 600
+api_key = "<key>"
+
+[XRPSCAN]
+refresh_interval = 600
+
+[TWITTER]
+bearer_token = "<token>"
+refresh_interval = 3600
+max_requests_per_minute = 60
+
+[GRAVATAR]
+refresh_interval = 3600
+max_requests_per_minute = 60
+
+
+
+
+[SERVER]
+port = 4080
+cache_in_memory = false
+source_priorities = ['ledger', 'xrplmeta', 'domain', 'xumm', 'bithomp', 'xrpscan', 'twitter', 'gravatar']
+market_timeframes = {15m = 900, 1H = 3600, 4H = 14400, 1D = 86400}
+snapshot_timeframes = {4H = 14400, 1D = 86400}
+last_exchanges = 1000

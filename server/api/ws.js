@@ -1,4 +1,4 @@
-import log from '@xrplmeta/log'
+import log from '../../lib/log.js'
 import * as methods from './methods.js'
 
 

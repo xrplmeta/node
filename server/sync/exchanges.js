@@ -1,10 +1,4 @@
-import mainlog from '@xrplmeta/log'
-
-
-const log = mainlog.branch({
-	name: 'sync:exchanges',
-	color: 'cyan'
-})
+import log from '../../lib/log.js'
 
 
 export function allocate(heads){
@@ -50,7 +44,7 @@ export function allocate(heads){
 			))
 
 			this.cache.tx(() => {
-				for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+				for(let timeframe of Object.values(this.config.server.marketTimeframes)){
 					this.cache.candles.allocate(
 						{base: base, quote: quote, timeframe},
 						exchangesBQ
@@ -108,7 +102,7 @@ export function register({ ranges }){
 				continue
 		}
 
-		for(let timeframe of Object.values(this.config.tokens.market.timeframes)){
+		for(let timeframe of Object.values(this.config.server.marketTimeframes)){
 			this.cache.candles.integrate(
 				{base: exchange.base, quote: exchange.quote, timeframe},
 				exchangeBQ

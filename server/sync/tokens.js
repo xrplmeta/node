@@ -1,12 +1,8 @@
-import { unixNow, keySort, mapMultiKey, nestDotNotated } from '@xrplmeta/utils'
 import Decimal from 'decimal.js'
-import mainlog from '@xrplmeta/log'
+import { unixNow } from '@xrplworks/time'
+import { keySort, mapMultiKey } from '../../lib/utils.js'
+import log from '../../lib/log.js'
 
-
-const log = mainlog.branch({
-	name: 'sync:tokens',
-	color: 'cyan'
-})
 
 
 
@@ -58,11 +54,11 @@ function compose(token){
 	let meta = {
 		currency: sortMetas(
 			mapMultiKey(currencyMetas, 'key', true),
-			this.config.meta.sourcePriorities
+			this.config.server.sourcePriorities
 		),
 		issuer: sortMetas(
 			mapMultiKey(issuerMetas, 'key', true),
-			this.config.meta.sourcePriorities
+			this.config.server.sourcePriorities
 		)
 	}
 

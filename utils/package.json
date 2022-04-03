@@ -1,9 +1,0 @@
-{
-  "name": "@xrplmeta/utils",
-  "type": "module",
-  "version": "1.0.0-alpha",
-  "main": "index.js",
-  "dependencies": {
-    "decimal.js": "^10.3.1"
-  }
-}
