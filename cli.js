@@ -1,13 +1,11 @@
 import os from 'os'
-import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
-import { fork } from 'child_process'
 import minimist from 'minimist'
 import log from './lib/log.js'
 import initRepo from './lib/repo/index.js'
 import { load as loadConfig } from './lib/config.js'
 import { Hub, Client } from './lib/xrpl/adapter.js'
+import { spawn as spawnTask } from './lib/tasks.js'
 import { tasks as crawlerTasks } from './crawler/index.js'
 import { tasks as serverTasks } from './server/index.js'
 
@@ -37,6 +35,7 @@ const tasks = {...crawlerTasks, ...serverTasks}
 log.info(`data directory is at "${config.data.dir}"`)
 
 
+
 switch(command){
 	case 'run': {
 		const xrpl = new Hub(config.xrpl)
@@ -57,37 +56,11 @@ switch(command){
 		}
 
 		for(let task of activeTasks){
-			let subprocess = fork(
-				fileURLToPath(import.meta.url), 
-				[
-					`work`,
-					`--config`, configPath,
-					`--task`, task
-				],
-				{
-					silent: true
-				}
-			)
-
-			log.subprocess(subprocess)
-			xrpl.register(subprocess)
-			
-			subprocess.stderr.on('data', data => {
-				log.error(`subprocess [${task}] error:\n${data.toString()}`)
+			spawnTask({
+				task,
+				configPath,
+				xrpl
 			})
-
-			subprocess.on('error', error => {
-				log.error(`subprocess [${task}] fatal error:`)
-				log.error(error)
-				xrpl.discard(subprocess)
-			})
-
-			subprocess.on('exit', code => {
-				log.error(`subprocess [${task}] exited with code ${code}`)
-				xrpl.discard(subprocess)
-			})
-
-			log.info(`spawned [${task}]`)
 		}
 
 		log.info(`all processes up`)

@@ -38,7 +38,7 @@ export function run({ repo, config }){
 				source: 'gravatar'
 			})
 
-			accumulateUpdates({'avatars checked': 1})
+			accumulateUpdates({'% avatar(s) checked': 1})
 		}
 	})
 }

@@ -16,7 +16,8 @@ export async function run({ config, repo }){
 	let ctx = {config, repo, cache}
 
 	try{
-		if(cache.isEmpty()){
+		if(cache.newlyCreated){
+			log.info('first time creating caching database')
 			allocate(ctx)
 		}else{
 			if(Object.keys(cache.heads.all()).length === 0)
@@ -25,7 +26,17 @@ export async function run({ config, repo }){
 	}catch(e){
 		log.error(`caching database corrupted (${e}) -> recreating from scratch`)
 
-		cache.wipe()
+		while(true){
+			try{
+				cache.wipe()
+				break
+			}catch{
+				log.warn(`could not wipe corrupted data base - killing occupiers`)
+				process.send({type: 'kill', task: 'server:api'})
+				await wait(500)
+			}
+		}
+		
 		allocate(ctx)
 	}
 
@@ -198,7 +209,7 @@ async function loop(ctx){
 		//log.time(`sync.update`, `committed updates in %`)
 
 		for(let [key, [o, n]] of Object.entries(ranges)){
-			accumulateUpdates({[key]: n-o})
+			accumulateUpdates({[`+% ${key}`]: n-o})
 		}
 	}
 }

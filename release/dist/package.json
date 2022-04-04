@@ -1,0 +1,24 @@
+{
+    "name": "xrplmeta",
+    "type": "module",
+    "version": "1.0.0-alpha",
+    "dependencies": {
+        "@koa/router": "^10.1.1",
+        "@xrplworks/currency": "^1.0.0",
+        "@xrplworks/socket": "^1.1.1",
+        "@xrplworks/time": "^1.0.0",
+        "@xrplworks/tx": "^1.1.1",
+        "better-sqlite3": "^7.5.0",
+        "decimal.js": "^10.3.1",
+        "koa": "^2.13.4",
+        "koa-easy-ws": "^2.1.0",
+        "limiter": "2.0.1",
+        "minimist": "^1.2.6",
+        "node-fetch": "^3.0.0",
+        "ripple-address-codec": "^4.2.3",
+        "toml": "^3.0.0"
+    },
+    "bin": {
+        "xrplmeta": "bin/xrplmeta.js"
+    }
+}

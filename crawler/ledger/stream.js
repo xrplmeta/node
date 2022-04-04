@@ -41,7 +41,7 @@ export function run({ repo, config, xrpl }){
 			
 			repo.coverages.extend('ledgertx', open.index)
 
-			accumulateUpdates({'recorded exchanges': exchanges.length})
+			accumulateUpdates({'% exchange(s) recorded': exchanges.length})
 		}catch(e){
 			log.info(`failed to record ${exchanges.length} exchange(s):\n`, e)
 		}
@@ -51,7 +51,7 @@ export function run({ repo, config, xrpl }){
 
 	xrpl.on('ledger', ledger => {
 		if(open){
-			log.info(`ledger #${open.index} was incomplete (${open.txs.length} txs gone to waste)`)
+			log.info(`ledger #${open.index} was incomplete (${open.txs.length} tx gone to waste)`)
 		}
 
 		open = {

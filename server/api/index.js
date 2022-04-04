@@ -11,7 +11,7 @@ export function willRun(config){
 }
 
 
-export function run ({ config, repo }) {
+export function run({ config, repo }) {
 	let cache = initCache(config)
 	let koa = new Koa()
 	let router = new HTTPRouter({cache, config})

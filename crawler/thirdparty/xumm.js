@@ -89,7 +89,7 @@ export function run({ config, repo }){
 				})
 			}
 
-			accumulateUpdates({'KYCs checked': 1})
+			accumulateUpdates({'% KYC(s) checked': 1})
 		}
 	})
 	
@@ -114,7 +114,7 @@ export function run({ config, repo }){
 				})
 			}
 
-			accumulateUpdates({'avatars checked': 1})
+			accumulateUpdates({'% avatar(s) checked': 1})
 		}
 	})
 }
