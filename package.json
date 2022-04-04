@@ -3,7 +3,7 @@
   "version": "1.0.0-alpha",
   "type": "module",
   "scripts": {
-    "release": "node release/build.js"
+    "dist": "node release/build.js"
   },
   "dependencies": {
     "@koa/router": "^10.1.1",

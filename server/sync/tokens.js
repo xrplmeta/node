@@ -39,10 +39,7 @@ export function register({ affected }){
 }
 
 export function update(id){
-	let token = this.repo.tokens.get({id})
-
-	if(token)
-		compose.call(this, token)
+	compose.call(this, this.repo.tokens.get({id}))
 }
 
 function compose(token){

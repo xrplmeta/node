@@ -6,7 +6,7 @@ import { scheduleTimeRoutine } from '../routine.js'
 
 
 export function willRun(config){
-	return !!config.xumm
+	return !!config.xumm?.apiKey
 }
 
 export function run({ config, repo }){

@@ -1257,7 +1257,7 @@ function insert$2(exchanges){
 			let base = this.tokens.id(exchange.takerGot);
 			let quote = this.tokens.id(exchange.takerPaid);
 			let price = serialize(Decimal.div(exchange.takerPaid.value, exchange.takerGot.value));
-			let volume = serialize(new Decimal(exchange.takerPaid.value));
+			let volume = serialize(new Decimal(exchange.takerGot.value));
 
 			return {
 				hash: hash.slice(0, 4),
@@ -1308,38 +1308,6 @@ function decode$1(exchange){
 	}
 }
 
-function align(exchange, base, quote){
-	if(exchange.base === base){
-		return {
-			id: exchange.id,
-			ledger: exchange.ledger,
-			date: exchange.date,
-			price: exchange.price,
-			volume: Decimal.mul(exchange.volume, exchange.price)
-		}
-	}else if(exchange.base === quote){
-		return {
-			id: exchange.id,
-			ledger: exchange.ledger,
-			date: exchange.date,
-			price: Decimal.div('1', exchange.price),
-			volume: exchange.volume
-		}
-	}else {
-		throw 'unexpected base/quote pair'
-	}
-}
-
-function invert(exchanges){
-	return {
-		id: exchange.id,
-		ledger: exchange.ledger,
-		date: exchange.date,
-		price: Decimal.div('1', exchange.price),
-		volume: Decimal.mul(exchange.volume, exchange.price)
-	}
-}
-
 function pairs(unique){
 	let pairs = this.all(`SELECT DISTINCT base, quote FROM Exchanges`);
 
@@ -1362,8 +1330,6 @@ var exchanges = /*#__PURE__*/Object.freeze({
 	insert: insert$2,
 	iter: iter,
 	decode: decode$1,
-	align: align,
-	invert: invert,
 	pairs: pairs,
 	count: count$2
 });
@@ -1718,7 +1684,7 @@ function load(file, createIfMissing){
 function create(file){
 	let dir = path.dirname(file);
 	path.dirname(process.argv[1]);
-	let templatePath = path.join(__dirname, '..', 'release', 'templates', 'config.toml');
+	let templatePath = path.join(__dirname, './templates/config.toml');
 	let template = fs.readFileSync(templatePath, 'utf-8');
 	let customizedTemplate = template
 		.replace(
@@ -2681,17 +2647,6 @@ var backfill = /*#__PURE__*/Object.freeze({
 let status = {};
 let timeout;
 
-function print(){
-	log.info(
-		Object.entries(status)
-			.map(([k, v]) => k.replace('%', v))
-			.join(', ')
-	);
-
-	status = {};
-	timeout = null;
-}
-
 function accumulate(updates){
 	if(!updates)
 		return
@@ -2701,7 +2656,18 @@ function accumulate(updates){
 	}
 
 	if(!timeout)
-		timeout = setTimeout(print, 10000);
+		timeout = setTimeout(flush, 10000);
+}
+
+function flush(){
+	log.info(
+		Object.entries(status)
+			.map(([k, v]) => k.replace('%', v.toLocaleString('en-US')))
+			.join(', ')
+	);
+
+	status = {};
+	timeout = null;
 }
 
 function willRun$8(){
@@ -2969,7 +2935,7 @@ var aux = /*#__PURE__*/Object.freeze({
 });
 
 function willRun$6(config){
-	return !!config.xumm
+	return !!config.xumm?.apiKey
 }
 
 function run$6({ config, repo }){
@@ -3089,7 +3055,7 @@ var xumm = /*#__PURE__*/Object.freeze({
 });
 
 function willRun$5(config){
-	return !!config.bithomp
+	return !!config.bithomp?.apiKey
 }
 
 
@@ -3416,27 +3382,27 @@ function allocate$6(heads){
 		];
 		
 		if(!base || !quote){
-			//filter outliers, align exchange so volume is XRP
+			//filter outliers, format exchange so volume is XRP
 			exchanges = exchanges
 				.filter(exchange => 
-					this.repo.exchanges.align(
+					formatExchange(
 						exchange,
 						base ? base : quote,
 						base ? quote : base
-					).volume.gte('0.01')
+					).volume.gte('0.001')
 				);
 		}
 
 		exchanges.sort((a, b) => a.date - b.date);
 
 		if(exchanges.length > 0){
-			let exchangesBQ = exchanges.map(exchange => this.repo.exchanges.align(
+			let exchangesBQ = exchanges.map(exchange => formatExchange(
 				exchange, 
 				base, 
 				quote
 			));
 
-			let exchangesQB = exchanges.map(exchange => this.repo.exchanges.align(
+			let exchangesQB = exchanges.map(exchange => formatExchange(
 				exchange, 
 				quote, 
 				base
@@ -3491,8 +3457,8 @@ function register$2({ ranges }){
 	});
 
 	for(let exchange of newExchanges){
-		let exchangeBQ = this.repo.exchanges.align(exchange, exchange.base, exchange.quote);
-		let exchangeQB = this.repo.exchanges.align(exchange, exchange.quote, exchange.base);
+		let exchangeBQ = formatExchange(exchange, exchange.base, exchange.quote);
+		let exchangeQB = formatExchange(exchange, exchange.quote, exchange.base);
 
 		if(!exchange.base || !exchange.quote){
 			let volume = exchange.base ? exchangeBQ.volume : exchangeQB.volume;
@@ -3522,6 +3488,28 @@ function register$2({ ranges }){
 			{base: exchange.quote, quote: exchange.base},
 			exchangeQB
 		)*/
+	}
+}
+
+function formatExchange(exchange, base, quote){
+	if(exchange.base === base){
+		return {
+			id: exchange.id,
+			ledger: exchange.ledger,
+			date: exchange.date,
+			price: exchange.price,
+			volume: Decimal.mul(exchange.volume, exchange.price)
+		}
+	}else if(exchange.base === quote){
+		return {
+			id: exchange.id,
+			ledger: exchange.ledger,
+			date: exchange.date,
+			price: Decimal.div('1', exchange.price),
+			volume: exchange.volume
+		}
+	}else {
+		throw 'unexpected base/quote pair'
 	}
 }
 
@@ -3558,10 +3546,7 @@ function register$1({ affected }){
 }
 
 function update(id){
-	let token = this.repo.tokens.get({id});
-
-	if(token)
-		compose.call(this, token);
+	compose.call(this, this.repo.tokens.get({id}));
 }
 
 function compose(token){
@@ -4484,7 +4469,8 @@ async function run$1({ config, repo }){
 		allocate(ctx);
 	}
 
-	loop(ctx);
+	syncRoutine(ctx);
+	refreshRoutine(ctx);
 }
 
 function allocate(ctx){
@@ -4501,7 +4487,7 @@ function allocate(ctx){
 	ctx.cache.heads.set(repoHeads);
 }
 
-async function loop(ctx){
+async function syncRoutine(ctx){
 	let cacheHeads;
 	let repoHeads;
 
@@ -4578,24 +4564,6 @@ async function loop(ctx){
 		}
 
 		if(affected.length === 0){
-			let outdatedTokens = ctx.cache.tokens.all({updatedBefore: unixNow() - 60 * 60});
-
-			if(outdatedTokens.length > 0){
-				log.time(`sync.tokensupdate`, `updating ${outdatedTokens.length} outdated tokens`);
-
-				try{
-					ctx.cache.tx(() => {
-						for(let { id } of outdatedTokens){
-							update.call(ctx, id);
-						}
-					});
-				}catch(e){
-					log.error(`failed to commit token updates:\n`, e);
-				}
-
-				log.time(`sync.tokensupdate`, `updated outdated tokens in %`);
-			}
-
 			await wait(100);
 			continue
 		}
@@ -4654,6 +4622,34 @@ async function loop(ctx){
 
 		for(let [key, [o, n]] of Object.entries(ranges)){
 			accumulate({[`+% ${key}`]: n-o});
+		}
+	}
+}
+
+async function refreshRoutine(ctx){
+	while(true){
+		await wait(10000);
+
+		let outdatedTokens = ctx.cache.tokens.all({updatedBefore: unixNow() - 60 * 15});
+
+		if(outdatedTokens.length > 0){
+			let failed = 0;
+			
+			log.time(`sync.tokensupdate`, `updating ${outdatedTokens.length} stale tokens`);
+
+			try{
+				for(let { id } of outdatedTokens){
+					try{
+						update.call(ctx, id);
+					}catch{
+						failed++;
+					}
+				}
+			}catch(e){
+				log.error(`failed to commit token updates:\n`, e);
+			}
+
+			log.time(`sync.tokensupdate`, `updated ${outdatedTokens.length - failed} / ${outdatedTokens.length} stale tokens in %`);
 		}
 	}
 }
@@ -5078,7 +5074,7 @@ switch(command){
 			if((!only || only.includes(id)) && task.willRun(config)){
 				activeTasks.push(id);
 			}else {
-				log.info(`disabling [${id}] (as per config)`);
+				log.warn(`disabling [${id}] (as per config)`);
 			}
 		}
 

@@ -4,7 +4,7 @@ import { scheduleTimeRoutine } from '../routine.js'
 
 
 export function willRun(config){
-	return !!config.bithomp
+	return !!config.bithomp?.apiKey
 }
 
 

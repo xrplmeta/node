@@ -40,7 +40,8 @@ export async function run({ config, repo }){
 		allocate(ctx)
 	}
 
-	loop(ctx)
+	syncRoutine(ctx)
+	refreshRoutine(ctx)
 }
 
 function allocate(ctx){
@@ -57,7 +58,7 @@ function allocate(ctx){
 	ctx.cache.heads.set(repoHeads)
 }
 
-async function loop(ctx){
+async function syncRoutine(ctx){
 	let cacheHeads
 	let repoHeads
 
@@ -134,24 +135,6 @@ async function loop(ctx){
 		}
 
 		if(affected.length === 0){
-			let outdatedTokens = ctx.cache.tokens.all({updatedBefore: unixNow() - 60 * 60})
-
-			if(outdatedTokens.length > 0){
-				log.time(`sync.tokensupdate`, `updating ${outdatedTokens.length} outdated tokens`)
-
-				try{
-					ctx.cache.tx(() => {
-						for(let { id } of outdatedTokens){
-							tokens.update.call(ctx, id)
-						}
-					})
-				}catch(e){
-					log.error(`failed to commit token updates:\n`, e)
-				}
-
-				log.time(`sync.tokensupdate`, `updated outdated tokens in %`)
-			}
-
 			await wait(100)
 			continue
 		}
@@ -210,6 +193,34 @@ async function loop(ctx){
 
 		for(let [key, [o, n]] of Object.entries(ranges)){
 			accumulateUpdates({[`+% ${key}`]: n-o})
+		}
+	}
+}
+
+async function refreshRoutine(ctx){
+	while(true){
+		await wait(10000)
+
+		let outdatedTokens = ctx.cache.tokens.all({updatedBefore: unixNow() - 60 * 15})
+
+		if(outdatedTokens.length > 0){
+			let failed = 0
+			
+			log.time(`sync.tokensupdate`)
+
+			try{
+				for(let { id } of outdatedTokens){
+					try{
+						tokens.update.call(ctx, id)
+					}catch{
+						failed++
+					}
+				}
+			}catch(e){
+				log.error(`failed to commit token updates:\n`, e)
+			}
+
+			log.time(`sync.tokensupdate`, `updated ${outdatedTokens.length - failed} / ${outdatedTokens.length} stale tokens in %`)
 		}
 	}
 }

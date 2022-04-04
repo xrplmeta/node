@@ -19,6 +19,6 @@
         "toml": "^3.0.0"
     },
     "bin": {
-        "xrplmeta": "bin/xrplmeta.js"
+        "xrplmeta": "xrplmeta.js"
     }
 }

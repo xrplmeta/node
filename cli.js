@@ -46,7 +46,7 @@ switch(command){
 			if((!only || only.includes(id)) && task.willRun(config)){
 				activeTasks.push(id)
 			}else{
-				log.info(`disabling [${id}] (as per config)`)
+				log.warn(`disabling [${id}] (as per config)`)
 			}
 		}
 

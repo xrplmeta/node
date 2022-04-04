@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import log from '../../lib/log.js'
 
 
@@ -17,27 +18,27 @@ export function allocate(heads){
 		]
 		
 		if(!base || !quote){
-			//filter outliers, align exchange so volume is XRP
+			//filter outliers, format exchange so volume is XRP
 			exchanges = exchanges
 				.filter(exchange => 
-					this.repo.exchanges.align(
+					formatExchange(
 						exchange,
 						base ? base : quote,
 						base ? quote : base
-					).volume.gte('0.01')
+					).volume.gte('0.001')
 				)
 		}
 
 		exchanges.sort((a, b) => a.date - b.date)
 
 		if(exchanges.length > 0){
-			let exchangesBQ = exchanges.map(exchange => this.repo.exchanges.align(
+			let exchangesBQ = exchanges.map(exchange => formatExchange(
 				exchange, 
 				base, 
 				quote
 			))
 
-			let exchangesQB = exchanges.map(exchange => this.repo.exchanges.align(
+			let exchangesQB = exchanges.map(exchange => formatExchange(
 				exchange, 
 				quote, 
 				base
@@ -92,8 +93,8 @@ export function register({ ranges }){
 	})
 
 	for(let exchange of newExchanges){
-		let exchangeBQ = this.repo.exchanges.align(exchange, exchange.base, exchange.quote)
-		let exchangeQB = this.repo.exchanges.align(exchange, exchange.quote, exchange.base)
+		let exchangeBQ = formatExchange(exchange, exchange.base, exchange.quote)
+		let exchangeQB = formatExchange(exchange, exchange.quote, exchange.base)
 
 		if(!exchange.base || !exchange.quote){
 			let volume = exchange.base ? exchangeBQ.volume : exchangeQB.volume
@@ -123,5 +124,27 @@ export function register({ ranges }){
 			{base: exchange.quote, quote: exchange.base},
 			exchangeQB
 		)*/
+	}
+}
+
+function formatExchange(exchange, base, quote){
+	if(exchange.base === base){
+		return {
+			id: exchange.id,
+			ledger: exchange.ledger,
+			date: exchange.date,
+			price: exchange.price,
+			volume: Decimal.mul(exchange.volume, exchange.price)
+		}
+	}else if(exchange.base === quote){
+		return {
+			id: exchange.id,
+			ledger: exchange.ledger,
+			date: exchange.date,
+			price: Decimal.div('1', exchange.price),
+			volume: exchange.volume
+		}
+	}else{
+		throw 'unexpected base/quote pair'
 	}
 }

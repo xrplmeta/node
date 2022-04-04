@@ -2,9 +2,8 @@ import fs from 'fs'
 import { rollup } from 'rollup'
 
 
-fs.mkdirSync('./release/dist/bin', {recursive: true})
-fs.mkdirSync('./release/dist/release/templates', {recursive: true})
-fs.copyFileSync('./release/templates/config.toml', './release/dist/release/templates/config.toml')
+fs.mkdirSync('./release/dist/templates', {recursive: true})
+fs.copyFileSync('./release/templates/config.toml', './release/dist/templates/config.toml')
 
 
 let bundle = await rollup({
@@ -16,10 +15,10 @@ let { output } = await bundle.generate({
 })
 
 fs.writeFileSync(
-	'./release/dist/bin/xrplmeta.js',
+	'./release/dist/xrplmeta.js',
 	`#!/usr/bin/env node\n\n`
 	+ output[0].code
-		.replace()
+		.replace('../release/templates/config.toml', './templates/config.toml')
 )
 
 let devDescriptor = JSON.parse(
@@ -32,7 +31,7 @@ let descriptor = {
 	version: devDescriptor.version,
 	dependencies: devDescriptor.dependencies,
 	bin: {
-		xrplmeta: 'bin/xrplmeta.js'
+		xrplmeta: 'xrplmeta.js'
 	}
 }
 
