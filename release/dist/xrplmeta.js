@@ -2168,12 +2168,12 @@ async function scheduleLedgerRoutine({ id, interval, routine }){
 	}
 }
 
-function willRun$a(){
+function willRun$b(){
 	return true
 }
 
 
-function run$a({ repo, config, xrpl }){
+function run$b({ repo, config, xrpl }){
 	scheduleLedgerRoutine({
 		id: 'snapshot',
 		interval: {
@@ -2522,8 +2522,8 @@ function fillQueue(xrpl, index){
 
 var snapshot = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	willRun: willRun$a,
-	run: run$a
+	willRun: willRun$b,
+	run: run$b
 });
 
 function fromTxs(txs){
@@ -2583,11 +2583,11 @@ function fromTxs(txs){
 	}
 }
 
-function willRun$9(){
+function willRun$a(){
 	return true
 }
 
-function run$9({ repo, config, xrpl }){
+function run$a({ repo, config, xrpl }){
 	scheduleLedgerRoutine({
 		id: 'backfill',
 		interval: {
@@ -2640,8 +2640,8 @@ function run$9({ repo, config, xrpl }){
 
 var backfill = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	willRun: willRun$9,
-	run: run$9
+	willRun: willRun$a,
+	run: run$a
 });
 
 let status = {};
@@ -2670,11 +2670,11 @@ function flush(){
 	timeout = null;
 }
 
-function willRun$8(){
+function willRun$9(){
 	return true
 }
 
-function run$8({ repo, config, xrpl }){
+function run$9({ repo, config, xrpl }){
 	let open = null;
 	let commit = () => {
 		let exchanges = [];
@@ -2741,8 +2741,8 @@ function run$8({ repo, config, xrpl }){
 
 var stream = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	willRun: willRun$8,
-	run: run$8
+	willRun: willRun$9,
+	run: run$9
 });
 
 function createFetch({ baseUrl, headers, ratelimit }){
@@ -2759,7 +2759,7 @@ function createFetch({ baseUrl, headers, ratelimit }){
 
 		let data;
 		let res = await fetch(
-			sanitizeUrl(`${baseUrl}/${url}`),
+			sanitizeUrl(baseUrl ? `${baseUrl}/${url}` : url),
 			{
 				headers: {
 					...headers,
@@ -2794,74 +2794,205 @@ function sanitizeUrl(str){
 		.replace(/\?$/, '')
 }
 
-const issuerFields = [
-	'address',
-	'name',
-	'trusted',
-	'description',
-	'icon',
-	'domain',
-	'twitter',
-	'telegram',
-	'discord',
-	'youtube',
-	'facebook',
-	'reddit',
-	'medium',
+const accountFields = [
+	{
+		key: 'address',
+		validate: v => /^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v)
+	},
+	{
+		key: 'name',
+		validate: v => typeof v === 'string' && v.length > 0
+	},
+	{
+		key: 'description',
+		alternativeKeys: ['desc'],
+		validate: v => typeof v === 'string' && v.length > 0
+	},
+	{
+		key: 'icon',
+		validate: v => /^https?:\/\/.*$/.test(v)
+	},
+	{
+		key: 'websites',
+		type: 'array',
+		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
+	},
+	{
+		key: 'trusted',
+		validate: v => typeof v === 'boolean'
+	}
 ];
 
+
 const currencyFields = [
-	'code',
-	'issuer',
-	'name',
-	'trusted',
-	'description',
-	'icon',
-	'domain',
-	'twitter',
-	'telegram',
-	'discord',
-	'youtube',
-	'facebook',
-	'reddit',
-	'medium',
+	{
+		key: 'code',
+		validate: v => /^[0-9A-F]{40}$/
+	},
+	{
+		key: 'address',
+		validate: v => /^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v)
+	},
+	{
+		key: 'name',
+		validate: v => typeof v === 'string' && v.length > 0
+	},
+	{
+		key: 'description',
+		alternativeKeys: ['desc'],
+		validate: v => typeof v === 'string' && v.length > 0
+	},
+	{
+		key: 'icon',
+		validate: v => /^https?:\/\/.*$/.test(v)
+	},
+	{
+		key: 'websites',
+		type: 'array',
+		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
+	},
+	{
+		key: 'trusted',
+		validate: v => typeof v === 'boolean'
+	}
 ];
 
 
 function parse(str){
 	let toml = parse$1(str);
-	let issuers = [];
+	let accounts = [];
 	let currencies = [];
 
-	if(toml.issuers){
-		for(let issuer of toml.issuers){
-			issuers.push(
-				Object.entries(issuer)
-					.reduce((clean, [key, value]) => 
-						issuerFields.includes(key)
-							? {...clean, [key]: value}
-							: clean
-					,{})
-			);
-		}
+	if(toml.accounts){
+		accounts = toml.accounts
+			.map(account => parseStanza(account, accountFields));
+	}
 
-		for(let currency of toml.currencies){
-			currencies.push(
-				Object.entries(currency)
-					.reduce((clean, [key, value]) => 
-						currencyFields.includes(key)
-							? {...clean, [key]: value}
-							: clean
-					,{})
-			);
-		}
+	if(toml.currencies){
+		currencies = toml.currencies
+			.map(currency => parseStanza(currency, currencyFields));
 	}
 
 	return {
-		issuers,
+		accounts,
 		currencies
 	}
 }
+
+function parseStanza(stanza, schemas){
+	let parsed = {};
+
+	for(let { key, alternativeKeys, validate } of schemas){
+		let keys = [key];
+
+		if(alternativeKeys)
+			keys.push(...alternativeKeys);
+
+		for(let k of keys){
+			if(!stanza.hasOwnProperty(k))
+				continue
+
+			let value = stanza[k];
+
+			if(schema.validate && !schema.validate(value))
+				continue
+
+			parsed[k] = value;
+			break
+		}
+	}
+
+	return parsed
+}
+
+function willRun$8(config){
+	return !!config.domains
+}
+
+function run$8({ config, repo }){
+	let fetch = createFetch({
+		headers: {
+			'user-agent': config.domains.user_agent ||
+				'XRPL-Meta-Crawler (https://xrplmeta.org)'
+		}
+	});
+
+	scheduleTimeRoutine({
+		id: 'domains',
+		interval: config.domains.refreshInterval,
+		forEvery: 'account',
+		routine: async (t, accountId) => {
+			let { address, domain } = await repo.accounts.get({id: accountId});
+			let xls26;
+			let metas = [];
+			
+			if(!domain)
+				return
+
+			let tomlUrl = `http://${domain}/.well-known/xrp-ledger.toml`;
+
+			accumulate({'% xls-26 lookups': 1});
+
+			try{
+				let { status, data } = await fetch(tomlUrl);
+				
+				if(status !== 200){
+					log.debug(`issuer (${address}) HTTP ${status}: ${tomlUrl}`);
+					return
+				}
+
+				xls26 = parse(data);
+			}catch(error){
+				log.debug(`issuer (${address}) ${error.message}: ${tomlUrl}`);
+				return
+			}
+
+			for(let { address: addr, ...meta } of xls26.accounts){
+				if(addr !== address)
+					continue
+
+				metas.push({
+					meta,
+					account: address,
+					source: 'domain'
+				});
+			}
+
+			for(let { code, issuer, ...meta } of xls26.currencies){
+				if(issuer !== address)
+					continue
+
+				metas.push({
+					meta,
+					token: {
+						currency: decode$3(code),
+						issuer: address
+					},
+					source: 'domain'
+				});
+			}
+
+			for(let { meta } of metas){
+				delete meta.trusted;
+			}
+
+			for(let meta of metas){
+				repo.metas.insert(meta);
+			}
+
+			log.debug(`issuer (${address}) wrote ${metas.length} metas from ${tomlUrl}`);
+
+
+			accumulate({'% xrp-ledger.toml scans': 1});
+		}
+	});
+}
+
+var domains = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	willRun: willRun$8,
+	run: run$8
+});
 
 function willRun$7(config){
 	return !!config.aux
@@ -2887,10 +3018,13 @@ function run$7({ config, repo }){
 					throw `${aux.url}: HTTP ${response.status}`
 				}
 
-				let { issuers, currencies } = parse(data);
+				let { accounts, currencies } = parse(data);
 				let metas = [];
 
-				for(let { address, ...meta } of issuers){
+				log.info(accounts);
+				log.info(currencies);
+
+				for(let { address, ...meta } of accounts){
 					metas.push({
 						meta,
 						account: address,
@@ -3348,6 +3482,7 @@ const map = {
 	snapshot,
 	backfill,
 	stream,
+	domains,
 	aux,
 	xumm,
 	bithomp,
@@ -4635,7 +4770,7 @@ async function refreshRoutine(ctx){
 		if(outdatedTokens.length > 0){
 			let failed = 0;
 			
-			log.time(`sync.tokensupdate`, `updating ${outdatedTokens.length} stale tokens`);
+			log.time(`sync.tokensupdate`);
 
 			try{
 				for(let { id } of outdatedTokens){

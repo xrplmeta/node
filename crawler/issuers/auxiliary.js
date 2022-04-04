@@ -1,5 +1,5 @@
 import { createFetch } from '../../lib/http.js'
-import { parse as parseXLS26 } from '../../standards/xls26.js'
+import { parse as parseXLS26 } from '../../lib/xls26.js'
 import log from '../../lib/log.js'
 import { decode as decodeCurrency } from '@xrplworks/currency'
 import { scheduleTimeRoutine } from '../routine.js'
@@ -29,7 +29,7 @@ export function run({ config, repo }){
 					throw `${aux.url}: HTTP ${response.status}`
 				}
 
-				let { issuers, currencies } = parseXLS26(data)
+				let { issuers, tokens } = parseXLS26(data)
 				let metas = []
 
 				for(let { address, ...meta } of issuers){
@@ -40,7 +40,7 @@ export function run({ config, repo }){
 					})
 				}
 
-				for(let { code, issuer, ...meta } of currencies){
+				for(let { code, issuer, ...meta } of tokens){
 					metas.push({
 						meta,
 						token: {

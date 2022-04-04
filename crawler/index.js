@@ -1,7 +1,8 @@
 import * as snapshot from './ledger/snapshot.js'
 import * as backfill from './ledger/backfill.js'
 import * as stream from './ledger/stream.js'
-import * as aux from './issuers/auxilliary.js'
+import * as domains from './issuers/domains.js'
+import * as aux from './issuers/auxiliary.js'
 import * as xumm from './thirdparty/xumm.js'
 import * as bithomp from './thirdparty/bithomp.js'
 import * as xrpscan from './thirdparty/xrpscan.js'
@@ -15,6 +16,7 @@ const map = {
 	snapshot,
 	backfill,
 	stream,
+	domains,
 	aux,
 	xumm,
 	bithomp,
