@@ -40,11 +40,11 @@ export function run({ config, repo }){
 					})
 				}
 
-				for(let { code, issuer, ...meta } of tokens){
+				for(let { currency, issuer, ...meta } of tokens){
 					metas.push({
 						meta,
 						token: {
-							currency: decodeCurrency(code),
+							currency,
 							issuer
 						},
 						source: aux.name

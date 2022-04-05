@@ -67,16 +67,14 @@ export default class extends Router{
 					parameters
 				})
 			}catch(e){
-				let { expose, ...error } = e
+				if(e.expose){
+					delete e.expose
 
-				console.log(e)
-
-				if(expose){
 					ctx.status = 400
-					ctx.body = error
+					ctx.body = e
 				}else{
 					ctx.status = 500
-					console.error(error)
+					console.error(e)
 				}
 			}
 		}

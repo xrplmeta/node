@@ -33,7 +33,12 @@ export function register({ affected }){
 	for(let { type, id } of relevant){
 		if(type === 'token'){
 			compose.call(this, this.repo.tokens.get({id}))
-			//log.debug(`updated token (TL${id})`)
+			log.debug(`updated token (TL${id})`)
+		}else if(type === 'account'){
+			for(let token of this.repo.tokens.all({issuer: id})){
+				compose.call(this, token)
+				log.debug(`updated token (TL${token.id})`)
+			}
 		}
 	}
 }
@@ -48,6 +53,14 @@ function compose(token){
 
 	let currencyMetas = this.repo.metas.all({token})
 	let issuerMetas = this.repo.metas.all({account: issuerId})
+
+	if(issuer.domain)
+		issuerMetas.push({
+			key: 'domain', 
+			value: issuer.domain, 
+			source: 'ledger'
+		})
+
 	let meta = {
 		currency: sortMetas(
 			mapMultiKey(currencyMetas, 'key', true),

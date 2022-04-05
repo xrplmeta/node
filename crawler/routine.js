@@ -21,6 +21,7 @@ export async function scheduleTimeRoutine({ id, interval, forEvery, routine }){
 
 
 			if(!operation || (operation.result === 'success' && operation.start + interval > now)){
+				log.debug('wait')
 				await wait(1000)
 				continue
 			}

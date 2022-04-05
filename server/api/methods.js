@@ -63,7 +63,7 @@ export async function token(ctx){
 
 	return full
 		? token
-		: collapseToken(token, ctx.config.meta.sourcePriorities)
+		: collapseToken(token, ctx.config.server.sourcePriorities)
 }
 
 
