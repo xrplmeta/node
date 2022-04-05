@@ -1,7 +1,6 @@
 import { createFetch } from '../../lib/http.js'
 import { parse as parseXLS26 } from '../../lib/xls26.js'
 import log from '../../lib/log.js'
-import { decode as decodeCurrency } from '@xrplworks/currency'
 import { scheduleTimeRoutine } from '../routine.js'
 import { accumulate as accumulateUpdates } from '../../lib/status.js'
 
@@ -12,6 +11,7 @@ export function willRun(config){
 
 export function run({ config, repo }){
 	let fetch = createFetch({
+		timeout: 5,
 		headers: {
 			'user-agent': config.domains.user_agent ||
 				'XRPL-Meta-Crawler (https://xrplmeta.org)'
@@ -32,7 +32,7 @@ export function run({ config, repo }){
 
 			let tomlUrl = `http://${domain}/.well-known/xrp-ledger.toml`
 
-			accumulateUpdates({'% xls-26 lookups': 1})
+			accumulateUpdates({'% xrp-ledger.toml lookups': 1})
 
 			try{
 				let { status, data } = await fetch(tomlUrl)
@@ -59,15 +59,15 @@ export function run({ config, repo }){
 				})
 			}
 
-			for(let { code, issuer, ...meta } of xls26.tokens){
+			for(let { currency, issuer, ...meta } of xls26.tokens){
 				if(issuer !== address)
 					continue
 
 				metas.push({
 					meta,
 					token: {
-						currency: decodeCurrency(code),
-						issuer: address
+						currency,
+						issuer
 					},
 					source: 'domain'
 				})
@@ -81,8 +81,11 @@ export function run({ config, repo }){
 				repo.metas.insert(meta)
 			}
 
+
 			log.debug(`issuer (${address}) wrote ${metas.length} metas from ${tomlUrl}`)
 
+			if(metas.length > 0)
+				accumulateUpdates({'% extracted metas': metas.length})
 
 			accumulateUpdates({'% xrp-ledger.toml scans': 1})
 		}

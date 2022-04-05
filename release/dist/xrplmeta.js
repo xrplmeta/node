@@ -17,6 +17,7 @@ import { decode as decode$3 } from '@xrplworks/currency';
 import { extractExchanges } from '@xrplworks/tx';
 import fetch from 'node-fetch';
 import { RateLimiter } from 'limiter';
+import { parse as parse$2 } from '@xrplworks/xls26';
 import Koa from 'koa';
 import websocket from 'koa-easy-ws';
 import Router from '@koa/router';
@@ -422,7 +423,7 @@ class DB{
 			try{
 				let stat = fs.statSync(`${this.file}-wal`);
 
-				log.debug(`WAL file is ${stat.size} bytes`);
+				log.debug(`WAL file is`, parseInt(stat.size), `bytes`);
 
 				if(stat.size > maxSize){
 					log.info(`WAL file exceeds max size of ${maxSize}`);
@@ -673,11 +674,19 @@ function get$5(by){
 }
 
 
-function all$9(){
-	return this.all(
-		`SELECT *
-		FROM Tokens`, 
-	)
+function all$9(by = {}){
+	if(by.issuer){
+		return this.all(
+			`SELECT * FROM Tokens
+			WHERE issuer = ?`,
+			by.issuer, 
+		)
+	}else {
+		return this.all(
+			`SELECT *
+			FROM Tokens`, 
+		)
+	}
 }
 
 
@@ -2117,6 +2126,7 @@ async function scheduleTimeRoutine({ id, interval, forEvery, routine }){
 
 
 			if(!operation || (operation.result === 'success' && operation.start + interval > now)){
+				log.debug('wait');
 				await wait(1000);
 				continue
 			}
@@ -2745,7 +2755,7 @@ var stream = /*#__PURE__*/Object.freeze({
 	run: run$9
 });
 
-function createFetch({ baseUrl, headers, ratelimit }){
+function createFetch({ baseUrl, headers, ratelimit, timeout = 60 }){
 	let limiter = ratelimit 
 		? new RateLimiter({
 			tokensPerInterval: ratelimit, 
@@ -2756,17 +2766,28 @@ function createFetch({ baseUrl, headers, ratelimit }){
 	return async (url = '', options = {}) => {
 		if(limiter)
 			await limiter.removeTokens(1);
-
+		
+		let res;
 		let data;
-		let res = await fetch(
-			sanitizeUrl(baseUrl ? `${baseUrl}/${url}` : url),
-			{
-				headers: {
-					...headers,
-					...options.headers
+		let signal = new AbortSignal();
+		let timeoutTimer = setTimeout(() => signal.emit('abort'), timeout * 1000);
+
+		try{
+			res = await fetch(
+				sanitizeUrl(baseUrl ? `${baseUrl}/${url}` : url),
+				{
+					signal,
+					headers: {
+						...headers,
+						...options.headers
+					}
 				}
-			}
-		);
+			);
+		}catch(error){
+			throw error
+		}finally{
+			clearTimeout(timeoutTimer);
+		}
 
 		try{
 			if(res.headers.get('content-type').includes('application/json')){
@@ -2794,115 +2815,81 @@ function sanitizeUrl(str){
 		.replace(/\?$/, '')
 }
 
-const accountFields = [
-	{
-		key: 'address',
-		validate: v => /^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v)
-	},
-	{
-		key: 'name',
-		validate: v => typeof v === 'string' && v.length > 0
-	},
-	{
-		key: 'description',
-		alternativeKeys: ['desc'],
-		validate: v => typeof v === 'string' && v.length > 0
-	},
-	{
-		key: 'icon',
-		validate: v => /^https?:\/\/.*$/.test(v)
-	},
-	{
-		key: 'websites',
-		type: 'array',
-		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
-	},
-	{
-		key: 'trusted',
-		validate: v => typeof v === 'boolean'
-	}
-];
-
-
-const currencyFields = [
-	{
-		key: 'code',
-		validate: v => /^[0-9A-F]{40}$/
-	},
-	{
-		key: 'address',
-		validate: v => /^[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{25,35}$/.test(v)
-	},
-	{
-		key: 'name',
-		validate: v => typeof v === 'string' && v.length > 0
-	},
-	{
-		key: 'description',
-		alternativeKeys: ['desc'],
-		validate: v => typeof v === 'string' && v.length > 0
-	},
-	{
-		key: 'icon',
-		validate: v => /^https?:\/\/.*$/.test(v)
-	},
-	{
-		key: 'websites',
-		type: 'array',
-		validate: v => Array.isArray(v) && v.every(v => typeof v === 'string'),
-	},
-	{
-		key: 'trusted',
-		validate: v => typeof v === 'boolean'
-	}
-];
-
-
-function parse(str){
-	let toml = parse$1(str);
-	let accounts = [];
-	let currencies = [];
-
-	if(toml.accounts){
-		accounts = toml.accounts
-			.map(account => parseStanza(account, accountFields));
+class AbortSignal extends EventEmitter{
+	get [Symbol.toStringTag]() {
+		return 'AbortSignal'
 	}
 
-	if(toml.currencies){
-		currencies = toml.currencies
-			.map(currency => parseStanza(currency, currencyFields));
+	addEventListener(...args){
+		this.on(...args);
 	}
 
-	return {
-		accounts,
-		currencies
+	removeEventListener(...args){
+		this.off(...args);
 	}
 }
 
-function parseStanza(stanza, schemas){
-	let parsed = {};
+const linkmap = {
+	twitter: [
+		/https?:\/\/(?:www\.)?twitter\.com\/(\w{1,15})/
+	]
+};
 
-	for(let { key, alternativeKeys, validate } of schemas){
-		let keys = [key];
 
-		if(alternativeKeys)
-			keys.push(...alternativeKeys);
+function parse(str){
+	let { accounts, currencies } = parse$2(str);
 
-		for(let k of keys){
-			if(!stanza.hasOwnProperty(k))
+	return {
+		issuers: accounts
+			.map(transform),
+		tokens: currencies
+			.map(transform)
+			.map(({code, ...token}) => ({
+				...token, 
+				currency: decode$3(code)
+			})),
+	}
+}
+
+function transform({ links, ...meta }){
+	let { websites, ...handles } = parseLinks(links || []);
+	let transformed = {...meta, ...handles};
+
+	if(websites)
+		transformed.domain = websites[0]
+			.replace(/^https?:\/\//, '');
+
+	return transformed
+}
+
+function parseLinks(urls){
+	let out = {};
+
+	for(let url of urls){
+		let unknown = true;
+
+		for(let [key, regexes] of Object.entries(linkmap)){
+			if(out[key])
 				continue
 
-			let value = stanza[k];
+			for(let regex of regexes){
+				let match = url.match(regex);
 
-			if(schema.validate && !schema.validate(value))
-				continue
+				if(!match || !match[1])
+					continue
 
-			parsed[k] = value;
-			break
+				out[key] = match[1];
+				unknown = false;
+				break
+			}
+		}
+
+		if(unknown){
+			out.websites = [...(out.websites || []), url];
 		}
 	}
 
-	return parsed
+	return out
 }
 
 function willRun$8(config){
@@ -2911,6 +2898,7 @@ function willRun$8(config){
 
 function run$8({ config, repo }){
 	let fetch = createFetch({
+		timeout: 5,
 		headers: {
 			'user-agent': config.domains.user_agent ||
 				'XRPL-Meta-Crawler (https://xrplmeta.org)'
@@ -2931,7 +2919,7 @@ function run$8({ config, repo }){
 
 			let tomlUrl = `http://${domain}/.well-known/xrp-ledger.toml`;
 
-			accumulate({'% xls-26 lookups': 1});
+			accumulate({'% xrp-ledger.toml lookups': 1});
 
 			try{
 				let { status, data } = await fetch(tomlUrl);
@@ -2947,7 +2935,7 @@ function run$8({ config, repo }){
 				return
 			}
 
-			for(let { address: addr, ...meta } of xls26.accounts){
+			for(let { address: addr, ...meta } of xls26.issuers){
 				if(addr !== address)
 					continue
 
@@ -2958,15 +2946,15 @@ function run$8({ config, repo }){
 				});
 			}
 
-			for(let { code, issuer, ...meta } of xls26.currencies){
+			for(let { currency, issuer, ...meta } of xls26.tokens){
 				if(issuer !== address)
 					continue
 
 				metas.push({
 					meta,
 					token: {
-						currency: decode$3(code),
-						issuer: address
+						currency,
+						issuer
 					},
 					source: 'domain'
 				});
@@ -2980,8 +2968,11 @@ function run$8({ config, repo }){
 				repo.metas.insert(meta);
 			}
 
+
 			log.debug(`issuer (${address}) wrote ${metas.length} metas from ${tomlUrl}`);
 
+			if(metas.length > 0)
+				accumulate({'% extracted metas': metas.length});
 
 			accumulate({'% xrp-ledger.toml scans': 1});
 		}
@@ -3018,13 +3009,10 @@ function run$7({ config, repo }){
 					throw `${aux.url}: HTTP ${response.status}`
 				}
 
-				let { accounts, currencies } = parse(data);
+				let { issuers, tokens } = parse(data);
 				let metas = [];
 
-				log.info(accounts);
-				log.info(currencies);
-
-				for(let { address, ...meta } of accounts){
+				for(let { address, ...meta } of issuers){
 					metas.push({
 						meta,
 						account: address,
@@ -3032,11 +3020,11 @@ function run$7({ config, repo }){
 					});
 				}
 
-				for(let { code, issuer, ...meta } of currencies){
+				for(let { currency, issuer, ...meta } of tokens){
 					metas.push({
 						meta,
 						token: {
-							currency: decode$3(code),
+							currency,
 							issuer
 						},
 						source: aux.name
@@ -3675,7 +3663,12 @@ function register$1({ affected }){
 	for(let { type, id } of relevant){
 		if(type === 'token'){
 			compose.call(this, this.repo.tokens.get({id}));
-			//log.debug(`updated token (TL${id})`)
+			log.debug(`updated token (TL${id})`);
+		}else if(type === 'account'){
+			for(let token of this.repo.tokens.all({issuer: id})){
+				compose.call(this, token);
+				log.debug(`updated token (TL${token.id})`);
+			}
 		}
 	}
 }
@@ -3690,6 +3683,14 @@ function compose(token){
 
 	let currencyMetas = this.repo.metas.all({token});
 	let issuerMetas = this.repo.metas.all({account: issuerId});
+
+	if(issuer.domain)
+		issuerMetas.push({
+			key: 'domain', 
+			value: issuer.domain, 
+			source: 'ledger'
+		});
+
 	let meta = {
 		currency: sortMetas(
 			mapMultiKey(currencyMetas, 'key', true),
@@ -4873,7 +4874,7 @@ async function token(ctx){
 
 	return full
 		? token
-		: collapseToken(token, ctx.config.meta.sourcePriorities)
+		: collapseToken(token, ctx.config.server.sourcePriorities)
 }
 
 
@@ -5021,16 +5022,14 @@ class HTTPRouter extends Router{
 					parameters
 				});
 			}catch(e){
-				let { expose, ...error } = e;
+				if(e.expose){
+					delete e.expose;
 
-				console.log(e);
-
-				if(expose){
 					ctx.status = 400;
-					ctx.body = error;
+					ctx.body = e;
 				}else {
 					ctx.status = 500;
-					console.error(error);
+					console.error(e);
 				}
 			}
 		}
