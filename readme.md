@@ -4,7 +4,7 @@ This is a node.js based implementation of the [XRPL Meta Project](https://xrplme
 
 > Fetch realtime market- and metadata for any digital asset on the XRP Ledger.
 
-![enter image description here](https://static.xrplmeta.org/node-flowchart.svg?v3)
+![enter image description here](https://static.xrplmeta.org/node-flowchart.svg?v5)
 
  - [x] Automatic scraping of the XRPL
  - [x] Automatic scraping of Twitter, Bithomp, XUMM, etc
