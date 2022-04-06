@@ -1,10 +1,10 @@
 # The XRPL Meta Node
 
-This is a node.js based implementation of the [XRPL Meta Project](https://xrplmeta.org).
+This is a node.js based implementation of the [XRPL Meta Project](https://xrplmeta.org). 
 
-> Fetch realtime market- and metadata for any digital asset on the XRP Ledger.
+## About
 
-![enter image description here](https://static.xrplmeta.org/node-flowchart.svg?v5)
+Fetch realtime market- and metadata for any digital asset on the XRP Ledger. Use the data to display user friendly representations of tokens and NFTs on the XRPL, including icons, descriptions and market data.
 
  - [x] Automatic scraping of the XRPL
  - [x] Automatic scraping of Twitter, Bithomp, XUMM, etc
@@ -18,6 +18,12 @@ This is a node.js based implementation of the [XRPL Meta Project](https://xrplme
  - [ ] NFT metadata
  - [ ] NFT content delivery
  - [ ] NFT price history 
+
+## Technical Overview
+
+This program runs as a self-contained node. Its footprint is kept as small as possible. To do its work, all it needs is an internet connection and access to the file system.
+
+![Node Architecture](https://static.xrplmeta.org/node-flowchart.svg?v5)
 
 
 
@@ -49,3 +55,8 @@ The development node can be started using
 
     node cli
 
+## API Documentation
+
+https://xrplmeta.org/docs
+
+The node will listen for incoming HTTP connections on the port specified in the `config.toml` file. These can either serve a REST query, or be upgraded to a WebSocket connection.
