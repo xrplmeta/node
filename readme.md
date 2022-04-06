@@ -4,7 +4,7 @@ This is a node.js based implementation of the [XRPL Meta Project](https://xrplme
 
 > Fetch realtime market- and metadata for any digital asset on the XRP Ledger.
 
-![enter image description here](https://static.xrplmeta.org/node-flowchart.svg)
+![enter image description here](https://static.xrplmeta.org/node-flowchart.svg?v3)
 
  - [x] Automatic scraping of the XRPL
  - [x] Automatic scraping of Twitter, Bithomp, XUMM, etc
@@ -19,15 +19,17 @@ This is a node.js based implementation of the [XRPL Meta Project](https://xrplme
  - [ ] NFT content delivery
  - [ ] NFT price history 
 
+
+
 ## Requirements
 
  - Node.js version +14
  - An internet connection
  - More than 1 GB of disk storage recommended
 
-## How to install
 
-### For production use
+
+## Install for production use
 
  install the public NPM package, like so
 
@@ -36,7 +38,8 @@ This is a node.js based implementation of the [XRPL Meta Project](https://xrplme
 This will add the `xrplmeta` command to your PATH. Simply run this command to start a node. A template configuration file will be placed in your user directory. It is highly advised to adjust this config.
 
 
-### For development
+
+## Install for development
 
 clone this repository and install the dependencies, by running the following command in the repositories root directory
 
