@@ -12,7 +12,7 @@ export function allocate(heads){
 	
 	for(let i=0; i<tokens.length; i++){
 		let token = tokens[i].id
-		let stats = this.repo.stats.all({token})
+		let stats = this.repo.tokenSnapshots.all({token})
 		let refTimeframe = Object.values(this.repo.config.server.snapshotTimeframes)[0]
 
 		if(stats.length === 0)
@@ -49,7 +49,7 @@ export function allocate(heads){
 			.map(({ token, ...stats }) => stats)
 
 		for(let timeframe of Object.values(this.config.server.snapshotTimeframes)){
-			this.cache.stats.allocate({token, timeframe}, combined)
+			this.cache.tokenSnapshots.allocate({token, timeframe}, combined)
 		}
 
 		let newProgress = Math.floor((i / tokens.length) * 100)
@@ -69,7 +69,7 @@ export function register({ affected, ranges }){
 	if(!ranges.stats)
 		return
 
-	let newStats = this.repo.stats.all({
+	let newStats = this.repo.tokenSnapshots.all({
 		from: ranges.stats[0],
 		to: ranges.stats[1]
 	})
@@ -86,7 +86,7 @@ export function register({ affected, ranges }){
 		)[0]
 
 		for(let timeframe of Object.values(this.config.server.snapshotTimeframes)){
-			this.cache.stats.integrate(
+			this.cache.tokenSnapshots.integrate(
 				{
 					token,
 					timeframe

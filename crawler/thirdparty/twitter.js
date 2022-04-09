@@ -27,7 +27,7 @@ export function run({ repo, config }){
 			let targets = {}
 
 			for(let { id } of repo.accounts.all()){
-				let meta = repo.metas.get({account: id, key: 'twitter'})
+				let meta = repo.tokenMetas.get({account: id, key: 'twitter'})
 				let twitter = meta?.value
 
 				if(!twitter)
@@ -108,7 +108,7 @@ export function run({ repo, config }){
 						}
 					}
 
-					accounts.forEach(account => repo.metas.insert({
+					accounts.forEach(account => repo.tokenMetas.insert({
 						meta,
 						account,
 						source: 'twitter'

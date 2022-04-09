@@ -51,8 +51,8 @@ function compose(token){
 	let { id, currency, issuer: issuerId } = token
 	let issuer = this.repo.accounts.get({id: issuerId})	
 
-	let currencyMetas = this.repo.metas.all({token})
-	let issuerMetas = this.repo.metas.all({account: issuerId})
+	let currencyMetas = this.repo.tokenMetas.all({token})
+	let issuerMetas = this.repo.tokenMetas.all({account: issuerId})
 
 	if(issuer.domain)
 		issuerMetas.push({
@@ -80,7 +80,7 @@ function compose(token){
 			return true
 	})
 
-	let currentStats = this.repo.stats.get(token)
+	let currentStats = this.repo.tokenSnapshots.get(token)
 	let yesterdayStats
 	let stats = {
 		marketcap: new Decimal(0),
@@ -103,8 +103,8 @@ function compose(token){
 		stats.liquidity = {ask: currentStats.ask, bid: currentStats.bid}
 		stats.trustlines = currentStats.trustlines
 
-		let yesterday = this.repo.stats.get(token, currentStats.date - 60*60*24)
-		let lastWeek = this.repo.stats.get(token, currentStats.date - 60*60*24*7)
+		let yesterday = this.repo.tokenSnapshots.get(token, currentStats.date - 60*60*24)
+		let lastWeek = this.repo.tokenSnapshots.get(token, currentStats.date - 60*60*24*7)
 
 		if(yesterday){
 			stats.trustlines_change = {
@@ -157,14 +157,14 @@ function compose(token){
 function calculatePopularityScore(token){
 	let score = 0
 
-	if(token.stats.volume)
-		score += parseFloat(token.stats.volume.day)
+	if(token.tokenSnapshots.volume)
+		score += parseFloat(token.tokenSnapshots.volume.day)
 
-	if(token.stats.trustlines)
-		score += token.stats.trustlines * 5
+	if(token.tokenSnapshots.trustlines)
+		score += token.tokenSnapshots.trustlines * 5
 
-	if(token.stats.trustlines_change)
-		score += token.stats.trustlines_change.day * 5
+	if(token.tokenSnapshots.trustlines_change)
+		score += token.tokenSnapshots.trustlines_change.day * 5
 
 	if(token.trusted)
 		score *= 1.5

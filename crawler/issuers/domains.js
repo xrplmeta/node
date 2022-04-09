@@ -78,7 +78,7 @@ export function run({ config, repo }){
 			}
 
 			for(let meta of metas){
-				repo.metas.insert(meta)
+				repo.tokenMetas.insert(meta)
 			}
 
 

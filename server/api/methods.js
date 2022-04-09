@@ -123,7 +123,7 @@ export async function token_series(ctx){
 			return candles
 		}
 	}else if(division === 'snapshot'){
-		let stats = ctx.cache.stats.all(
+		let stats = ctx.cache.tokenSnapshots.all(
 			{
 				token: token.id, 
 				timeframe: ctx.config.server.snapshotTimeframes[timeframe]

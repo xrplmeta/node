@@ -5,16 +5,16 @@ import log from '../../lib/log.js'
 export function allocate(heads){
 	log.time(`sync.candles`, `building exchanges cache`)
 
-	let pairs = this.repo.exchanges.pairs(true)
-	let count = this.repo.exchanges.count()
+	let pairs = this.repo.tokenExchanges.pairs(true)
+	let count = this.repo.tokenExchanges.count()
 	let processed = 0
 	let progress = 0
 
 
 	for(let {base, quote} of pairs){
 		let exchanges = [
-			...this.repo.exchanges.iter({base: base, quote: quote}),
-			...this.repo.exchanges.iter({base: quote, quote: base})
+			...this.repo.tokenExchanges.iter({base: base, quote: quote}),
+			...this.repo.tokenExchanges.iter({base: quote, quote: base})
 		]
 		
 		if(!base || !quote){
@@ -87,7 +87,7 @@ export function register({ ranges }){
 	if(!ranges.exchanges)
 		return
 
-	let newExchanges = this.repo.exchanges.iter({
+	let newExchanges = this.repo.tokenExchanges.iter({
 		from: ranges.exchanges[0],
 		to: ranges.exchanges[1]
 	})

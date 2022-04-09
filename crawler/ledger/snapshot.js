@@ -106,7 +106,7 @@ export function run({ repo, config, xrpl }){
 								pays = state.TakerPays.value
 							}
 
-							snapshot.offers.insert({
+							snapshot.tokenOffers.insert({
 								account: state.Account,
 								base,
 								quote,
@@ -264,19 +264,19 @@ export function run({ repo, config, xrpl }){
 				stats.length, `stats,`
 			)
 
-			repo.states.insert({
+			repo.ledgerSnapshots.insert({
 				index,
 				accounts: snapshot.accounts.count(),
 				trustlines: snapshot.balances.count(),
 				tokens: snapshot.tokens.count(),
-				offers: snapshot.offers.count(),
+				offers: snapshot.tokenOffers.count(),
 				liquidity: liquidity.toString()
 			})
 
 			await repo.criticalTx(() => {
 				accounts.forEach(x => repo.accounts.insert(x))
 				balances.forEach(x => repo.balances.insert(x))
-				stats.forEach(x => repo.stats.insert(x))
+				stats.forEach(x => repo.tokenSnapshots.insert(x))
 			})
 
 			log.time(`snapshot.insert`, `inserted rows in %`)

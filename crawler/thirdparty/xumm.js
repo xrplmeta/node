@@ -65,7 +65,7 @@ export function run({ config, repo }){
 
 			log.info(`writing`, metas.length, `metas to db...`)
 
-			metas.forEach(meta => repo.metas.insert(meta))
+			metas.forEach(meta => repo.tokenMetas.insert(meta))
 
 			log.info(`asset scan complete`)
 		}
@@ -80,7 +80,7 @@ export function run({ config, repo }){
 			let { data } = await fetchApi(`kyc-status/${account.address}`)
 
 			if(data.kycApproved){
-				repo.metas.insert({
+				repo.tokenMetas.insert({
 					meta: {
 						kyc: true
 					},
@@ -105,7 +105,7 @@ export function run({ config, repo }){
 			)
 
 			if(headers.get('location')){
-				repo.metas.insert({
+				repo.tokenMetas.insert({
 					meta: {
 						icon: headers.get('location').split('?')[0]
 					},

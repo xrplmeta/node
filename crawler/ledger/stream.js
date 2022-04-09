@@ -28,18 +28,18 @@ export function run({ repo, config, xrpl }){
 		}
 
 		try{
-			repo.exchanges.insert(
+			repo.tokenExchanges.insert(
 				exchanges
 					.map(exchange => ({...exchange, ledger: open.index}))
 			)
 			
-			repo.ledgers.insert({
+			repo.ledgerCaptures.insert({
 				index: open.index, 
 				date: open.time, 
 				...summarize(open.txs)
 			})
 			
-			repo.coverages.extend('ledgertx', open.index)
+			repo.ledgerDiscovery.extend('ledgertx', open.index)
 
 			accumulateUpdates({'% exchange(s) recorded': exchanges.length})
 		}catch(e){

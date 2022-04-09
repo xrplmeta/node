@@ -61,7 +61,7 @@ export function run({ config, repo }){
 				log.info(`writing`, metas.length, `metas to db...`)
 
 				for(let meta of metas){
-					repo.metas.insert(meta)
+					repo.tokenMetas.insert(meta)
 				}
 
 				log.info(`${aux.name} aux scan complete`)
