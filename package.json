@@ -1,29 +1,27 @@
 {
-  "name": "xrplmeta",
-  "version": "1.0.0-alpha",
-  "type": "module",
-  "scripts": {
-    "dist": "node release/build.js"
-  },
-  "dependencies": {
-    "@koa/router": "^10.1.1",
-    "@xrplworks/currency": "^1.0.0",
-    "@xrplworks/socket": "^1.1.2",
-    "@xrplworks/time": "^1.0.0",
-    "@xrplworks/toml": "^1.0.0",
-    "@xrplworks/tx": "^1.1.1",
-    "@xrplworks/xls26": "^1.0.2",
-    "better-sqlite3": "^7.5.0",
-    "decimal.js": "^10.3.1",
-    "koa": "^2.13.4",
-    "koa-easy-ws": "^2.1.0",
-    "limiter": "2.0.1",
-    "minimist": "^1.2.6",
-    "node-fetch": "^3.0.0",
-    "ripple-address-codec": "^4.2.3",
-    "ws": "^8.5.0"
-  },
-  "devDependencies": {
-    "rollup": "^2.70.1"
-  }
+	"name": "xrplmeta",
+	"version": "1.1.0-alpha",
+	"type": "module",
+	"dependencies": {
+		"@koa/router": "^10.1.1",
+		"@prisma/client": "^3.12.0",
+		"@xrplworks/currency": "^1.0.0",
+		"@xrplworks/socket": "^1.1.2",
+		"@xrplworks/time": "^1.0.0",
+		"@xrplworks/toml": "^1.0.0",
+		"@xrplworks/tx": "^1.1.1",
+		"@xrplworks/xls26": "^1.0.2",
+		"decimal.js": "^10.3.1",
+		"koa": "^2.13.4",
+		"koa-easy-ws": "^2.1.0",
+		"limiter": "2.0.1",
+		"minimist": "^1.2.6",
+		"node-fetch": "^3.0.0",
+		"prisma": "^3.12.0",
+		"ripple-address-codec": "^4.2.3",
+		"ws": "^8.5.0"
+	},
+	"scripts": {
+		"install": "node database/install.js"
+	}
 }
