@@ -54,18 +54,18 @@ export async function scheduleLedgerRoutine({ id, interval, routine }){
 			let { ledger } = await xrpl.request({command: 'ledger', ledger_index: 'validated'})
 			let now = ledger.ledger_index
 			let head = Math.floor(now / interval.live) * interval.live
-			let covered = await repo.coverages.get(id, head)
+			let covered = await repo.ledgerDiscovery.get(id, head)
 			let chosen = head
 
 			while(covered){
 				let oneBefore = covered.tail - 1
 				
 				chosen = Math.floor(oneBefore / interval.backfill) * interval.backfill
-				covered = await repo.coverages.get(id, chosen)
+				covered = await repo.ledgerDiscovery.get(id, chosen)
 			}
 
 			await routine(chosen, chosen < head)
-			await repo.coverages.extend(id, chosen)
+			await repo.ledgerDiscovery.extend(id, chosen)
 		}catch(e){
 			log.info(`ledger routine "${id}" failed:\n`, e)
 			await wait(3000)

@@ -41,7 +41,7 @@ export function run({ repo, config }){
 
 			metas.forEach(meta => {
 				try{
-					repo.metas.insert(meta)
+					repo.tokenMetas.insert(meta)
 				}catch{
 					//typo in address
 				}

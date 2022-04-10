@@ -1,6 +1,6 @@
-import * as exchanges from './exchanges.js'
 import * as tokens from './tokens.js'
-import * as stats from './stats.js'
+import * as tokenExchanges from './tokenExchanges.js'
+import * as tokenSnapshots from './tokenSnapshots.js'
 import { wait, unixNow } from '@xrplworks/time'
 import log from '../../lib/log.js'
 import initCache from '../../lib/cache/index.js'
@@ -17,31 +17,26 @@ export async function run({ config, repo }){
 
 	try{
 		if(cache.newlyCreated){
-			log.info('first time creating caching database')
 			allocate(ctx)
 		}else{
 			if(Object.keys(cache.heads.all()).length === 0)
 				throw 'incomplete'
+			
+			if(cache.version !== repo.version)
+				throw 'version mismatch'
 		}
 	}catch(e){
-		log.error(`caching database corrupted (${e}) -> recreating from scratch`)
+		log.error(`caching database corrupted: ${e}`)
+		log.info(`wiping cache, then restarting`)
 
-		while(true){
-			try{
-				cache.wipe()
-				break
-			}catch{
-				log.warn(`could not wipe corrupted data base - killing occupiers`)
-				process.send({type: 'kill', task: 'server:api'})
-				await wait(500)
-			}
-		}
-		
-		allocate(ctx)
+		cache.wipe()
+		process.exit(0)
 	}
 
 	syncRoutine(ctx)
 	refreshRoutine(ctx)
+
+	process.send({signal: 'server:synced'})
 }
 
 function allocate(ctx){
@@ -49,9 +44,11 @@ function allocate(ctx){
 
 	log.time(`sync.prepare`, `building caching database`)
 
-	exchanges.allocate.call(ctx, repoHeads)
-	stats.allocate.call(ctx, repoHeads)
+	tokenExchanges.allocate.call(ctx, repoHeads)
+	tokenSnapshots.allocate.call(ctx, repoHeads)
 	tokens.allocate.call(ctx, repoHeads)
+
+	ctx.cache.version = ctx.repo.version
 
 	log.time(`sync.prepare`, `built complete caching database in %`)
 
@@ -170,11 +167,11 @@ async function syncRoutine(ctx){
 		try{
 			ctx.cache.tx(() => {
 				//log.time(`sync.update.exchanges`)
-				exchanges.register.call(ctx, {ranges, affected})
+				tokenExchanges.register.call(ctx, {ranges, affected})
 				//log.time(`sync.update.exchanges`, `applied exchanges in %`)
 
 				//log.time(`sync.update.stats`)
-				stats.register.call(ctx, {ranges, affected})
+				tokenSnapshots.register.call(ctx, {ranges, affected})
 				//log.time(`sync.update.stats`, `applied stats in %`)
 
 				//log.time(`sync.update.tokens`)

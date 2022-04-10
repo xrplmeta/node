@@ -5,16 +5,18 @@ import log from '../../lib/log.js'
 export function allocate(heads){
 	log.time(`sync.candles`, `building exchanges cache`)
 
-	let pairs = this.repo.exchanges.pairs(true)
-	let count = this.repo.exchanges.count()
+	this.repo.enableQueryProfiling()
+
+	let pairs = this.repo.tokenExchanges.pairs(true)
+	let count = this.repo.tokenExchanges.count()
 	let processed = 0
 	let progress = 0
+	
 
-
-	for(let {base, quote} of pairs){
+	for(let { base, quote } of pairs){
 		let exchanges = [
-			...this.repo.exchanges.iter({base: base, quote: quote}),
-			...this.repo.exchanges.iter({base: quote, quote: base})
+			...this.repo.tokenExchanges.iter({base: base, quote: quote}),
+			...this.repo.tokenExchanges.iter({base: quote, quote: base})
 		]
 		
 		if(!base || !quote){
@@ -46,12 +48,12 @@ export function allocate(heads){
 
 			this.cache.tx(() => {
 				for(let timeframe of Object.values(this.config.server.marketTimeframes)){
-					this.cache.candles.allocate(
+					this.cache.tokenCandles.allocate(
 						{base: base, quote: quote, timeframe},
 						exchangesBQ
 					)
 
-					this.cache.candles.allocate(
+					this.cache.tokenCandles.allocate(
 						{base: quote, quote: base, timeframe},
 						exchangesQB
 					)
@@ -84,12 +86,12 @@ export function allocate(heads){
 
 
 export function register({ ranges }){
-	if(!ranges.exchanges)
+	if(!ranges.tokenExchanges)
 		return
 
-	let newExchanges = this.repo.exchanges.iter({
-		from: ranges.exchanges[0],
-		to: ranges.exchanges[1]
+	let newExchanges = this.repo.tokenExchanges.iter({
+		from: ranges.tokenExchanges[0],
+		to: ranges.tokenExchanges[1]
 	})
 
 	for(let exchange of newExchanges){
@@ -104,12 +106,12 @@ export function register({ ranges }){
 		}
 
 		for(let timeframe of Object.values(this.config.server.marketTimeframes)){
-			this.cache.candles.integrate(
+			this.cache.tokenCandles.integrate(
 				{base: exchange.base, quote: exchange.quote, timeframe},
 				exchangeBQ
 			)
 
-			this.cache.candles.integrate(
+			this.cache.tokenCandles.integrate(
 				{base: exchange.quote, quote: exchange.base, timeframe},
 				exchangeQB
 			)

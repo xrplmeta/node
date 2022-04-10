@@ -52,7 +52,7 @@ export function run({ repo, config }){
 
 			log.info(`writing`, metas.length, `metas to db...`)
 
-			metas.forEach(meta => repo.metas.insert(meta))
+			metas.forEach(meta => repo.tokenMetas.insert(meta))
 
 			log.info(`asset scan complete`)
 		}

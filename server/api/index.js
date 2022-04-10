@@ -10,6 +10,10 @@ export function willRun(config){
 	return !!config.server
 }
 
+export function willWait(config){
+	return 'server:synced'
+}
+
 
 export function run({ config, repo }) {
 	let cache = initCache(config)

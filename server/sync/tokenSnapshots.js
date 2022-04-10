@@ -12,13 +12,13 @@ export function allocate(heads){
 	
 	for(let i=0; i<tokens.length; i++){
 		let token = tokens[i].id
-		let stats = this.repo.stats.all({token})
+		let stats = this.repo.tokenSnapshots.all({token})
 		let refTimeframe = Object.values(this.repo.config.server.snapshotTimeframes)[0]
 
 		if(stats.length === 0)
 			continue
 
-		let candles = this.cache.candles.all(
+		let candles = this.cache.tokenCandles.all(
 			{
 				base: token, 
 				quote: null, 
@@ -49,7 +49,7 @@ export function allocate(heads){
 			.map(({ token, ...stats }) => stats)
 
 		for(let timeframe of Object.values(this.config.server.snapshotTimeframes)){
-			this.cache.stats.allocate({token, timeframe}, combined)
+			this.cache.tokenSnapshots.allocate({token, timeframe}, combined)
 		}
 
 		let newProgress = Math.floor((i / tokens.length) * 100)
@@ -66,16 +66,16 @@ export function allocate(heads){
 export function register({ affected, ranges }){
 	let timeframeCandles = Object.values(this.repo.config.server.snapshotTimeframes)[0]
 
-	if(!ranges.stats)
+	if(!ranges.tokenSnapshots)
 		return
 
-	let newStats = this.repo.stats.all({
-		from: ranges.stats[0],
-		to: ranges.stats[1]
+	let newStats = this.repo.tokenSnapshots.all({
+		from: ranges.tokenSnapshots[0],
+		to: ranges.tokenSnapshots[1]
 	})
 
 	for(let { token, ...stats } of newStats){
-		let candle = this.cache.candles.all(
+		let candle = this.cache.tokenCandles.all(
 			{
 				base: token,
 				quote: null,
@@ -86,7 +86,7 @@ export function register({ affected, ranges }){
 		)[0]
 
 		for(let timeframe of Object.values(this.config.server.snapshotTimeframes)){
-			this.cache.stats.integrate(
+			this.cache.tokenSnapshots.integrate(
 				{
 					token,
 					timeframe

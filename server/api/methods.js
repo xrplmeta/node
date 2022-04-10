@@ -99,7 +99,7 @@ export async function token_series(ctx){
 	}
 
 	if(division === 'market'){
-		let candles = ctx.cache.candles.all(
+		let candles = ctx.cache.tokenCandles.all(
 			{
 				base: token.id, 
 				quote: null, 
@@ -123,7 +123,7 @@ export async function token_series(ctx){
 			return candles
 		}
 	}else if(division === 'snapshot'){
-		let stats = ctx.cache.stats.all(
+		let stats = ctx.cache.tokenSnapshots.all(
 			{
 				token: token.id, 
 				timeframe: ctx.config.server.snapshotTimeframes[timeframe]

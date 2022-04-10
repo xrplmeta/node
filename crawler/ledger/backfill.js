@@ -41,12 +41,12 @@ export function run({ repo, config, xrpl }){
 				}
 			}
 
-			repo.exchanges.insert(
+			repo.tokenExchanges.insert(
 				exchanges
 					.map(exchange => ({...exchange, ledger: index}))
 			)
 
-			repo.ledgers.insert({
+			repo.ledgerCaptures.insert({
 				index, 
 				date, 
 				...summarize(ledger.transactions)

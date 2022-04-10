@@ -32,7 +32,7 @@ export function run({ repo, config }){
 				}
 			}
 
-			await repo.metas.insert({
+			await repo.tokenMetas.insert({
 				meta,
 				account: accountId,
 				source: 'gravatar'
