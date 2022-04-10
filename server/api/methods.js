@@ -99,7 +99,7 @@ export async function token_series(ctx){
 	}
 
 	if(division === 'market'){
-		let candles = ctx.cache.candles.all(
+		let candles = ctx.cache.tokenCandles.all(
 			{
 				base: token.id, 
 				quote: null, 

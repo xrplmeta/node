@@ -92,7 +92,7 @@ function compose(token){
 	}
 
 	let now = unixNow()
-	let candles = this.cache.candles.all(
+	let candles = this.cache.tokenCandles.all(
 		{base: id, quote: null, timeframe: 3600},
 		now - 60*60*24*7
 	)
@@ -157,14 +157,14 @@ function compose(token){
 function calculatePopularityScore(token){
 	let score = 0
 
-	if(token.tokenSnapshots.volume)
-		score += parseFloat(token.tokenSnapshots.volume.day)
+	if(token.stats.volume)
+		score += parseFloat(token.stats.volume.day)
 
-	if(token.tokenSnapshots.trustlines)
-		score += token.tokenSnapshots.trustlines * 5
+	if(token.stats.trustlines)
+		score += token.stats.trustlines * 5
 
-	if(token.tokenSnapshots.trustlines_change)
-		score += token.tokenSnapshots.trustlines_change.day * 5
+	if(token.stats.trustlines_change)
+		score += token.stats.trustlines_change.day * 5
 
 	if(token.trusted)
 		score *= 1.5

@@ -40,11 +40,22 @@ switch(command){
 		const activeTasks = []
 
 		for(let [id, task] of Object.entries(tasks)){
-			if((!only || only.includes(id)) && task.willRun(config)){
-				activeTasks.push(id)
-			}else{
+			if(!task.willRun(config)){
 				log.warn(`disabling [${id}] (as per config)`)
+				continue
 			}
+
+			if(only && !only.includes(id)){
+				log.warn(`disabling [${id}] (as per argument)`)
+				continue
+			}
+			
+			activeTasks.push({
+				task: id,
+				waitFor: task.willWait
+					 ? task.willWait(config)
+					 : null
+			})
 		}
 
 		if(activeTasks.length === 0){
@@ -52,11 +63,12 @@ switch(command){
 			process.exit()
 		}
 
-		for(let task of activeTasks){
+		for(let { task, waitFor } of activeTasks){
 			spawnTask({
 				task,
 				configPath,
-				xrpl
+				xrpl,
+				waitFor
 			})
 		}
 
