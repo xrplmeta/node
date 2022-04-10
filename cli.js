@@ -1,11 +1,9 @@
 import minimist from 'minimist'
 import log from './lib/log.js'
-import initRepo from './lib/repo/index.js'
 import { find as findConfig, load as loadConfig } from './lib/config.js'
-import { Hub, Client } from './lib/xrpl/adapter.js'
+import { Hub, Client } from './lib/xrpl.js'
 import { spawn as spawnTask } from './lib/tasks.js'
-import { tasks as crawlerTasks } from './crawler/index.js'
-import { tasks as serverTasks } from './server/index.js'
+import tasks from './tasks.js'
 
 
 const args = minimist(process.argv.slice(2))
@@ -26,11 +24,8 @@ log.info(`using config at "${configPath}"`)
 
 const config = loadConfig(configPath, true)
 const command = args._[0] || 'run'
-const tasks = {...crawlerTasks, ...serverTasks}
 
 log.info(`data directory is at "${config.data.dir}"`)
-
-const repo = initRepo(config)
 
 
 switch(command){
@@ -40,7 +35,7 @@ switch(command){
 		const activeTasks = []
 
 		for(let [id, task] of Object.entries(tasks)){
-			if(!task.willRun(config)){
+			if(task.willRun && !task.willRun(config)){
 				log.warn(`disabling [${id}] (as per config)`)
 				continue
 			}
@@ -73,8 +68,6 @@ switch(command){
 		}
 
 		log.info(`all processes up`)
-		
-		repo.monitorWAL(60000, 100000000)
 		break
 	}
 
@@ -88,12 +81,7 @@ switch(command){
 			isSubprocess: true
 		})
 
-		task.run({config, repo, xrpl})
-		break
-	}
-
-	case 'flush': {
-		repo.flushWAL()
+		task.run({config, xrpl})
 		break
 	}
 
