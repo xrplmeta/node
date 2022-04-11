@@ -5,39 +5,18 @@
 
 
 
-[XRPL]
-# A snapshot is a full scan of the ledger. This is how most of the tokens and NFTs are discovered.
-# The interval dictates how many ledgers to wait before making the next snapshot.
-# A lower interval means higher data resolution, but also more storage and performance requirements.
-
-# Interval of continous snapshots of the most recent ledger denominated in ledgers.
-snapshot_interval_live = 900 # 1 hour
-
-# Interval of snapshots of ledgers that lie in the past denominated in ledgers.
-# It is generally advised to set this as high as tolerable, to allow for quicker backfilling .
-snapshot_interval_backfill = 3600 # 4 hours
-
-# Wether or not to store the current ongoing snapshot file in RAM. Not recommended, performance benefits are minimal.
-snapshot_in_memory = false
-
-# How many trustlines a token must have at minimum to be recorded and indexed.
-min_trustlines = 5
-
-# How many top wallet balances to record per token.
-capture_whales = 100
-
-# What wealth distribution records should be recorded per token.
-top_percenters = [0.01, 0.1, 1.0, 10.0, 25.0, 50.0]
+[LEDGER.SNAPSHOT]
 
 
 
-[[XRPL.NODES]]
+
+[[LEDGER.SOURCES]]
 # At least one connection to a rippled or clio node is required to read and observe the XRP Ledger.
 # It is generally advised to provide multiple different nodes to ensure a fast and reliable data feed.
 # If possible, provide an admin connection here.
 
 # The websocket URL of the rippled/clio node.
-url = "wss://s1.ripple.com"
+url = "wss://xrplcluster.com"
 
 # Restrict the commands called on this node to a set of commands.
 # For example, if you want this node to only provide live data, and no backfill support, set it to:
@@ -47,18 +26,15 @@ url = "wss://s1.ripple.com"
 # This should only ever be used on a self hosted node.
 # connections = 3
 
-[[XRPL.NODES]]
+[[LEDGER.SOURCES]]
 url = "wss://s2.ripple.com"
 
-[[XRPL.NODES]]
-url = "wss://xrplcluster.com"
-
-[[XRPL.NODES]]
-url = "wss://xrpl.link"
+[[LEDGER.SOURCES]]
+url = "wss://s1.ripple.com"
 
 
 
-[[AUX]]
+[[ISSUERS.AUX]]
 # Auxilliary providers publish .toml files that define XLS-26 token metadata.
 # They do this for as many different tokens as they like. It is up to you to pick trusted publishers.
 
@@ -76,7 +52,7 @@ refresh_interval = 30
 
 
 
-[XRPSCAN]
+[THIRDPARY.XRPSCAN]
 # xrpscan.com provides usernames, social media links and verifications for XRPL accounts.
 # https://docs.xrpscan.com/api-doc.html#get-names
 # Defines how long to wait before fetching their data again, in seconds.
@@ -84,7 +60,7 @@ refresh_interval = 600
 
 
 
-[GRAVATAR]
+[THIRDPARY.GRAVATAR]
 # gravatar.com provides avatar images for XRPL accounts that have the "EmailHash" field set.
 # Defines how long to wait before refreshing the avatar for each account.
 refresh_interval = 3600
@@ -92,7 +68,7 @@ max_requests_per_minute = 60
 
 
 
-# [XUMM]
+[THIRDPARY.XUMM]
 # xumm.app provides a list of curated assets, KYC status and avatar images.
 # It is required to obtain an API key to use this service.
 # https://apps.xumm.dev
@@ -106,7 +82,7 @@ max_requests_per_minute = 60
 
 
 
-# [BITHOMP]
+[THIRDPARY.BITHOMP]
 # bithomp.com provides icons, usernames, website and social media links for XRPL accounts.
 # It is required to obtain an API key for this service.
 # https://bithomp.com/developer
@@ -116,7 +92,7 @@ max_requests_per_minute = 60
 
 
 
-[TWITTER]
+[THIRDPARY.TWITTER]
 # twitter.com can provide icons, display names, website links and descriptions for both XRPL accounts and tokens.
 # It is required to obtain an API key for this service.
 # https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api
@@ -133,15 +109,12 @@ max_requests_per_minute = 60
 # These can either fulfil a REST request or be upgraded to a WebSocket connection.
 port = 4080
 
-# Multiple sources can give conflicting data for the same field. This array defines who's data has precedence. 
-# For example: if XUMM, Bithomp and Twitter all define an icon for a token, the one from XUMM will be used.
+# Multiple sources can give conflicting data for the same field. This array defines who's data has precedence,
+# from highest to lowest. Example for the values below: 
+# if XUMM, Bithomp and Twitter all define an icon for a token, the one from XUMM will be used.
 source_priorities = ['ledger', 'xrplmeta', 'domain', 'xumm', 'bithomp', 'xrpscan', 'twitter', 'gravatar']
 
 # Historical data is made available in various timeframe formats. 
 # The dict key defines the handle by which the timeframe is identified, the value is the interval in seconds.
 # https://xrplmeta.org/docs/rest/get-series
-market_timeframes = {15m = 900, 1H = 3600, 4H = 14400, 1D = 86400}
-snapshot_timeframes = {4H = 14400, 1D = 86400}
-
-# How many of the most recent trades for a given token should be kept available
-last_exchanges = 1000
+timeframes = {15m = 900, 1H = 3600, 4H = 14400, 1D = 86400}

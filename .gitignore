@@ -3,3 +3,4 @@ node_modules
 database/clients
 database/migrations
 database/templates/*
+/config.toml

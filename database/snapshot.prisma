@@ -6,18 +6,21 @@ datasource db {
 generator client {
 	provider = "prisma-client-js"
 	output = "clients/snapshot"
+	previewFeatures = ["interactiveTransactions"]
 }
 
-model History {
+model SnapshotHistory {
 	id Int @id @default(autoincrement())
 	ledgerIndex Int @unique
 	ledgerCloseTime DateTime
 	snapshotTime DateTime
+	diff Boolean
 }
 
 model Account {
 	id Int @id @default(autoincrement())
 	address Bytes @unique
+	balance BigInt
 	domain Bytes?
 	emailHash Bytes?
 
@@ -38,7 +41,7 @@ model RippleState {
 	currencyId Int
 	lowAccountId Int
 	highAccountId Int
-	balance Bytes
+	balance BigInt
 
 	currency Currency? @relation(fields: [currencyId], references: [id])
 	lowAccount Account @relation(name: "low", fields: [lowAccountId], references: [id])
@@ -63,10 +66,10 @@ model CurrencyOffer {
 	sequence Int
 	takerPaysCurrencyId Int?
 	takerPaysIssuerId Int?
-	takerPaysValue Bytes
+	takerPaysValue BigInt
 	takerGetsCurrencyId Int?
 	takerGetsIssuerId Int?
-	takerGetsValue Bytes
+	takerGetsValue BigInt
 	expiration DateTime?
 
 	account Account @relation(fields: [accountId], references: [id])
@@ -93,7 +96,7 @@ model NFTokenOffer {
 	tokenId Bytes
 	amountCurrencyId Int?
 	amountCurrencyIssuer Int?
-	amountValue Bytes
+	amountValue BigInt
 	buy Boolean
 	destinationId Int?
 	expiration DateTime?

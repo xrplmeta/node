@@ -30,7 +30,7 @@ log.info(`data directory is at "${config.data.dir}"`)
 
 switch(command){
 	case 'run': {
-		const xrpl = new Hub(config.xrpl)
+		const xrpl = new Hub(config.ledger)
 		const only = args.only ? args.only.split(',') : null
 		const activeTasks = []
 

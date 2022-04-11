@@ -3,8 +3,10 @@ import { execSync } from 'child_process'
 
 function construct(name){
 	console.log(`installing database adapter for "${name}"`)
-	execSync(`${process.argv[0]} node_modules/prisma/build/index.js migrate dev --schema database/${name}.prisma`)
 
+	execSync(`"${process.argv[0]}" node_modules/prisma/build/index.js migrate dev --schema database/${name}.prisma`)
+
+	fs.writeFileSync(`database/clients/${name}/package.json`, JSON.stringify({type: 'commonjs'}))
 	fs.unlinkSync(`database/templates/${name}.db-journal`)
 }
 
