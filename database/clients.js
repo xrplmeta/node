@@ -25,8 +25,20 @@ function createBase(Client, templateFile){
 					}
 				}
 			})
+		}
 
-			this.$queryRaw`PRAGMA journal_mode = 'WAL'`
+		async open(){
+			await this.$queryRaw`PRAGMA journal_mode = 'WAL'`
+		}
+
+		extend(extensions){
+			for(let [key, patch] of Object.entries(extensions)){
+				Object.assign(this[key], patch(this))
+			}
+		}
+
+		async tx(fn){
+			return await this.$transaction(fn)
 		}
 	}
 }

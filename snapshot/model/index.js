@@ -1,21 +1,40 @@
 import { Snapshot } from '../../database/clients.js'
+import accountExtensions from './account.js'
 import log from '../../lib/log.js'
 
 
 export default class extends Snapshot{
 	constructor(file){
 		super({file})
+		this.extend({
+			account: accountExtensions
+		})
 	}
 
-	async isEmpty(){
+	async isComplete(){
 		return await this.snapshotHistory.count() === 0
+	}
+
+	async getCaptureRestoration(){
+		let latestHistory = await this.snapshotHistory.findFirst({take: -1})
+
+		if(!latestHistory)
+			return
+
+		if(!latestHistory.captureRestoration)
+			return
+
+		return {
+			...JSON.parse(latestHistory.captureRestoration),
+			ledgerIndex: latestHistory.ledgerIndex
+		}
 	}
 
 	async add(ledgerObject){
 		switch(ledgerObject.LedgerEntryType){
 			case 'AccountRoot': 
-				this.addAccount(ledgerObject)
-				return
+				return await this.account.add(ledgerObject)
+				
 
 			case 'RippleState': 
 				//this.addRippleState(ledgerObject)

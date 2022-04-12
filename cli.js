@@ -1,7 +1,7 @@
 import minimist from 'minimist'
 import log from './lib/log.js'
+import * as XRPL from './xrpl/ipc.js'
 import { find as findConfig, load as loadConfig } from './lib/config.js'
-import { Hub, Client } from './lib/xrpl.js'
 import { spawn as spawnTask } from './lib/tasks.js'
 import tasks from './tasks.js'
 
@@ -30,7 +30,7 @@ log.info(`data directory is at "${config.data.dir}"`)
 
 switch(command){
 	case 'run': {
-		const xrpl = new Hub(config.ledger)
+		const xrpl = new XRPL.Master(config.ledger)
 		const only = args.only ? args.only.split(',') : null
 		const activeTasks = []
 
@@ -72,7 +72,7 @@ switch(command){
 	}
 
 	case 'work': {
-		const xrpl = new Client()
+		const xrpl = new XRPL.Consumer()
 		const task = tasks[args.task]
 
 		log.config({

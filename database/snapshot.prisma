@@ -13,8 +13,10 @@ model SnapshotHistory {
 	id Int @id @default(autoincrement())
 	ledgerIndex Int @unique
 	ledgerCloseTime DateTime
-	snapshotTime DateTime
-	diff Boolean
+	snapshotTime DateTime @default(now())
+	entriesCount Int @default(value: 0)
+	diffed Boolean
+	captureRestoration String?
 }
 
 model Account {
