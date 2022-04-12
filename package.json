@@ -11,6 +11,7 @@
 		"@xrplworks/toml": "^1.0.0",
 		"@xrplworks/tx": "^1.1.1",
 		"@xrplworks/xls26": "^1.0.2",
+		"@xrplworks/xfl": "^1.0.1",
 		"decimal.js": "^10.3.1",
 		"koa": "^2.13.4",
 		"koa-easy-ws": "^2.1.0",
