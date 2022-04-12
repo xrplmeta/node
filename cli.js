@@ -24,6 +24,7 @@ log.info(`using config at "${configPath}"`)
 
 const config = loadConfig(configPath, true)
 const command = args._[0] || 'run'
+const isWorker = args.hasOwnProperty('worker')
 
 log.info(`data directory is at "${config.data.dir}"`)
 
@@ -72,17 +73,19 @@ switch(command){
 	}
 
 	case 'work': {
-		const xrpl = new XRPL.Consumer()
 		const task = tasks[args.task]
+		const xrpl = isWorker
+			? new XRPL.Consumer()
+			: new XRPL.Master(config.ledger)
 
 		log.config({
 			name: args.task, 
 			color: 'cyan',
-			isSubprocess: true
+			isSubprocess: isWorker
 		})
 
-		task.run({config, xrpl})
-		break
+		await task.run({config, xrpl})
+		process.exit(0)
 	}
 
 	default: {
