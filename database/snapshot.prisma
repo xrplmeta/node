@@ -22,7 +22,7 @@ model SnapshotHistory {
 model Account {
 	id Int @id @default(autoincrement())
 	address Bytes @unique
-	balance BigInt
+	balance BigInt?
 	domain Bytes?
 	emailHash Bytes?
 
