@@ -38,7 +38,7 @@ function createBase(Client, templateFile){
 		}
 
 		async tx(fn){
-			return await this.$transaction(fn)
+			return await this.$transaction(fn, {timeout: 360000})
 		}
 	}
 }

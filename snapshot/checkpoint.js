@@ -35,16 +35,21 @@ export async function run({ config, xrpl }){
 
 
 	while(capture.ongoing){
-		let batch = capture.queue.splice(0, 100000)
+		let batch = capture.queue.splice(0, 1000)
 
 		if(batch.length === 0){
 			await wait(100)
 			continue
 		}
 
-		await snapshot.tx(async () => {
-			for(let state of batch){
-				await snapshot.add(state)
+		await snapshot.tx(async snapshot => {
+			for(let object of batch){
+				try{
+					await snapshot.add(object)
+				}catch(error){
+					log.error(`failed to add ledger object:`, object)
+					throw error
+				}
 			}
 
 			await snapshot.snapshotHistory.update({
@@ -59,6 +64,16 @@ export async function run({ config, xrpl }){
 					ledgerIndex: capture.ledgerIndex
 				}
 			})
+		})
+
+		
+		log.accumulateInfo({
+			line: [
+				`now has`,
+				await snapshot.getCurrentEntriesCount(), 
+				`ledger objects (+%objects in %time)`
+			],
+			objects: batch.length
 		})
 	}
 }
