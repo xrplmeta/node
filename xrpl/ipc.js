@@ -35,6 +35,10 @@ export class Master{
 		this.workers.splice(this.workers.indexOf(worker), 1)
 	}
 
+	request(request){
+		return this.pool.request(request)
+	}
+
 	dispatchEmit(event, data){
 		for(let worker of this.workers){
 			worker.send({type: 'xrpl.event', event, data})
