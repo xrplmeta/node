@@ -25,6 +25,13 @@ function createBase(Client, templateFile){
 					}
 				}
 			})
+
+			/*for(let key of Object.getOwnPropertyNames(this)){
+				if(key.startsWith('_'))
+					continue
+
+				this[key].upsertMany = ({ data, })
+			}*/
 		}
 
 		async open(){
