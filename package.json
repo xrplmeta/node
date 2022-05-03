@@ -3,8 +3,9 @@
 	"version": "1.1.0-alpha",
 	"type": "module",
 	"dependencies": {
-		"@structdb/sqlite": "../../structdb/sqlite",
 		"@koa/router": "^10.1.1",
+		"@structdb/sqlite": "../../structdb/sqlite",
+		"@xrplworks/amount": "^1.0.0",
 		"@xrplworks/currency": "^1.0.1",
 		"@xrplworks/socket": "^1.1.2",
 		"@xrplworks/time": "^1.0.0",
