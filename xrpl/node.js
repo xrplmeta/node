@@ -29,10 +29,7 @@ export default class Node extends EventEmitter{
 						.split('-')
 						.map(i => parseInt(i))
 					)
-			}
-
-			if(!this.hasSeen(`ledger${ledger.ledger_index}`))
-				this.emit('ledger', ledger)*/
+			}*/
 		})
 
 		this.socket.on('connected', () => {

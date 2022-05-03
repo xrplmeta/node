@@ -7,7 +7,7 @@ export class Master{
 	constructor(config){
 		this.pool = new Pool(config)
 		this.pool.on('ledger', ledger => this.dispatchEmit('ledger', ledger))
-		this.pool.on('transaction', tx => this.dispatchEmit('transaction', tx))
+		this.pool.on('tx', tx => this.dispatchEmit('tx', tx))
 		this.workers = []
 	}
 
