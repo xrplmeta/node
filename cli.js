@@ -88,6 +88,11 @@ switch(command){
 			isSubprocess: isWorker
 		})
 
+		if(!task){
+			log.error(`task "${args.task}" does not exists`)
+			process.exit(1)
+		}
+
 		await task.run({config, xrpl})
 		process.exit(0)
 	}
