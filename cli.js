@@ -1,9 +1,9 @@
 import minimist from 'minimist'
 import log from './lib/log.js'
-import * as XRPL from './xrpl/ipc.js'
 import { find as findConfig, load as loadConfig } from './lib/config.js'
 import { spawn as spawnTask } from './lib/tasks.js'
-import tasks from './tasks.js'
+import * as XRPL from './xrpl/ipc.js'
+import * as tasks from './tasks/index.js'
 
 
 const args = minimist(process.argv.slice(2))
@@ -13,8 +13,8 @@ const configPath = args.config
 
 
 log.config({
-	name: 'main', 
-	color: 'yellow', 
+	name: 'main',
+	color: 'yellow',
 	severity: args.log || 'info'
 })
 
@@ -35,7 +35,9 @@ switch(command){
 		const only = args.only ? args.only.split(',') : null
 		const activeTasks = []
 
-		for(let [id, task] of Object.entries(tasks)){
+		for(let task of Object.values(tasks)){
+			let { id } = task.spec
+
 			if(task.willRun && !task.willRun(config)){
 				log.warn(`disabling [${id}] (as per config)`)
 				continue
@@ -73,7 +75,9 @@ switch(command){
 	}
 
 	case 'work': {
-		const task = tasks[args.task]
+		const task = Object.values(tasks).
+			find(task => task.spec.id === args.task)
+
 		const xrpl = isWorker
 			? new XRPL.Consumer()
 			: new XRPL.Master(config.ledger)
