@@ -157,7 +157,7 @@
 					"format": "xrpl/xfl"
 				}
 			},
-			"require": [
+			"required": [
 				"currency",
 				"lowAccount",
 				"highAccount",
@@ -188,7 +188,7 @@
 				"takerPaysIssuer": {
 					"$ref": "#/definitions/Account"
 				},
-				"takerPaysBalance": {
+				"takerPaysValue": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
@@ -198,7 +198,7 @@
 				"takerGetsIssuer": {
 					"$ref": "#/definitions/Account"
 				},
-				"takerGetsBalance": {
+				"takerGetsValue": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
@@ -207,16 +207,13 @@
 					"format": "timestamp"
 				}
 			},
-			"require": [
+			"required": [
 				"account",
 				"sequence",
 				"takerPaysCurrency",
-				"takerPaysIssuer",
-				"takerPaysBalance",
+				"takerPaysValue",
 				"takerGetsCurrency",
-				"takerGetsIssuer",
-				"takerGetsBalance",
-				"expiration"
+				"takerGetsValue"
 			],
 			"unique": [
 				"account",
@@ -280,11 +277,10 @@
 					"format": "timestamp"
 				}
 			},
-			"require": [
+			"required": [
 				"account",
 				"tokenId",
 				"amountCurrency",
-				"amountIssuer",
 				"amountValue",
 				"buy"
 			],
