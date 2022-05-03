@@ -1,0 +1,297 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Ledger Snapshot",
+	"type": "object",
+	"properties": {
+		"journal": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Journal"
+			}
+		},
+		"accounts": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Account"
+			}
+		},
+		"currencies": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Currency"
+			}
+		},
+		"rippleStates": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/RippleState"
+			}
+		},
+		"currencyOffers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/CurrencyOffer"
+			}
+		},
+		"nfTokens": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/NFToken"
+			}
+		},
+		"nfTokenOffers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/NFTokenOffer"
+			}
+		}
+	},
+	"definitions": {
+		"Journal": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"time": {
+					"type": "integer",
+					"format": "timestamp"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"ledgerCloseTime": {
+					"type": "integer",
+					"format": "timestamp"
+				},
+				"entriesCount": {
+					"type": "integer",
+					"default": 0
+				},
+				"isCheckpoint": {
+					"type": "boolean"
+				},
+				"captureMarker": {
+					"type": "any"
+				}
+			},
+			"required": [
+				"ledgerIndex",
+				"ledgerCloseTime",
+				"entriesCount",
+				"isCheckpoint"
+			],
+			"unique": [
+				"ledgerIndex"
+			]
+		},
+		"Account": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"address": {
+					"type": "string",
+					"format": "xrpl/address"
+				},
+				"balance": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"domain": {
+					"type": "string",
+					"format": "hex"
+				},
+				"emailHash": {
+					"type": "string",
+					"format": "hex"
+				}
+			},
+			"required": [
+				"address"
+			],
+			"unique": [
+				"address"
+			]
+		},
+		"Currency": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"code": {
+					"type": "string",
+					"format": "xrpl/currency"
+				}
+			},
+			"required": [
+				"code"
+			],
+			"unique": [
+				"code"
+			]
+		},
+		"RippleState": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"currency": {
+					"$ref": "#/definitions/Currency"
+				},
+				"lowAccount": {
+					"$ref": "#/definitions/Account"
+				},
+				"highAccount": {
+					"$ref": "#/definitions/Account"
+				},
+				"balance": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			},
+			"require": [
+				"currency",
+				"lowAccount",
+				"highAccount",
+				"balance"
+			],
+			"unique": [
+				"currency",
+				"lowAccount",
+				"highAccount"
+			]
+		},
+		"CurrencyOffer": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"sequence": {
+					"type": "integer"
+				},
+				"takerPaysCurrency": {
+					"$ref": "#/definitions/Currency"
+				},
+				"takerPaysIssuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"takerPaysBalance": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"takerGetsCurrency": {
+					"$ref": "#/definitions/Currency"
+				},
+				"takerGetsIssuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"takerGetsBalance": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"expiration": {
+					"type": "integer",
+					"format": "timestamp"
+				}
+			},
+			"require": [
+				"account",
+				"sequence",
+				"takerPaysCurrency",
+				"takerPaysIssuer",
+				"takerPaysBalance",
+				"takerGetsCurrency",
+				"takerGetsIssuer",
+				"takerGetsBalance",
+				"expiration"
+			],
+			"unique": [
+				"account",
+				"sequence"
+			]
+		},
+		"NFToken": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"owner": {
+					"$ref": "#/definitions/Account"
+				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"tokenId": {
+					"type": "string",
+					"format": "hex"
+				},
+				"uri": {
+					"type": "string"
+				}
+			}
+		},
+		"NFTokenOffer": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"tokenId": {
+					"type": "string",
+					"format": "hex"
+				},
+				"amountCurrency": {
+					"$ref": "#/definitions/Currency"
+				},
+				"amountIssuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"amountValue": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"buy": {
+					"type": "boolean"
+				},
+				"destination": {
+					"$ref": "#/definitions/Account"
+				},
+				"expiration": {
+					"type": "integer",
+					"format": "timestamp"
+				}
+			},
+			"require": [
+				"account",
+				"tokenId",
+				"amountCurrency",
+				"amountIssuer",
+				"amountValue",
+				"buy"
+			],
+			"unique": [
+				"account",
+				"tokenId"
+			]
+		}
+	}
+}

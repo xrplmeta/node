@@ -9,20 +9,19 @@ export default class{
 		this.queue = []
 	}
 
-	async start({ ledgerIndex, marker, node }){
+	async start({ ledgerIndex, marker }){
 		let { result, node: assignedNode } = await this.xrpl.request({
 			type: 'reserveTicket',
 			task: 'snapshot',
 			ledgerIndex,
-			node
+			node: marker?.node
 		})
 		
 		log.info(`reserved ledger snapshot ticket (${result.ticket}) with node ${assignedNode}`)
 
 		this.ledgerIndex = ledgerIndex
-		this.marker = marker
+		this.marker = marker || { node: assignedNode }
 		this.ticket = result.ticket
-		this.assignedNode = assignedNode
 		this.ongoing = true
 		this.fill()
 	}
@@ -38,13 +37,13 @@ export default class{
 				let { result } = await this.xrpl.request({
 					command: 'ledger_data',
 					ledger_index: this.ledgerIndex,
-					marker: this.marker,
+					marker: this.marker?.ledger,
 					limit: this.chunkSize,
 					ticket: this.ticket
 				})
 
 				this.queue.push(...result.state)
-				this.marker = result.marker
+				this.marker.ledger = result.marker
 
 				failures = 0
 			}catch(e){
