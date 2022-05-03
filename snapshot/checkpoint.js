@@ -39,7 +39,7 @@ export default class Checkpoint{
 			}
 
 			while(capture.ongoing){
-				let batch = capture.queue.splice(0, 10000)
+				let batch = capture.queue.splice(0, this.config.ledger.snapshot.chunkSize || 10000)
 		
 				if(batch.length === 0){
 					await wait(100)
@@ -76,9 +76,4 @@ export default class Checkpoint{
 			}
 		}
 	}
-}
-
-export async function run({ config, xrpl }){
-	let snapshot = new Snapshot(`${config.data.dir}/live.db`)
-	
 }
