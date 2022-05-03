@@ -1,9 +1,9 @@
-import log from '../lib/log.js'
+import log from '../../lib/log.js'
 import { wait } from '@xrplworks/time'
 
 
 export default class{
-	constructor({ ledgerIndex, config, xrpl }){
+	constructor({ xrpl, config }){
 		this.chunkSize = config.ledger.snapshot.chunkSize || 10000
 		this.xrpl = xrpl
 		this.queue = []
