@@ -238,9 +238,15 @@
 					"format": "hex"
 				},
 				"uri": {
-					"type": "string"
+					"type": "string",
+					"format": "hex"
 				}
-			}
+			},
+			"required": [
+				"owner",
+				"issuer",
+				"tokenId"
+			]
 		},
 		"NFTokenOffer": {
 			"type": "object",
