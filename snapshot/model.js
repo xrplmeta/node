@@ -100,6 +100,25 @@ export default class Snapshot extends Client{
 	}
 
 	async addNFTokenOffer(entry){
+		let amount = fromRippledAmount(entry.Amount)
 
+		await this.nfTokenOffers.createOne({
+			data: {
+				account: { address: entry.Owner },
+				tokenId: entry.NFTokenID,
+				amountCurrency: { code: amount.currency },
+				amountIssuer: amount.issuer 
+					? { address: amount.issuer } 
+					: null,
+				amountValue: amount.value,
+				destination: entry.Destination
+					? { address: entry.Destination }
+					: null,
+				expiration: entry.Expiration
+					? rippleToUnix(entry.Expiration)
+					: null,
+				buy: entry.Flags & 0x00000001
+			}
+		})
 	}
 }
