@@ -246,6 +246,9 @@
 				"owner",
 				"issuer",
 				"tokenId"
+			],
+			"unique": [
+				"tokenId"
 			]
 		},
 		"NFTokenOffer": {

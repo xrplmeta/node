@@ -56,7 +56,7 @@ export default class{
 				continue
 			}
 
-			if(!this.marker){
+			if(!this.marker.ledger){
 				this.complete = true
 				break
 			}
