@@ -3,9 +3,9 @@
 	"version": "1.1.0-alpha",
 	"type": "module",
 	"dependencies": {
-		"nanotasks": "file:../../nanotasks",
-		"@structdb/sqlite": "file:../../structdb/sqlite",
 		"@koa/router": "^10.1.1",
+		"@mwni/log": "file:../../log",
+		"@structdb/sqlite": "file:../../structdb/sqlite",
 		"@xrplworks/amount": "^1.0.0",
 		"@xrplworks/currency": "^1.0.1",
 		"@xrplworks/socket": "^1.1.2",
@@ -19,6 +19,7 @@
 		"koa-easy-ws": "^2.1.0",
 		"limiter": "2.0.1",
 		"minimist": "^1.2.6",
+		"nanotasks": "file:../../nanotasks",
 		"node-fetch": "^3.0.0",
 		"ripple-address-codec": "^4.2.3",
 		"ws": "^8.5.0"

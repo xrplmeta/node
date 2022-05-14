@@ -1,5 +1,5 @@
 import minimist from 'minimist'
-import log from './lib/log.js'
+import log from '@mwni/log'
 import { find as findConfig, load as loadConfig } from './lib/config.js'
 import { run as runApp } from './app/index.js'
 
@@ -12,7 +12,7 @@ const configPath = args.config
 
 
 log.config({
-	name: 'main',
+	name: 'cli',
 	color: 'yellow',
 	severity: args.log || 'info'
 })
@@ -29,7 +29,12 @@ log.info(`data directory is at "${config.data.dir}"`)
 
 switch(command){
 	case 'run': {
-		await runApp({ config })
+		log.info(`will start app now`)
+
+		await runApp({
+			log: log.fork({ name: 'app', color: 'cyan' }), 
+			config,
+		})
 		break
 	}
 

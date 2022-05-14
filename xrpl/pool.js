@@ -14,7 +14,7 @@ export default class Pool extends EventEmitter{
 		this.queue = []
 		this.nodes = []
 
-		for(let spec of config.sources){
+		for(let spec of config.ledger.sources){
 			let connections = spec.connections || 1
 
 			for(let i=0; i<connections; i++){
