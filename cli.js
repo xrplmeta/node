@@ -1,9 +1,8 @@
 import minimist from 'minimist'
 import log from './lib/log.js'
 import { find as findConfig, load as loadConfig } from './lib/config.js'
-import { spawn as spawnTask } from './lib/tasks.js'
-import * as XRPL from './xrpl/ipc.js'
-import * as tasks from './tasks/index.js'
+import { run as runApp } from './app/index.js'
+
 
 
 const args = minimist(process.argv.slice(2))
@@ -24,11 +23,23 @@ log.info(`using config at "${configPath}"`)
 
 const config = loadConfig(configPath, true)
 const command = args._[0] || 'run'
-const isWorker = args.hasOwnProperty('worker')
 
 log.info(`data directory is at "${config.data.dir}"`)
 
 
+switch(command){
+	case 'run': {
+		await runApp({ config })
+		break
+	}
+
+	default: {
+		log.error(`"${command}" is an unknown command`)
+		break
+	}
+}
+
+/*
 switch(command){
 	case 'run': {
 		const xrpl = new XRPL.Master(config.ledger)
@@ -102,5 +113,4 @@ switch(command){
 		break
 	}
 }
-
-
+*/

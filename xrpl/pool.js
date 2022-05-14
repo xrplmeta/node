@@ -6,7 +6,7 @@ import Node from './node.js'
 
 
 export default class Pool extends EventEmitter{
-	constructor(config){
+	constructor({ config }){
 		super()
 
 		this.log = log.branch({name: 'xrpl', color: 'yellow'})
