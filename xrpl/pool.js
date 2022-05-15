@@ -9,6 +9,12 @@ export default class Pool extends EventEmitter{
 	constructor({ config }){
 		super()
 
+		log.info(`using nodes:`)
+
+		for(let { url } of config.ledger.sources){
+			log.info(` - ${url}`)
+		}
+
 		this.log = log.branch({name: 'xrpl', color: 'yellow'})
 		this.seenHashes = []
 		this.queue = []

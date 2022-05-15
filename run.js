@@ -1,7 +1,7 @@
 import minimist from 'minimist'
 import log from '@mwni/log'
 import { find as findConfig, load as loadConfig } from './lib/config.js'
-import { run as runApp } from './app/index.js'
+import { start as startApp } from './app/index.js'
 
 
 
@@ -27,9 +27,11 @@ const command = args._[0] || 'run'
 log.info(`data directory is at "${config.data.dir}"`)
 log.info(`will start app now`)
 
-const app = await runApp({
-	log: log.fork({ name: 'app', color: 'cyan' }), 
+const appLog = log.fork({ name: 'app', color: 'cyan' })
+const app = await startApp({
+	args,
 	config,
+	log: appLog, 
 })
 
 process.on('SIGINT', () => {

@@ -1,18 +1,18 @@
 import { fork } from 'nanotasks'
 import { EventEmitter } from '@mwni/events'
 
-export default async function({ config, xrpl, log }){
-	let events = new EventEmitter
+export default async function({ ctx, log }){
+	fork({ func: streamLive, args: { ctx, log: log.branch({name: 'live'}) } })
+	fork({ func: streamBackfill, args: { ctx, log: log.branch({name: 'backfill'}) } })
 
-	fork({ func: streamLive, args: { config, xrpl, log, events } })
-	fork({ func: streamBackfill, args: { config, xrpl, log, events } })
+	ctx.events.on('works', () => console.log('good'))
 }
 
 
-async function streamLive({ config, xrpl, log }){
-	
+export async function streamLive({ ctx, log }){
+	ctx.events.emit('works')
 }
 
-async function streamBackfill({ config, xrpl, log }){
-	
+export async function streamBackfill({ ctx, log }){
+	ctx.events.on('works', () => console.log('perfection'))
 }
