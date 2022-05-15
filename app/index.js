@@ -9,7 +9,7 @@ const tasks = [
 ]
 
 
-export async function run({ log, config }){
+export async function run({ config, log }){
 	let xrpl = new NodePool({ config })
 
 	log.info(`using nodes:`)
@@ -19,15 +19,14 @@ export async function run({ log, config }){
 	}
 
 	for(let task of tasks){
-		await fork({
-			file: `./${task}.js`,
-			args: {
-				log: log.branch({ name: task }),
-				config, 
-				xrpl
-			}
-		})
+		let { default: run } = await import(`./${task}.js`)
 
-		log.info(`spawned task [${task}]`)
+		run({ config, xrpl, log: log.fork({name: task}) })
+	}
+
+	return {
+		terminate(){
+			log.info(`shutting down`)
+		}
 	}
 }

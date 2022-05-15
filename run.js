@@ -12,7 +12,7 @@ const configPath = args.config
 
 
 log.config({
-	name: 'cli',
+	name: 'init',
 	color: 'yellow',
 	severity: args.log || 'info'
 })
@@ -25,24 +25,18 @@ const config = loadConfig(configPath, true)
 const command = args._[0] || 'run'
 
 log.info(`data directory is at "${config.data.dir}"`)
+log.info(`will start app now`)
 
+const app = await runApp({
+	log: log.fork({ name: 'app', color: 'cyan' }), 
+	config,
+})
 
-switch(command){
-	case 'run': {
-		log.info(`will start app now`)
+process.on('SIGINT', () => {
+	app.terminate()
+	process.exit(0)
+})
 
-		await runApp({
-			log: log.fork({ name: 'app', color: 'cyan' }), 
-			config,
-		})
-		break
-	}
-
-	default: {
-		log.error(`"${command}" is an unknown command`)
-		break
-	}
-}
 
 /*
 switch(command){

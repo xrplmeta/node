@@ -4,7 +4,8 @@
 	"type": "module",
 	"dependencies": {
 		"@koa/router": "^10.1.1",
-		"@mwni/log": "file:../../log",
+		"@mwni/log": "^2.0.0",
+		"@mwni/events": "^1.0.0",
 		"@structdb/sqlite": "file:../../structdb/sqlite",
 		"@xrplworks/amount": "^1.0.0",
 		"@xrplworks/currency": "^1.0.1",
@@ -14,7 +15,6 @@
 		"@xrplworks/tx": "^1.1.1",
 		"@xrplworks/xfl": "^1.0.1",
 		"@xrplworks/xls26": "^1.0.2",
-		"decimal.js": "^10.3.1",
 		"koa": "^2.13.4",
 		"koa-easy-ws": "^2.1.0",
 		"limiter": "2.0.1",
