@@ -1,4 +1,8 @@
-import { get as getSnapshot, fork as forkSnapshot, createCheckpoint } from '../../snapshot/index.js'
+import { spawn } from 'nanotasks'
+import * as database from '../../snapshot/database.js'
+import * as checkpoint from '../../snapshot/checkpoint.js'
+import * as live from '../../snapshot/live.js'
+import * as backfill from '../../snapshot/backfill.js'
 
 
 export const name = 'ledger.snapshot'
@@ -8,20 +12,32 @@ export async function skip(ctx){
 }
 
 export async function start(ctx){
-	let snapshot = getSnapshot({ id: 'live', ctx })
+	let snapshot = database.init({ ctx, variant: 'live' })
 
 	if(snapshot.incomplete){
-		await spawn({
-			path: ':createCheckpoint',
-			args: [ctx]
-		})
-
-		await forkSnapshot()
+		await spawn(':createCheckpoint', ctx)
 	}
 
-	let live = await spawn({
-		path: 
-	})
+
+	await spawn(':workLive', ctx)
+	await spawn(':workBackfill', ctx)
 }
 
-export { createCheckpoint }
+export async function createCheckpoint(ctx){
+	let snapshot = database.init({ ctx, variant: 'live' })
+
+	await checkpoint.create({ ctx, snapshot })
+	await snapshot.fork({ variant: 'backfill' })
+}
+
+export async function workLive(ctx){
+	let snapshot = database.init({ ctx, variant: 'live' })
+
+	await live.work({ ctx, snapshot })
+}
+
+export async function workBackfill(ctx){
+	let snapshot = database.init({ ctx, variant: 'backfill' })
+
+	//await backfill.work({ ctx, snapshot })
+}

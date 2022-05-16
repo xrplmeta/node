@@ -1,18 +1,27 @@
-import { fork } from 'nanotasks'
-import { EventEmitter } from '@mwni/events'
+import * as database from '../../stream/database.js'
+import * as live from '../../stream/live.js'
+import * as backfill from '../../stream/backfill.js'
 
-export default async function({ ctx, log }){
-	fork({ func: streamLive, args: { ctx, log: log.branch({name: 'live'}) } })
-	fork({ func: streamBackfill, args: { ctx, log: log.branch({name: 'backfill'}) } })
 
-	ctx.events.on('works', () => console.log('good'))
+export const name = 'ledger.stream'
+
+export async function skip(ctx){
+	return ctx.args.only && !ctx.args.only.includes(name)
 }
 
-
-export async function streamLive({ ctx, log }){
-	ctx.events.emit('works')
+export async function start(ctx){
+	await spawn(':workLive', ctx)
+	await spawn(':workBackfill', ctx)
 }
 
-export async function streamBackfill({ ctx, log }){
-	ctx.events.on('works', () => console.log('perfection'))
+export async function workLive(ctx){
+	let stream = database.init({ ctx })
+
+	await live.work({ ctx, stream })
+}
+
+export async function workBackfill(ctx){
+	let stream = database.init({ ctx })
+
+	await backfill.work({ ctx, stream })
 }

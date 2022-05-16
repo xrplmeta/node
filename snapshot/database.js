@@ -5,36 +5,17 @@ import XFL from '@xrplworks/xfl'
 import { encodeAccountID } from 'ripple-address-codec'
 import schemas from '../schemas/index.js'
 
-export default class Snapshot extends Client{
-	constructor(file){
-		super({ 
-			file, 
-			schema: schemas.snapshot,
-			journalMode: 'WAL'
-		})
-	}
 
-	async add(entry){
-		switch(entry.LedgerEntryType){
-			case 'AccountRoot': 
-				return await this.addAccountRoot(entry)
-				
-			case 'RippleState': 
-				return await this.addRippleState(entry)
 
-			case 'Offer': 
-				return await this.addCurrencyOffer(entry)
+export function init({ ctx, variant }){
+	let db = new Client({
+		file: `${ctx.config.data.dir}/snapshot.${variant}.db`,
+		schema: schemas.snapshot,
+		journalMode: 'WAL'
+	})
 
-			case 'NFTokenPage':
-				return await this.addNFTokenPage(entry)
-
-			case 'NFTokenOffer':
-				return await this.addNFTokenOffer(entry)
-		}
-	}
-
-	async addAccountRoot(entry){
-		await this.accounts.createOne({
+	async function addAccountRoot(entry){
+		await db.accounts.createOne({
 			data: {
 				address: entry.Account,
 				emailHash: entry.EmailHash,
@@ -46,8 +27,8 @@ export default class Snapshot extends Client{
 		})
 	}
 
-	async addRippleState(entry){
-		await this.rippleStates.createOne({
+	async function addRippleState(entry){
+		await db.rippleStates.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				lowAccount: { address: entry.LowLimit.issuer },
@@ -57,11 +38,11 @@ export default class Snapshot extends Client{
 		})
 	}
 
-	async addCurrencyOffer(entry){
+	async function addCurrencyOffer(entry){
 		let takerPays = fromRippledAmount(entry.TakerPays)
 		let takerGets = fromRippledAmount(entry.TakerGets)
 
-		await this.currencyOffers.createOne({
+		await db.currencyOffers.createOne({
 			data: {
 				account: { address: entry.Account },
 				takerPaysCurrency: { code: takerPays.currency },
@@ -82,13 +63,13 @@ export default class Snapshot extends Client{
 		})
 	}
 
-	async addNFTokenPage(entry){
+	async function addNFTokenPage(entry){
 		let address = encodeAccountID(Buffer.from(entry.index.slice(0, 40), 'hex'))
 
 		for(let { NFToken } of entry.NFTokens){
 			let issuer = encodeAccountID(Buffer.from(NFToken.NFTokenID.slice(8, 48), 'hex'))
 
-			await this.nfTokens.createOne({
+			await db.nfTokens.createOne({
 				data: {
 					owner: { address },
 					issuer: { address: issuer },
@@ -99,10 +80,10 @@ export default class Snapshot extends Client{
 		}
 	}
 
-	async addNFTokenOffer(entry){
+	async function addNFTokenOffer(entry){
 		let amount = fromRippledAmount(entry.Amount)
 
-		await this.nfTokenOffers.createOne({
+		await db.nfTokenOffers.createOne({
 			data: {
 				account: { address: entry.Owner },
 				tokenId: entry.NFTokenID,
@@ -121,4 +102,26 @@ export default class Snapshot extends Client{
 			}
 		})
 	}
+
+
+	return Object.assign(db, {
+		async addLedgerEntry(entry){
+			switch(entry.LedgerEntryType){
+				case 'AccountRoot': 
+					return await addAccountRoot(entry)
+					
+				case 'RippleState': 
+					return await addRippleState(entry)
+	
+				case 'Offer': 
+					return await addCurrencyOffer(entry)
+	
+				case 'NFTokenPage':
+					return await addNFTokenPage(entry)
+	
+				case 'NFTokenOffer':
+					return await addNFTokenOffer(entry)
+			}
+		}
+	})
 }
