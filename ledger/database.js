@@ -7,9 +7,9 @@ import schemas from '../schemas/index.js'
 
 
 
-export function init({ ctx, variant }){
+export function init({ config, variant }){
 	let db = new Client({
-		file: `${ctx.config.data.dir}/snapshot.${variant}.db`,
+		file: `${config.data.dir}/snapshot.${variant}.db`,
 		schema: schemas.snapshot,
 		journalMode: 'WAL'
 	})

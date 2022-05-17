@@ -1,31 +1,20 @@
-import log from '../lib/log.js'
-import Capture from '../xrpl/helpers/capture.js'
-import { unixNow, wait } from '@xrplworks/time'
+import { unixNow, rippleToUnix, wait } from '@xrplworks/time'
+import log from '@mwni/log'
+import startCapture from '../xrpl/helpers/capture.js'
 
 
-export async function make({ ctx, snapshot }){
-	let previousState = await snapshot.journal.readOne({ last: true })
-	let capture = new Capture({ config: this.config, xrpl: this.xrpl })
+export async function make({ config, xrpl, snapshot }){
+	let state = await snapshot.journal.readOne({ last: true })
+	let marker
 
-	if(state?.captureMarker){
-		await capture.start(state.captureMarker)
+	if(state.captureMarker){
+		marker = state.captureMarker
+		
 		log.info(`resuming snapshot capture at ledger #${state.ledgerIndex}`)
 	}else{
 		let { result } = await this.xrpl.request({command: 'ledger', ledger_index: 'validated'})
 		let ledgerIndex = parseInt(result.ledger.ledger_index)
-		let ledgerCloseTime = Date.parse(result.ledger.close_time_human) / 1000
-
-		await capture.start({ ledgerIndex })
-
-		state = await this.snapshot.journal.createOne({
-			data: {
-				time: unixNow(),
-				ledgerIndex,
-				ledgerCloseTime,
-				isCheckpoint: true,
-				captureMarker: capture.marker
-			}
-		})
+		let ledgerCloseTime = rippleToUnix(result.close_time)
 
 		log.info(`capturing snapshot at ledger #${ledgerIndex} - this may take a long time`)
 	}
