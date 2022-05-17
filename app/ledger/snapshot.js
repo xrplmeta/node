@@ -1,8 +1,8 @@
 import { spawn } from 'nanotasks'
-import * as database from '../../snapshot/database.js'
-import * as checkpoint from '../../snapshot/capture.js'
-import * as live from '../../snapshot/live.js'
-import * as backfill from '../../snapshot/backfill.js'
+import * as database from '../../ledger/database.js'
+import * as checkpoint from '../../ledger/capture.js'
+import * as live from '../../ledger/live.js'
+import * as backfill from '../../ledger/backfill.js'
 
 
 export const name = 'ledger.snapshot'
