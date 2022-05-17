@@ -1,34 +1,23 @@
 import log from '../../lib/log.js'
 import { wait } from '@xrplworks/time'
 
+export default async function({ ctx, ledgerIndex, marker }){
+	let chunkSize = config.ledger.snapshot.chunkSize || 10000
+	let queue = []
+	let { result, node: assignedNode } = await xrpl.request({
+		type: 'reserveTicket',
+		task: 'snapshot',
+		ledgerIndex,
+		node: marker?.node
+	})
+	
+	log.info(`reserved ledger snapshot ticket (${result.ticket}) with node ${assignedNode}`)
 
-export default class{
-	constructor({ xrpl, config }){
-		this.chunkSize = config.ledger.snapshot.chunkSize || 10000
-		this.xrpl = xrpl
-		this.queue = []
-	}
-
-	async start({ ledgerIndex, marker }){
-		let { result, node: assignedNode } = await this.xrpl.request({
-			type: 'reserveTicket',
-			task: 'snapshot',
-			ledgerIndex,
-			node: marker?.node
-		})
-		
-		log.info(`reserved ledger snapshot ticket (${result.ticket}) with node ${assignedNode}`)
-
-		this.ledgerIndex = ledgerIndex
-		this.marker = marker || { node: assignedNode }
-		this.ticket = result.ticket
-		this.ongoing = true
-		this.fill()
-	}
-
-	async fill(){
-		let failures = 0
-
+	let ledgerIndex = ledgerIndex
+	let ticket = result.ticket
+	let ongoing = true
+	let failures = 0
+	let promise = (async() => {
 		while(true){
 			while(this.queue.length >= this.chunkSize * 10)
 				await wait(100)
@@ -63,5 +52,9 @@ export default class{
 		}
 
 		this.ongoing = false
+	})()
+
+	return {
+
 	}
 }

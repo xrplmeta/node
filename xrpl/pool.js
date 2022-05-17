@@ -1,11 +1,10 @@
 import EventEmitter from 'events'
-import Socket from '@xrplworks/socket'
+import log from '@mwni/log'
 import { wait } from '@xrplworks/time'
-import log from '../lib/log.js'
 import Node from './node.js'
 
 
-export default function({ config, log }){
+export default function(sources){
 	let events = new EventEmitter
 	let seenHashes = []
 	let queue = []
@@ -49,7 +48,7 @@ export default function({ config, log }){
 
 	log.info(`using nodes:`)
 
-	for(let spec of config.ledger.sources){
+	for(let spec of sources){
 		let connections = spec.connections || 1
 
 		for(let i=0; i<connections; i++){
@@ -73,7 +72,6 @@ export default function({ config, log }){
 	}
 
 	workQueue()
-
 
 	return Object.assign(
 		events,
