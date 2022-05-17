@@ -108,6 +108,9 @@
 				"emailHash": {
 					"type": "string",
 					"format": "hex"
+				},
+				"lastModifiedIndex": {
+					"type": "integer"
 				}
 			},
 			"required": [
@@ -155,6 +158,9 @@
 				"balance": {
 					"type": "string",
 					"format": "xrpl/xfl"
+				},
+				"lastModifiedIndex": {
+					"type": "integer"
 				}
 			},
 			"required": [
@@ -205,6 +211,9 @@
 				"expiration": {
 					"type": "integer",
 					"format": "timestamp"
+				},
+				"lastModifiedIndex": {
+					"type": "integer"
 				}
 			},
 			"required": [
@@ -240,6 +249,9 @@
 				"uri": {
 					"type": "string",
 					"format": "hex"
+				},
+				"lastModifiedIndex": {
+					"type": "integer"
 				}
 			},
 			"required": [
@@ -284,6 +296,9 @@
 				"expiration": {
 					"type": "integer",
 					"format": "timestamp"
+				},
+				"lastModifiedIndex": {
+					"type": "integer"
 				}
 			},
 			"required": [
