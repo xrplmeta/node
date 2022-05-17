@@ -105,6 +105,11 @@ export function init({ ctx, variant }){
 
 
 	return Object.assign(db, {
+		async isIncomplete(){
+			let latest = await db.journal.readOne({ last: true })
+			return !latest || latest.captureMarker
+		},
+
 		async addLedgerEntry(entry){
 			switch(entry.LedgerEntryType){
 				case 'AccountRoot': 
