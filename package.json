@@ -4,8 +4,8 @@
 	"type": "module",
 	"dependencies": {
 		"@koa/router": "^10.1.1",
-		"@mwni/events": "^1.0.0",
-		"@mwni/log": "^2.0.0",
+		"@mwni/events": "file:../../mwni/events",
+		"@mwni/log": "file:../../mwni/log",
 		"@structdb/sqlite": "file:../../structdb/sqlite",
 		"@xrplworks/amount": "^1.0.0",
 		"@xrplworks/currency": "^1.0.1",
