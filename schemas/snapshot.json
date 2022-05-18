@@ -164,9 +164,7 @@
 				"balance"
 			],
 			"unique": [
-				"currency",
-				"lowAccount",
-				"highAccount"
+				["currency", "lowAccount", "highAccount"]
 			]
 		},
 		"CurrencyOffer": {
@@ -219,8 +217,7 @@
 				"takerGetsValue"
 			],
 			"unique": [
-				"account",
-				"sequence"
+				["account", "sequence"]
 			]
 		},
 		"NFToken": {
@@ -303,8 +300,7 @@
 				"buy"
 			],
 			"unique": [
-				"account",
-				"tokenId"
+				["account", "tokenId"]
 			]
 		}
 	}
