@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { Client } from '@structdb/sqlite'
 import { fromRippled as fromRippledAmount } from '@xrplworks/amount'
 import { rippleToUnix } from '@xrplworks/time'
@@ -9,10 +10,14 @@ import schemas from '../schemas/index.js'
 
 export function init({ config, variant }){
 	let db = new Client({
-		file: `${config.data.dir}/snapshot.${variant}.db`,
+		file: getFilePath(variant),
 		schema: schemas.snapshot,
 		journalMode: 'WAL'
 	})
+
+	function getFilePath(variant){
+		return `${config.data.dir}/ledger-${variant}.db`
+	}
 
 	async function addAccountRoot(entry){
 		await db.accounts.createOne({
@@ -110,7 +115,7 @@ export function init({ config, variant }){
 			return !latest || latest.captureMarker
 		},
 
-		async addLedgerEntry(entry){
+		async addNativeEntry(entry){
 			switch(entry.LedgerEntryType){
 				case 'AccountRoot': 
 					return await addAccountRoot(entry)
@@ -127,6 +132,11 @@ export function init({ config, variant }){
 				case 'NFTokenOffer':
 					return await addNFTokenOffer(entry)
 			}
+		},
+
+		async fork({ variant: forkedVariant }){
+			db.compact()
+			fs.copyFileSync(getFilePath(variant), getFilePath(forkedVariant))
 		}
 	})
 }

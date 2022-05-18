@@ -61,26 +61,20 @@
 				"ledgerIndex": {
 					"type": "integer"
 				},
-				"ledgerCloseTime": {
-					"type": "integer",
-					"format": "timestamp"
-				},
 				"entriesCount": {
 					"type": "integer",
 					"default": 0
 				},
-				"isCheckpoint": {
-					"type": "boolean"
+				"snapshotOrigin": {
+					"type": "string"
 				},
-				"captureMarker": {
+				"snapshotMarker": {
 					"type": "any"
 				}
 			},
 			"required": [
 				"ledgerIndex",
-				"ledgerCloseTime",
-				"entriesCount",
-				"isCheckpoint"
+				"entriesCount"
 			],
 			"unique": [
 				"ledgerIndex"

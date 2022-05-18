@@ -1,6 +1,5 @@
 import EventEmitter from 'events'
 import Socket from '@xrplworks/socket'
-import log from '../lib/log.js'
 
 
 export default class Node extends EventEmitter{
@@ -11,7 +10,6 @@ export default class Node extends EventEmitter{
 			.replace(/^wss?:\/\//, '')
 			.replace(/:[0-9]+/, '')
 
-		this.log = log.branch({name: config.url, color: 'yellow'})
 		this.tasks = []
 		this.socket = new Socket(config.url)
 

@@ -1,42 +1,41 @@
-import log from '../../lib/log.js'
+import log from '@mwni/log'
 import { wait } from '@xrplworks/time'
 
-export default async function({ ctx, ledgerIndex, marker }){
-	let chunkSize = config.ledger.snapshot.chunkSize || 10000
+export default async function({ config, xrpl, ledgerIndex, preferredNode, marker }){
+	let chunkSize = config.ledger.snapshotChunkSize || 10000
 	let queue = []
 	let { result, node: assignedNode } = await xrpl.request({
 		type: 'reserveTicket',
 		task: 'snapshot',
 		ledgerIndex,
-		node: marker?.node
+		node: preferredNode
 	})
 	
 	log.info(`reserved ledger snapshot ticket (${result.ticket}) with node ${assignedNode}`)
 
-	let ledgerIndex = ledgerIndex
 	let ticket = result.ticket
-	let ongoing = true
+	let done = false
 	let failures = 0
 	let promise = (async() => {
 		while(true){
-			while(this.queue.length >= this.chunkSize * 10)
+			while(queue.length >= chunkSize * 10)
 				await wait(100)
 
 			try{
-				let { result } = await this.xrpl.request({
+				let { result } = await xrpl.request({
 					command: 'ledger_data',
-					ledger_index: this.ledgerIndex,
-					marker: this.marker?.ledger,
-					limit: this.chunkSize,
-					ticket: this.ticket
+					ledger_index: ledgerIndex,
+					limit: chunkSize,
+					marker,
+					ticket
 				})
 
-				this.queue.push(...result.state)
-				this.marker.ledger = result.marker
-
+				queue.push(...result.state)
+				marker = result.marker
 				failures = 0
 			}catch(e){
 				if(++failures >= 10){
+					throw e
 					break
 				}
 
@@ -45,16 +44,25 @@ export default async function({ ctx, ledgerIndex, marker }){
 				continue
 			}
 
-			if(!this.marker.ledger){
-				this.complete = true
+			if(!marker){
+				done = true
 				break
 			}
 		}
-
-		this.ongoing = false
 	})()
 
 	return {
-
+		get node(){
+			return assignedNode
+		},
+		get queue(){
+			return queue
+		},
+		get marker(){
+			return marker
+		},
+		get done(){
+			return done
+		}
 	}
 }

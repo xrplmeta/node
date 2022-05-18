@@ -1,17 +1,17 @@
 import log from '@mwni/log'
 import { spawn } from 'nanotasks'
 import * as database from '../ledger/database.js'
-import * as capture from '../ledger/capture.js'
+import * as snapshot from '../ledger/snapshot.js'
 import * as live from '../ledger/live.js'
 import * as backfill from '../ledger/backfill.js'
 
 
 
 export default async function(ctx){
-	let snapshot = database.init({ ...ctx, variant: 'live' })
+	let ledger = database.init({ ...ctx, variant: 'live' })
 
-	if(await snapshot.isIncomplete()){
-		await spawn(':makeCapture', { ...ctx, log })
+	if(await ledger.isIncomplete()){
+		await spawn(':createSnapshot', { ...ctx, log })
 	}
 
 	await spawn(':workLive', ctx)
@@ -19,13 +19,13 @@ export default async function(ctx){
 }
 
 
-export async function makeCapture(ctx){
-	let snapshot = database.init({ config: ctx.config, variant: 'live' })
+export async function createSnapshot(ctx){
+	let ledger = database.init({ ...ctx, variant: 'live' })
 
 	log.pipe(ctx.log)
 
-	await capture.make({ ...ctx, snapshot })
-	await snapshot.fork({ variant: 'backfill' })
+	await snapshot.create({ ...ctx, ledger })
+	await ledger.fork({ variant: 'backfill' })
 }
 
 
