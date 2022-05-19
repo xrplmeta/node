@@ -1,6 +1,6 @@
 import EventEmitter from 'events'
 import log from '@mwni/log'
-import { wait } from '@xrplworks/time'
+import { wait } from '@xrplkit/time'
 import Node from './node.js'
 
 
@@ -68,7 +68,7 @@ export default function(sources){
 			nodes.push(node)
 		}
 
-		log.info(` - ${spec.url}`)
+		log.info(` -> ${spec.url}`)
 	}
 
 	workQueue()

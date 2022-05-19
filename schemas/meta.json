@@ -21,7 +21,7 @@
 				"$ref": "#/definitions/Currency"
 			}
 		},
-		"token": {
+		"tokens": {
 			"type": "array",
 			"items": {
 				"$ref": "#/definitions/Token"

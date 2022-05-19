@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { wait } from '@xrplworks/time'
+import { wait } from '@xrplkit/time'
 
 export default async function({ config, xrpl, ledgerIndex, preferredNode, marker }){
 	let chunkSize = config.ledger.snapshotChunkSize || 10000

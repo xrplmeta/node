@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import Socket from '@xrplworks/socket'
+import Socket from '@xrplkit/socket'
 
 
 export default class Node extends EventEmitter{

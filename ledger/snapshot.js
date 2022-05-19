@@ -1,4 +1,4 @@
-import { unixNow, rippleToUnix, wait } from '@xrplworks/time'
+import { unixNow, rippleToUnix, wait } from '@xrplkit/time'
 import log from '@mwni/log'
 import startSnapshot from '../xrpl/helpers/snapshot.js'
 
