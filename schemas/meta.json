@@ -1,0 +1,304 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Metadata & Marketdata Storage",
+	"type": "object",
+	"properties": {
+		"accounts": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Account"
+			}
+		},
+		"issuerMetas": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/IssuerMeta"
+			}
+		},
+		"currencies": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Currency"
+			}
+		},
+		"token": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Token"
+			}
+		},
+		"tokenMetas": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenMeta"
+			}
+		},
+		"tokenExchanges": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenExchange"
+			}
+		},
+		"tokenSupply": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenSupply"
+			}
+		},
+		"tokenTrustlines": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenTrustlines"
+			}
+		},
+		"tokenWhales": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenWhale"
+			}
+		},
+		"tokenWhaleBalances": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenWhaleBalance"
+			}
+		},
+		"tokenBooks": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenBook"
+			}
+		}
+	},
+	"definitions": {
+		"Account": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"address": {
+					"type": "string",
+					"format": "xrpl/address"
+				}
+			},
+			"required": [
+				"address"
+			]
+		},
+		"IssuerMeta": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"key": {
+					"type": "string"
+				},
+				"value": {
+					"type": "any"
+				},
+				"source": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"issuer",
+				"key",
+				"source"
+			],
+			"unique": [
+				["issuer", "key", "source"]
+			]
+		},
+		"Currency": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"code": {
+					"type": "string",
+					"format": "xrpl/currency"
+				}
+			},
+			"required": [
+				"code"
+			],
+			"unique": [
+				"code"
+			]
+		},
+		"Token": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"currency": {
+					"$ref": "#/definitions/Currency"
+				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
+				}
+			}
+		},
+		"TokenMeta": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"key": {
+					"type": "string"
+				},
+				"value": {
+					"type": "any"
+				},
+				"source": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"token",
+				"key",
+				"source"
+			],
+			"unique": [
+				["token", "key", "source"]
+			]
+		},
+		"TokenExchange": {
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"txHash": {
+					"type": "string",
+					"format": "hex"
+				},
+				"offerIdx": {
+					"type": "integer"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"taker": {
+					"$ref": "#/definitions/Account"
+				},
+				"takerPaysToken": {
+					"$ref": "#/definitions/Token"
+				},
+				"takerPaysValue": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"takerGetsToken": {
+					"$ref": "#/definitions/Token"
+				},
+				"takerGetsValue": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			},
+			"required": [
+				"txHash",
+				"offerIdx",
+				"ledgerIndex",
+				"taker",
+				"takerPaysValue",
+				"takerGetsValue"
+			],
+			"unique": [
+				["txHash", "offerIdx"]
+			]
+		},
+		"TokenSupply": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"value": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			}
+		},
+		"TokenTrustlines": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"value": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			}
+		},
+		"TokenWhales": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"balances": {
+					"$ref": "#/definitions/TokenWhaleBalance"
+				}
+			}
+		},
+		"TokenWhaleBalance": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"whale": {
+					"$ref": "#/definitions/Whale"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"value": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			}
+		}
+	}
+}
