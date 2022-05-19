@@ -1,8 +1,8 @@
 import fs from 'fs'
 import { Client } from '@structdb/sqlite'
-import { fromRippled as fromRippledAmount } from '@xrplworks/amount'
-import { rippleToUnix } from '@xrplworks/time'
-import XFL from '@xrplworks/xfl'
+import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
+import { rippleToUnix } from '@xrplkit/time'
+import { div, lt, gt } from '@xrplkit/xfl/string'
 import { encodeAccountID } from 'ripple-address-codec'
 import schemas from '../schemas/index.js'
 
@@ -25,20 +25,23 @@ export function init({ config, variant }){
 				address: entry.Account,
 				emailHash: entry.EmailHash,
 				domain: entry.Domain,
-				balance: new XFL(entry.Balance)
-					.div('1000000')
-					.toString(),
+				balance: div(entry.Balance, '1000000'),
 			}
 		})
 	}
 
 	async function addRippleState(entry){
+		let lowIssuer = entry.HighLimit.value !== '0' || lt(entry.Balance.value, '0')
+		let highIssuer = entry.LowLimit.value !== '0' || gt(entry.Balance.value, '0')
+
 		await db.rippleStates.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				lowAccount: { address: entry.LowLimit.issuer },
 				highAccount: { address: entry.HighLimit.issuer },
-				balance: entry.Balance.value
+				balance: entry.Balance.value,
+				lowIssuer,
+				highIssuer
 			}
 		})
 	}
@@ -110,9 +113,13 @@ export function init({ config, variant }){
 
 
 	return Object.assign(db, {
+		async getState(){
+			return await db.journal.readOne({ last: true })
+		},
+
 		async isIncomplete(){
-			let latest = await db.journal.readOne({ last: true })
-			return !latest || latest.captureMarker
+			let state = await this.getState()
+			return !state || state.snapshotMarker
 		},
 
 		async addNativeEntry(entry){

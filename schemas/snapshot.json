@@ -153,6 +153,14 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
+				"lowIssuer": {
+					"type": "boolean",
+					"default": false
+				},
+				"highIssuer": {
+					"type": "boolean",
+					"default": false
+				},
 				"lastModifiedIndex": {
 					"type": "integer"
 				}
