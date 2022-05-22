@@ -68,8 +68,9 @@ export async function create({ config, xrpl, ledger }){
 	log.flush()
 	log.info(`ledger snapshot complete`)
 
-	await state.update({
+	await ledger.journal.createOne({
 		data: {
+			ledgerIndex,
 			snapshotMarker: null
 		}
 	})
