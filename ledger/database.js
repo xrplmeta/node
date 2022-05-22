@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { Client } from '@structdb/sqlite'
+import { open as openDatabase } from '@structdb/sqlite'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
 import { div, lt, gt } from '@xrplkit/xfl/string'
@@ -9,7 +9,7 @@ import schemas from '../schemas/index.js'
 
 
 export function init({ config, variant }){
-	let db = new Client({
+	let db = openDatabase({
 		file: getFilePath(variant),
 		schema: schemas.snapshot,
 		journalMode: 'WAL'
