@@ -7,6 +7,10 @@ export default async function({ config }){
 	let xrpl = createPool(config.ledger.sources)
 	
 	startLedger({ config, xrpl })
+		.catch(error => {
+			log.error(`ledger task crashed due to fatal error - cannot continue`)
+			process.exit(1)
+		})
 
 
 	return {
