@@ -45,7 +45,7 @@ export async function create({ config, ledger }){
 async function processIssuedCurrency({ issuedCurrency, config, ledger }){
 	let { currency, issuer } = issuedCurrency
 
-	let rippleStates = await ledger.rippleStates.readMany({
+	let rippleStates = await ledger.rippleStates.iter({
 		where: {
 			OR: [
 				{
@@ -59,8 +59,16 @@ async function processIssuedCurrency({ issuedCurrency, config, ledger }){
 					highIssuer: true
 				}
 			]
+		},
+		include: {
+			lowAccount: true,
+			highAccount: true
 		}
 	})
 
-	console.log(currency, rippleStates.length)
+	for await(let rippleState of rippleStates){
+		console.log(rippleState)
+	}
+
+	
 }
