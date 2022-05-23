@@ -1,15 +1,14 @@
 import log from '@mwni/log'
 import { spawn } from 'nanotasks'
-import * as database from '../ledger/database.js'
+import { open as openLedgerDatabase } from '../ledger/database.js'
+import { open as openMetaDatabase } from '../meta/database.js'
 import * as snapshot from '../ledger/snapshot.js'
-import * as checkpoint from '../ledger/checkpoint.js'
-import * as live from '../ledger/live.js'
-import * as backfill from '../ledger/backfill.js'
+import * as checkpoint from '../meta/checkpoint.js'
 
 
 
 export default async function(ctx){
-	let ledger = database.init({ ...ctx, variant: 'live' })
+	let ledger = openLedgerDatabase({ ...ctx, variant: 'live' })
 
 	if(await ledger.isIncomplete()){
 		await spawn(':createSnapshot', { ...ctx, log })
@@ -23,7 +22,7 @@ export default async function(ctx){
 export async function createSnapshot(ctx){
 	log.pipe(ctx.log)
 
-	let ledger = database.init({ ...ctx, variant: 'live' })
+	let ledger = openLedgerDatabase({ ...ctx, variant: 'live' })
 
 	await snapshot.create({ ...ctx, ledger })
 	await ledger.fork({ variant: 'backfill' })
@@ -32,9 +31,10 @@ export async function createSnapshot(ctx){
 export async function workLive(ctx){
 	log.pipe(ctx.log)
 	
-	let ledger = database.init({ ...ctx, variant: 'live' })
+	let ledger = openLedgerDatabase({ ...ctx, variant: 'live' })
+	let meta = openMetaDatabase({ ...ctx })
 
-	await checkpoint.create({ ...ctx, ledger })
+	await checkpoint.create({ ...ctx, meta, ledger })
 
 	//await live.work({ ...ctx, ledger })
 }

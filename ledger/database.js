@@ -8,7 +8,7 @@ import schemas from '../schemas/index.js'
 
 
 
-export function init({ config, variant }){
+export function open({ config, variant }){
 	let db = openDatabase({
 		file: getFilePath(variant),
 		schema: schemas.snapshot,
