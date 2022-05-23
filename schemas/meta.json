@@ -68,12 +68,6 @@
 			"items": {
 				"$ref": "#/definitions/TokenWhaleBalance"
 			}
-		},
-		"tokenBooks": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/TokenBook"
-			}
 		}
 	},
 	"definitions": {
@@ -90,6 +84,9 @@
 				}
 			},
 			"required": [
+				"address"
+			],
+			"unique": [
 				"address"
 			]
 		},
@@ -286,7 +283,7 @@
 				}
 			}
 		},
-		"TokenWhales": {
+		"TokenWhale": {
 			"type": "object",
 			"properties": {
 				"id": {
@@ -312,7 +309,7 @@
 					"id": true
 				},
 				"whale": {
-					"$ref": "#/definitions/Whale"
+					"$ref": "#/definitions/TokenWhale"
 				},
 				"ledgerIndex": {
 					"type": "integer"
