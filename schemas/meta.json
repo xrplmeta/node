@@ -51,6 +51,12 @@
 				"$ref": "#/definitions/TokenTrustlines"
 			}
 		},
+		"tokenHolders": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenHolders"
+			}
+		},
 		"tokenWhales": {
 			"type": "array",
 			"items": {
@@ -258,8 +264,25 @@
 					"type": "integer"
 				},
 				"value": {
-					"type": "string",
-					"format": "xrpl/xfl"
+					"type": "integer"
+				}
+			}
+		},
+		"TokenHolders": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"value": {
+					"type": "integer"
 				}
 			}
 		},
