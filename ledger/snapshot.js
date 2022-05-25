@@ -1,6 +1,7 @@
 import { unixNow, rippleToUnix, wait } from '@xrplkit/time'
 import log from '@mwni/log'
 import startSnapshot from '../xrpl/helpers/snapshot.js'
+import { addNativeEntry } from './native.js'
 
 
 export async function create({ config, xrpl, ledger }){
@@ -34,11 +35,11 @@ export async function create({ config, xrpl, ledger }){
 		}
 
 		await ledger.tx(async ledger => {
-			for(let object of batch){
+			for(let entry of batch){
 				try{
-					await ledger.addNativeEntry(object)
+					await addNativeEntry({ ledger, entry })
 				}catch(error){
-					log.error(`failed to add ledger object:`, object)
+					log.error(`failed to add ledger object:`, entry)
 					throw error
 				}
 			}

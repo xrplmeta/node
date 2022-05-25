@@ -1,20 +1,21 @@
 import log from '@mwni/log'
 import { XFL, sum, abs } from '@xrplkit/xfl'
 import { sort } from '@xrplkit/xfl/extras'
+import { getCurrentIndex } from '../ledger/state.js'
+import { storeTokenMetricPoint } from './metrics.js'
 
 
 export async function create({ config, meta, ledger }){
-	let state = await ledger.getState()
-
-	log.info(`creating checkpoint at ledger #${state.ledgerIndex}`)
+	log.info(`creating checkpoint at ledger #${await getCurrentIndex({ ledger })}`)
 
 	let issuedCurrencies = []
+	let counter = 0
 
 	for(let side of ['low', 'high']){
 		let accountKey = `${side}Account`
 		let issuerKey = `${side}Issuer`
 
-		let partIssuedCurrencies = await ledger.rippleStates.readMany({
+		let partIssuedCurrencies = await ledger.rippleStates.iter({
 			include: {
 				currency: true,
 				[accountKey]: true,
@@ -25,7 +26,7 @@ export async function create({ config, meta, ledger }){
 			distinct: ['currency', accountKey]
 		})
 
-		for(let row of partIssuedCurrencies){
+		for await(let row of partIssuedCurrencies){
 			let currency = row.currency.code
 			let issuer = row[accountKey].address
 
@@ -33,6 +34,9 @@ export async function create({ config, meta, ledger }){
 				continue
 
 			issuedCurrencies.push({ currency, issuer })
+
+			if(Math.random() > 0.95)
+				console.log(issuedCurrencies.length)
 		}
 	}
 	
@@ -40,12 +44,26 @@ export async function create({ config, meta, ledger }){
 
 	for(let issuedCurrency of issuedCurrencies){
 		await processIssuedCurrency({ issuedCurrency, config, meta, ledger })
+
+		log.accumulate.info({
+			line: [
+				`processed`,
+				counter++,
+				`of`,
+				issuedCurrencies.length,
+				`issued currencies (+%issuedCurrencies in %time)`
+			],
+			issuedCurrencies: 1
+		})
 	}
+
+	log.flush()
 }
 
 
 async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 	let { currency, issuer } = issuedCurrency
+	let ledgerIndex = await getCurrentIndex({ ledger })
 	let trustlines = 0
 	let holders = 0
 	let supply = XFL(0)
@@ -99,5 +117,12 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 		}
 	})
 
-	console.log(token)
+	await storeTokenMetricPoint({
+		meta,
+		token,
+		ledgerIndex,
+		trustlines,
+		holders,
+		supply
+	})
 }
