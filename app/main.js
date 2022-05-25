@@ -8,7 +8,8 @@ export default async function({ config }){
 	
 	startLedger({ config, xrpl })
 		.catch(error => {
-			log.error(`ledger task crashed due to fatal error - cannot continue`)
+			log.error(`ledger task crashed due to fatal error:`)
+			log.error(error)
 			process.exit(1)
 		})
 
