@@ -1,4 +1,4 @@
-import { toBigInt, XFL } from '@xrplkit/xfl'
+import { XFL, toBigInt } from '@xrplkit/xfl'
 
 export default {
 	acceptsFormat: 'xrpl/xfl',
@@ -11,6 +11,6 @@ export default {
 	},
 
 	decode(data){
-		return data ? XFL(data) : data
+		return data ? XFL(BigInt(data)) : data
 	}
 }
