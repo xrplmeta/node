@@ -34,7 +34,7 @@ export async function create({ config, xrpl, ledger }){
 			continue
 		}
 
-		await ledger.tx(async ledger => {
+		await ledger.tx(async () => {
 			for(let entry of batch){
 				try{
 					await addNativeEntry({ ledger, entry })
