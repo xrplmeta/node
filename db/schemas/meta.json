@@ -151,7 +151,14 @@
 				"issuer": {
 					"$ref": "#/definitions/Account"
 				}
-			}
+			},
+			"required": [
+				"currency",
+				"issuer"
+			],
+			"unique": [
+				["currency", "issuer"]
+			]
 		},
 		"TokenMeta": {
 			"type": "object",
@@ -245,7 +252,15 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				}
-			}
+			},
+			"required": [
+				"token",
+				"ledgerIndex",
+				"value"
+			],
+			"unique": [
+				["token", "ledgerIndex"]
+			]
 		},
 		"TokenTrustlines": {
 			"type": "object",
@@ -263,7 +278,15 @@
 				"value": {
 					"type": "integer"
 				}
-			}
+			},
+			"required": [
+				"token",
+				"ledgerIndex",
+				"value"
+			],
+			"unique": [
+				["token", "ledgerIndex"]
+			]
 		},
 		"TokenHolders": {
 			"type": "object",
@@ -281,7 +304,15 @@
 				"value": {
 					"type": "integer"
 				}
-			}
+			},
+			"required": [
+				"token",
+				"ledgerIndex",
+				"value"
+			],
+			"unique": [
+				["token", "ledgerIndex"]
+			]
 		},
 		"TokenWhale": {
 			"type": "object",
