@@ -122,14 +122,12 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 
 		if(insertWhaleAt !== -1){
 			whales = [
-				...whales.slice(1, insertWhaleAt),
+				...whales.slice(whales.length >= maxWhales ? 1 : 0, insertWhaleAt),
 				{ account, balance },
 				...whales.slice(insertWhaleAt)
 			]
 		}
 	}
-
-	console.log(trustlines)
 
 	if(holders === 0 && trustlines < config.ledger.tokens.ignoreBelowTrustlines){
 		// delist token
