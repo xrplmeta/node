@@ -1,5 +1,6 @@
 import log from '@mwni/log'
-import { XFL, sum, abs } from '@xrplkit/xfl'
+import { wait } from '@xrplkit/time'
+import { XFL, sum, abs, gt } from '@xrplkit/xfl'
 import { sort } from '@xrplkit/xfl/extras'
 import { getCurrentIndex } from '../ledger/state.js'
 import { storeTokenMetricPoint } from './metrics.js'
@@ -15,35 +16,43 @@ export async function create({ config, meta, ledger }){
 		let accountKey = `${side}Account`
 		let issuerKey = `${side}Issuer`
 
-		let partIssuedCurrencies = await ledger.rippleStates.iter({
-			include: {
-				currency: true,
-				[accountKey]: true,
-			},
+		let partIssuedCurrencies = await ledger.rippleStates.readMany({
+			select: ['currency', accountKey],
+			distinct: ['currency', accountKey],
 			where: {
 				[issuerKey]: true,
 			},
-			distinct: ['currency', accountKey]
 		})
 
 		for await(let row of partIssuedCurrencies){
-			let currency = row.currency.code
-			let issuer = row[accountKey].address
-
-			if(issuedCurrencies.some(ic => ic.currency === currency || ic.issuer === issuer))
+			let currencyId = row.currency.id
+			let issuerId = row[accountKey].id
+				
+			if(issuedCurrencies.some(ic => ic.currencyId === currencyId || ic.issuerId === issuerId))
 				continue
 
-			issuedCurrencies.push({ currency, issuer })
-
-			if(Math.random() > 0.95)
-				console.log(issuedCurrencies.length)
+			issuedCurrencies.push({ currencyId, issuerId })
 		}
 	}
 	
 	log.info(`got`, issuedCurrencies.length, `issued currencies to walk through`)
 
-	for(let issuedCurrency of issuedCurrencies){
-		await processIssuedCurrency({ issuedCurrency, config, meta, ledger })
+	for(let { currencyId, issuerId } of issuedCurrencies){
+		await processIssuedCurrency({ 
+			issuedCurrency: {
+				currency: await ledger.currencies.readOne({
+					where: { id: currencyId }
+				}),
+				issuer: await ledger.accounts.readOne({
+					where: { id: issuerId }
+				})
+			}, 
+			config, 
+			meta, 
+			ledger 
+		})
+
+		await wait(1)
 
 		log.accumulate.info({
 			line: [
@@ -68,18 +77,19 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 	let holders = 0
 	let supply = XFL(0)
 	let whales = []
+	let maxWhales = config.ledger.tokens.captureWhales
 
-	let rippleStates = await ledger.rippleStates.iter({
+	let rippleStates = await ledger.rippleStates.readMany({
 		where: {
 			OR: [
 				{
-					currency: { code: currency },
-					lowAccount: { address: issuer },
+					currency: { code: currency.code },
+					lowAccount: { address: issuer.address },
 					lowIssuer: true
 				},
 				{
-					currency: { code: currency },
-					highAccount: { address: issuer },
+					currency: { code: currency.code },
+					highAccount: { address: issuer.address },
 					highIssuer: true
 				}
 			]
@@ -92,7 +102,7 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 
 	for await(let rippleState of rippleStates){
 		let balance = abs(rippleState.balance)
-		let account = rippleState.lowAccount.address === issuer
+		let account = rippleState.lowAccount.address === issuer.address
 			? rippleState.highAccount
 			: rippleState.lowAccount
 
@@ -100,10 +110,26 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 		holders += rippleState.balance !== '0' ? 1 : 0
 		supply = sum(supply, balance)
 
-		whales = [ ...whales, { account, balance } ]
-		whales = sort(whales, 'balance')
-			.slice(0, config.ledger.tokens.captureWhales)
+		
+		let insertWhaleAt = -1
+
+		while(insertWhaleAt < whales.length - 1){
+			if(gt(whales[insertWhaleAt + 1].balance, balance))
+				break
+
+			insertWhaleAt++
+		}
+
+		if(insertWhaleAt !== -1){
+			whales = [
+				...whales.slice(1, insertWhaleAt),
+				{ account, balance },
+				...whales.slice(insertWhaleAt)
+			]
+		}
 	}
+
+	console.log(trustlines)
 
 	if(holders === 0 && trustlines < config.ledger.tokens.ignoreBelowTrustlines){
 		// delist token
@@ -112,8 +138,8 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 
 	let token = await meta.tokens.createOne({
 		data: {
-			currency: { code: currency },
-			issuer: { address: issuer },
+			currency: { code: currency.code },
+			issuer: { address: issuer.address },
 		}
 	})
 
