@@ -8,7 +8,7 @@ import { create as createCheckpoint } from '../meta/checkpoint.js'
 
 
 export default async function(ctx){
-	let ledger = openLedger({ ...ctx, variant: 'live' })
+	let ledger = await openLedger({ ...ctx, variant: 'live' })
 
 	if(await isIncomplete({ ledger })){
 		await spawn(':runCreateSnapshot', { ...ctx, log })
@@ -22,7 +22,7 @@ export default async function(ctx){
 export async function runCreateSnapshot(ctx){
 	log.pipe(ctx.log)
 
-	let ledger = openLedger({ ...ctx, variant: 'live' })
+	let ledger = await openLedger({ ...ctx, variant: 'live' })
 
 	log.info('creating snapshot now')
 	await createSnapshot({ ...ctx, ledger })
@@ -35,8 +35,8 @@ export async function runCreateSnapshot(ctx){
 export async function runLive(ctx){
 	log.pipe(ctx.log)
 	
-	let ledger = openLedger({ ...ctx, variant: 'live' })
-	let meta = openMeta({ ...ctx })
+	let ledger = await openLedger({ ...ctx, variant: 'live' })
+	let meta = await openMeta({ ...ctx })
 
 	await createCheckpoint({ ...ctx, meta, ledger })
 

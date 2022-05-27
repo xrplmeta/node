@@ -21,8 +21,8 @@ for(let file of fs.readdirSync(path.join(__dirname, 'schemas'))){
 }
 
 
-export function openLedger({ config, variant }){
-	return open({
+export async function openLedger({ config, variant }){
+	return await open({
 		file: `${config.data.dir}/ledger-${variant}.db`,
 		schema: schemas.snapshot,
 		journalMode: 'WAL',
@@ -30,13 +30,13 @@ export function openLedger({ config, variant }){
 	})
 }
 
-export function cloneLedger({ config, ledger, newVariant }){
-	ledger.compact()
+export async function cloneLedger({ config, ledger, newVariant }){
+	await ledger.compact()
 	fs.copyFileSync(ledger.file, `${config.data.dir}/ledger-${newVariant}.db`)
 }
 
-export function openMeta({ config }){
-	return open({
+export async function openMeta({ config }){
+	return await open({
 		file: `${config.data.dir}/meta.db`,
 		schema: schemas.meta,
 		journalMode: 'WAL',
