@@ -1,0 +1,36 @@
+export async function storeWhaleBalance({ meta, token, ledgerIndex, account, balance }){
+	if(await getWhaleBalance({ meta, token, ledgerIndex, account }) === balance)
+		return
+
+	await meta.tokenWhaleBalances.createOne({
+		data: {
+			whale: {
+				token,
+				account: account
+			},
+			ledgerIndex,
+			value: balance,
+		}
+	})
+}
+
+export async function getWhaleBalance({ meta, token, ledgerIndex, account }){
+	let entry = await meta.tokenWhaleBalances.readOne({
+		where: {
+			whale: {
+				token,
+				account: account
+			},
+			ledgerIndex: {
+				lessThanOrEqual: ledgerIndex
+			}
+		},
+		orderBy: {
+			ledgerIndex: 'desc'
+		},
+		take: 1
+	})
+
+	if(entry)
+		return entry.value
+}
