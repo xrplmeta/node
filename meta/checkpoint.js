@@ -3,14 +3,23 @@ import { wait } from '@xrplkit/time'
 import { XFL, sum, abs, gt } from '@xrplkit/xfl'
 import { sort } from '@xrplkit/xfl/extras'
 import { getCurrentIndex } from '../ledger/state.js'
-import { storeTokenMetricPoint } from './metrics.js'
+import { storeMetricPoint as storeTokenMetricPoint } from './token/metrics.js'
+import { storeWhaleBalance as storeTokenWhaleBalance } from './token/whales.js'
 
 
 export async function create({ config, meta, ledger }){
 	log.info(`creating checkpoint at ledger #${await getCurrentIndex({ ledger })}`)
 
+	//let issuedCurrencies = await discoverIssuedCurrencies({ ledger })
+	
+	//log.info(`got`, issuedCurrencies.length, `issued currencies to walk through`)
+	
+	//await proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies })
+	await walkBooks({ config, meta, ledger })
+}
+
+async function discoverIssuedCurrencies({ ledger }){
 	let issuedCurrencies = []
-	let counter = 0
 
 	for(let side of ['low', 'high']){
 		let accountKey = `${side}Account`
@@ -34,8 +43,12 @@ export async function create({ config, meta, ledger }){
 			issuedCurrencies.push({ currencyId, issuerId })
 		}
 	}
-	
-	log.info(`got`, issuedCurrencies.length, `issued currencies to walk through`)
+
+	return issuedCurrencies
+}
+
+async function proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies }){
+	let counter = 0
 
 	for(let { currencyId, issuerId } of issuedCurrencies){
 		await processIssuedCurrency({ 
@@ -57,7 +70,7 @@ export async function create({ config, meta, ledger }){
 		log.accumulate.info({
 			line: [
 				`processed`,
-				counter++,
+				++counter,
 				`of`,
 				issuedCurrencies.length,
 				`issued currencies (+%issuedCurrencies in %time)`
@@ -113,8 +126,10 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 		
 		let insertWhaleAt = -1
 
-		while(insertWhaleAt < whales.length - 1){
-			if(gt(whales[insertWhaleAt + 1].balance, balance))
+		while(insertWhaleAt < whales.length){
+			let whale = whales[insertWhaleAt + 1]
+
+			if(whale && gt(whale.balance, balance))
 				break
 
 			insertWhaleAt++
@@ -149,4 +164,86 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 		holders,
 		supply
 	})
+
+	for(let whale of whales){
+		await storeTokenWhaleBalance({
+			meta,
+			token,
+			ledgerIndex,
+			...whale
+		})
+	}
+}
+
+
+async function walkBooks({ config, meta, ledger }){
+	let ledgerIndex = await getCurrentIndex({ ledger })
+	let counter = 0
+	let totalCount = await ledger.currencyOffers.count()
+	let offers = await ledger.currencyOffers.iter({
+		include: {
+			account: true,
+			takerPaysCurrency: true,
+			takerPaysIssuer: true,
+			takerGetsCurrency: true,
+			takerGetsIssuer: true
+		}
+	})
+	
+	
+	for await(let offer of offers){
+		let takerPaysToken
+		let takerGetsToken
+
+		if(offer.takerPaysIssuer){
+			takerPaysToken = {
+				currency: {
+					code: offer.takerPaysCurrency.code
+				},
+				issuer: {
+					address: offer.takerPaysIssuer.address
+				}
+			}
+		}
+
+		if(offer.takerGetsIssuer){
+			takerGetsToken = {
+				currency: {
+					code: offer.takerGetsCurrency.code
+				},
+				issuer: {
+					address: offer.takerGetsIssuer.address
+				}
+			}
+		}
+
+		await meta.tokenBookOffers.createOne({
+			data: {
+				book: {
+					takerPaysToken,
+					takerGetsToken
+				},
+				account: {
+					address: offer.account.address
+				},
+				sequence: offer.sequence,
+				takerPaysValue: offer.takerPaysValue,
+				takerGetsValue: offer.takerGetsValue,
+				startLedgerIndex: ledgerIndex
+			}
+		})
+
+		await wait(1)
+
+		log.accumulate.info({
+			line: [
+				`processed`,
+				++counter,
+				`of`,
+				totalCount,
+				`currency offers (+%currencyOffers in %time)`
+			],
+			currencyOffers: 1
+		})
+	}
 }
