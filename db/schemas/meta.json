@@ -68,6 +68,18 @@
 			"items": {
 				"$ref": "#/definitions/TokenWhaleBalance"
 			}
+		},
+		"tokenBooks": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenBook"
+			}
+		},
+		"tokenBookOffers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenBookOffer"
+			}
 		}
 	},
 	"definitions": {
@@ -328,9 +340,19 @@
 					"$ref": "#/definitions/Account"
 				},
 				"balances": {
-					"$ref": "#/definitions/TokenWhaleBalance"
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/TokenWhaleBalance"
+					}
 				}
-			}
+			},
+			"required": [
+				"token",
+				"account"
+			],
+			"unique": [
+				["token", "account"]
+			]
 		},
 		"TokenWhaleBalance": {
 			"type": "object",
@@ -349,7 +371,82 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				}
-			}
+			},
+			"required": [
+				"whale",
+				"ledgerIndex",
+				"value"
+			],
+			"unique": [
+				["whale", "ledgerIndex"]
+			]
+		},
+		"TokenBook": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"takerPaysToken": {
+					"$ref": "#/definitions/Token"
+				},
+				"takerGetsToken": {
+					"$ref": "#/definitions/Token"
+				},
+				"offers": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/TokenBookOffer"
+					}
+				}
+			},
+			"required": [],
+			"unique": [
+				["takerPaysToken", "takerGetsToken"]
+			]
+		},
+		"TokenBookOffer": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"book": {
+					"$ref": "#/definitions/TokenBook"
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"sequence": {
+					"type": "integer"
+				},
+				"startLedgerIndex": {
+					"type": "integer"
+				},
+				"endLedgerIndex": {
+					"type": "integer"
+				},
+				"takerPaysValue": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"takerGetsValue": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			},
+			"required": [
+				"book",
+				"offerId",
+				"startLedgerIndex",
+				"takerPaysValue",
+				"takerGetsValue"
+			],
+			"unique": [
+				["account", "sequence"]
+			]
 		}
 	}
 }
