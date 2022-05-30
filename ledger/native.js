@@ -1,4 +1,4 @@
-import { div, lt, gt } from '@xrplkit/xfl'
+import { div, lt, gt, neg, max } from '@xrplkit/xfl'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
 import { encodeAccountID } from 'ripple-address-codec'
@@ -39,16 +39,27 @@ async function addRippleState({ ledger, entry }){
 	let lowIssuer = entry.HighLimit.value !== '0' || lt(entry.Balance.value, '0')
 	let highIssuer = entry.LowLimit.value !== '0' || gt(entry.Balance.value, '0')
 
-	await ledger.rippleStates.createOne({
-		data: {
-			currency: { code: entry.Balance.currency },
-			lowAccount: { address: entry.LowLimit.issuer },
-			highAccount: { address: entry.HighLimit.issuer },
-			balance: entry.Balance.value,
-			lowIssuer,
-			highIssuer
-		}
-	})
+	if(lowIssuer){
+		await ledger.trustlines.createOne({
+			data: {
+				currency: { code: entry.Balance.currency },
+				issuer: { address: entry.LowLimit.issuer },
+				holder: { address: entry.HighLimit.issuer },
+				balance: max(0, neg(entry.Balance.value)),
+			}
+		})
+	}
+
+	if(highIssuer){
+		await ledger.trustlines.createOne({
+			data: {
+				currency: { code: entry.Balance.currency },
+				issuer: { address: entry.HighLimit.issuer },
+				holder: { address: entry.LowLimit.issuer },
+				balance: max(0, entry.Balance.value),
+			}
+		})
+	}
 }
 
 async function addCurrencyOffer({ ledger, entry }){

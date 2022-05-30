@@ -21,10 +21,10 @@
 				"$ref": "#/definitions/Currency"
 			}
 		},
-		"rippleStates": {
+		"trustlines": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/RippleState"
+				"$ref": "#/definitions/Trustline"
 			}
 		},
 		"currencyOffers": {
@@ -132,7 +132,7 @@
 				"code"
 			]
 		},
-		"RippleState": {
+		"Trustline": {
 			"type": "object",
 			"properties": {
 				"id": {
@@ -142,23 +142,15 @@
 				"currency": {
 					"$ref": "#/definitions/Currency"
 				},
-				"lowAccount": {
+				"issuer": {
 					"$ref": "#/definitions/Account"
 				},
-				"highAccount": {
+				"holder": {
 					"$ref": "#/definitions/Account"
 				},
 				"balance": {
 					"type": "string",
 					"format": "xrpl/xfl"
-				},
-				"lowIssuer": {
-					"type": "boolean",
-					"default": false
-				},
-				"highIssuer": {
-					"type": "boolean",
-					"default": false
 				},
 				"lastModifiedIndex": {
 					"type": "integer"
@@ -166,12 +158,12 @@
 			},
 			"required": [
 				"currency",
-				"lowAccount",
-				"highAccount",
+				"issuer",
+				"holder",
 				"balance"
 			],
 			"unique": [
-				["currency", "lowAccount", "highAccount"]
+				["currency", "issuer", "holder"]
 			]
 		},
 		"CurrencyOffer": {
