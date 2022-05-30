@@ -10,11 +10,11 @@ import { storeWhaleBalance as storeTokenWhaleBalance } from './token/whales.js'
 export async function create({ config, meta, ledger }){
 	log.info(`creating checkpoint at ledger #${await getCurrentIndex({ ledger })}`)
 
-	//let issuedCurrencies = await discoverIssuedCurrencies({ ledger })
+	let issuedCurrencies = await discoverIssuedCurrencies({ ledger })
 	
-	//log.info(`got`, issuedCurrencies.length, `issued currencies to walk through`)
+	log.info(`got`, issuedCurrencies.length, `issued currencies to walk through`)
+	await proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies })
 	
-	//await proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies })
 	await walkBooks({ config, meta, ledger })
 }
 
