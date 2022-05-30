@@ -6,7 +6,7 @@ export async function storeWhaleBalance({ meta, token, ledgerIndex, account, bal
 		data: {
 			whale: {
 				token,
-				account: account
+				account: { address: account.address }
 			},
 			ledgerIndex,
 			value: balance,
@@ -19,7 +19,7 @@ export async function getWhaleBalance({ meta, token, ledgerIndex, account }){
 		where: {
 			whale: {
 				token,
-				account: account
+				account: { address: account.address }
 			},
 			ledgerIndex: {
 				lessThanOrEqual: ledgerIndex
