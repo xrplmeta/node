@@ -3,68 +3,35 @@ import { wait } from '@xrplkit/time'
 import { XFL, sum, abs, gt } from '@xrplkit/xfl'
 import { sort } from '@xrplkit/xfl/extras'
 import { getCurrentIndex } from '../ledger/state.js'
-import { storeMetricPoint as storeTokenMetricPoint } from './token/metrics.js'
-import { storeWhaleBalance as storeTokenWhaleBalance } from './token/whales.js'
+import { storeMetas } from './metas.js'
+import { storeMetrics as storeTokenMetrics } from './token/metrics.js'
+import { storeBalance as storeTokenWhaleBalance } from './token/whales.js'
 
 
-export async function create({ config, meta, ledger }){
-	log.info(`creating checkpoint at ledger #${await getCurrentIndex({ ledger })}`)
+export async function create(ctx){
+	let ledgerIndex = await getCurrentIndex({ ledger: ctx.ledger })
 
-	let issuedCurrencies = await discoverIssuedCurrencies({ ledger })
-	
-	log.info(`got`, issuedCurrencies.length, `issued currencies to walk through`)
-	await proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies })
-	
-	await walkBooks({ config, meta, ledger })
+	log.info(`creating checkpoint at ledger #${ledgerIndex}`)
+
+	await walkTokens(ctx)
+	await walkBooks(ctx)
 }
 
-async function discoverIssuedCurrencies({ ledger }){
-	let issuedCurrencies = []
-
-	for(let side of ['low', 'high']){
-		let accountKey = `${side}Account`
-		let issuerKey = `${side}Issuer`
-
-		let partIssuedCurrencies = await ledger.rippleStates.readMany({
-			select: ['currency', accountKey],
-			distinct: ['currency', accountKey],
-			where: {
-				[issuerKey]: true,
-			},
-		})
-
-		for await(let row of partIssuedCurrencies){
-			let currencyId = row.currency.id
-			let issuerId = row[accountKey].id
-				
-			if(issuedCurrencies.some(ic => ic.currencyId === currencyId || ic.issuerId === issuerId))
-				continue
-
-			issuedCurrencies.push({ currencyId, issuerId })
-		}
-	}
-
-	return issuedCurrencies
-}
-
-async function proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies }){
+async function walkTokens(ctx){
 	let counter = 0
+	let tokens = await ctx.ledger.trustlines.readMany({
+		distinct: ['currency', 'issuer'],
+		include: {
+			issuer: true,
+			account: true
+		}
+	})
+	
+	log.info(`got`, tokens.length, `tokens to walk through`)
 
-	for(let { currencyId, issuerId } of issuedCurrencies){
-		await processIssuedCurrency({ 
-			issuedCurrency: {
-				currency: await ledger.currencies.readOne({
-					where: { id: currencyId }
-				}),
-				issuer: await ledger.accounts.readOne({
-					where: { id: issuerId }
-				})
-			}, 
-			config, 
-			meta, 
-			ledger 
-		})
-
+	for(let token of tokens){
+		await extractIssuerMeta({ ...ctx, issuer: token.issuer })
+		await calculateTokenStats({ ...ctx, token })
 		await wait(1)
 
 		log.accumulate.info({
@@ -72,55 +39,51 @@ async function proccessIssuedCurrencies({ config, meta, ledger, issuedCurrencies
 				`processed`,
 				++counter,
 				`of`,
-				issuedCurrencies.length,
-				`issued currencies (+%issuedCurrencies in %time)`
+				tokens.length,
+				`tokens (+%tokens in %time)`
 			],
-			issuedCurrencies: 1
+			tokens: 1
 		})
 	}
 
 	log.flush()
 }
 
+async function extractIssuerMeta({ issuer, config, meta, ledger }){
+	await storeMetas({
+		meta,
+		metas: {
+			emailHash: issuer.emailHash,
+			domain: issuer.domain
+			? Buffer.from(issuer.domain, 'hex').toString()
+			: undefined
+		},
+		issuer
+	})
+}
 
-async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
-	let { currency, issuer } = issuedCurrency
+async function calculateTokenStats({ token, config, meta, ledger }){
+	let { currency, issuer } = token
 	let ledgerIndex = await getCurrentIndex({ ledger })
-	let trustlines = 0
-	let holders = 0
+	let numTrustlines = 0
+	let numHolders = 0
 	let supply = XFL(0)
 	let whales = []
 	let maxWhales = config.ledger.tokens.captureWhales
 
-	let rippleStates = await ledger.rippleStates.readMany({
+	let trustlines = await ledger.trustlines.readMany({
 		where: {
-			OR: [
-				{
-					currency: { code: currency.code },
-					lowAccount: { address: issuer.address },
-					lowIssuer: true
-				},
-				{
-					currency: { code: currency.code },
-					highAccount: { address: issuer.address },
-					highIssuer: true
-				}
-			]
+			currency: { code: currency.code },
+			issuer: { address: issuer.address },
 		},
 		include: {
-			lowAccount: true,
-			highAccount: true
+			holder: true
 		}
 	})
 
-	for await(let rippleState of rippleStates){
-		let balance = abs(rippleState.balance)
-		let account = rippleState.lowAccount.address === issuer.address
-			? rippleState.highAccount
-			: rippleState.lowAccount
-
-		trustlines += 1
-		holders += rippleState.balance !== '0' ? 1 : 0
+	for await(let { holder, balance } of trustlines){
+		numTrustlines += 1
+		numHolders += balance !== '0' ? 1 : 0
 		supply = sum(supply, balance)
 
 		
@@ -144,31 +107,31 @@ async function processIssuedCurrency({ issuedCurrency, config, meta, ledger }){
 		}
 	}
 
-	if(holders === 0 && trustlines < config.ledger.tokens.ignoreBelowTrustlines){
+	if(numHolders === 0 && numTrustlines < config.ledger.tokens.ignoreBelowTrustlines){
 		// delist token
 		return
 	}
 
-	let token = await meta.tokens.createOne({
+	let tokenEntry = await meta.tokens.createOne({
 		data: {
 			currency: { code: currency.code },
 			issuer: { address: issuer.address },
 		}
 	})
 
-	await storeTokenMetricPoint({
+	await storeTokenMetrics({
 		meta,
-		token,
+		token: tokenEntry,
 		ledgerIndex,
-		trustlines,
-		holders,
+		trustlines: numTrustlines,
+		holders: numHolders,
 		supply
 	})
 
 	for(let whale of whales){
 		await storeTokenWhaleBalance({
 			meta,
-			token,
+			token: tokenEntry,
 			ledgerIndex,
 			...whale
 		})
@@ -189,7 +152,8 @@ async function walkBooks({ config, meta, ledger }){
 			takerGetsIssuer: true
 		}
 	})
-	
+
+	log.info(`got`, totalCount, `currency offers to walk through`)
 	
 	for await(let offer of offers){
 		let takerPaysToken

@@ -1,4 +1,4 @@
-export async function storeWhaleBalance({ meta, token, ledgerIndex, account, balance }){
+export async function storeBalance({ meta, token, ledgerIndex, account, balance }){
 	if(await getWhaleBalance({ meta, token, ledgerIndex, account }) === balance)
 		return
 
@@ -14,7 +14,7 @@ export async function storeWhaleBalance({ meta, token, ledgerIndex, account, bal
 	})
 }
 
-export async function getWhaleBalance({ meta, token, ledgerIndex, account }){
+export async function getBalance({ meta, token, ledgerIndex, account }){
 	let entry = await meta.tokenWhaleBalances.readOne({
 		where: {
 			whale: {

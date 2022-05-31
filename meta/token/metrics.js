@@ -5,8 +5,8 @@ const metricTables = {
 }
 
 
-export async function storeMetricPoint({ meta, token, ledgerIndex, ...metrics }){
-	let point = await getMetricPoint({ meta, token, ledgerIndex, ...metrics })
+export async function storeMetrics({ meta, token, ledgerIndex, ...metrics }){
+	let point = await getMetric({ meta, token, ledgerIndex, ...metrics })
 
 	for(let [key, value] of Object.entries(metrics)){
 		let table = metricTables[key]
@@ -24,7 +24,7 @@ export async function storeMetricPoint({ meta, token, ledgerIndex, ...metrics })
 	}
 }
 
-export async function getMetricPoint({ meta, token, ledgerIndex, ...metrics }){
+export async function getMetrics({ meta, token, ledgerIndex, ...metrics }){
 	let point = {}
 
 	for(let key of Object.keys(metrics)){
