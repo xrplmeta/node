@@ -26,7 +26,7 @@ log.info(`will start app now`)
 
 const app = await startApp({ config })
 
-process.on('SIGINT', () => {
-	app.terminate()
+process.on('SIGINT', async () => {
+	await app.terminate()
 	process.exit(0)
 })

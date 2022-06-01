@@ -4,28 +4,28 @@ import { rippleToUnix } from '@xrplkit/time'
 import { encodeAccountID } from 'ripple-address-codec'
 
 
-export async function addNativeEntry({ ledger, entry }){
+export async function addNativeEntry({ snapshot, entry }){
 	switch(entry.LedgerEntryType){
 		case 'AccountRoot': 
-			return await addAccountRoot({ ledger, entry })
+			return await addAccountRoot({ snapshot, entry })
 			
 		case 'RippleState': 
-			return await addRippleState({ ledger, entry })
+			return await addRippleState({ snapshot, entry })
 
 		case 'Offer': 
-			return await addCurrencyOffer({ ledger, entry })
+			return await addCurrencyOffer({ snapshot, entry })
 
 		case 'NFTokenPage':
-			return await addNFTokenPage({ ledger, entry })
+			return await addNFTokenPage({ snapshot, entry })
 
 		case 'NFTokenOffer':
-			return await addNFTokenOffer({ ledger, entry })
+			return await addNFTokenOffer({ snapshot, entry })
 	}
 }
 
 
-async function addAccountRoot({ ledger, entry }){
-	await ledger.accounts.createOne({
+async function addAccountRoot({ snapshot, entry }){
+	await snapshot.accounts.createOne({
 		data: {
 			address: entry.Account,
 			emailHash: entry.EmailHash,
@@ -35,12 +35,12 @@ async function addAccountRoot({ ledger, entry }){
 	})
 }
 
-async function addRippleState({ ledger, entry }){
+async function addRippleState({ snapshot, entry }){
 	let lowIssuer = entry.HighLimit.value !== '0' || lt(entry.Balance.value, '0')
 	let highIssuer = entry.LowLimit.value !== '0' || gt(entry.Balance.value, '0')
 
 	if(lowIssuer){
-		await ledger.trustlines.createOne({
+		await snapshot.trustlines.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				issuer: { address: entry.LowLimit.issuer },
@@ -51,7 +51,7 @@ async function addRippleState({ ledger, entry }){
 	}
 
 	if(highIssuer){
-		await ledger.trustlines.createOne({
+		await snapshot.trustlines.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				issuer: { address: entry.HighLimit.issuer },
@@ -62,11 +62,11 @@ async function addRippleState({ ledger, entry }){
 	}
 }
 
-async function addCurrencyOffer({ ledger, entry }){
+async function addCurrencyOffer({ snapshot, entry }){
 	let takerPays = fromRippledAmount(entry.TakerPays)
 	let takerGets = fromRippledAmount(entry.TakerGets)
 
-	await ledger.currencyOffers.createOne({
+	await snapshot.currencyOffers.createOne({
 		data: {
 			account: { address: entry.Account },
 			takerPaysCurrency: { code: takerPays.currency },
@@ -87,13 +87,13 @@ async function addCurrencyOffer({ ledger, entry }){
 	})
 }
 
-async function addNFTokenPage({ ledger, entry }){
+async function addNFTokenPage({ snapshot, entry }){
 	let address = encodeAccountID(Buffer.from(entry.index.slice(0, 40), 'hex'))
 
 	for(let { NFToken } of entry.NFTokens){
 		let issuer = encodeAccountID(Buffer.from(NFToken.NFTokenID.slice(8, 48), 'hex'))
 
-		await ledger.nfTokens.createOne({
+		await snapshot.nfTokens.createOne({
 			data: {
 				owner: { address },
 				issuer: { address: issuer },
@@ -104,10 +104,10 @@ async function addNFTokenPage({ ledger, entry }){
 	}
 }
 
-async function addNFTokenOffer({ ledger, entry }){
+async function addNFTokenOffer({ snapshot, entry }){
 	let amount = fromRippledAmount(entry.Amount)
 
-	await ledger.nfTokenOffers.createOne({
+	await snapshot.nfTokenOffers.createOne({
 		data: {
 			account: { address: entry.Owner },
 			tokenId: entry.NFTokenID,

@@ -1,9 +1,10 @@
 import EventEmitter from 'events'
 import fetch from 'node-fetch'
 import { RateLimiter } from 'limiter'
+import { sanitize } from './url.js'
 
 
-export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 }){
+export function create({ baseUrl, headers, ratelimit, timeout = 60 }){
 	let limiter = ratelimit 
 		? new RateLimiter({
 			tokensPerInterval: ratelimit, 
@@ -22,7 +23,7 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 }){
 
 		try{
 			res = await fetch(
-				sanitizeUrl(baseUrl ? `${baseUrl}/${url}` : url),
+				sanitize(baseUrl ? `${baseUrl}/${url}` : url),
 				{
 					signal,
 					headers: {
@@ -53,14 +54,6 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 }){
 			data
 		}
 	}
-}
-
-export function sanitizeUrl(str){
-	return str.slice(0, 8) + str.slice(8)
-		.replace(/\/\//g,'/')
-		.replace(/\/\.$/, '')
-		.replace(/\/$/, '')
-		.replace(/\?$/, '')
 }
 
 class AbortSignal extends EventEmitter{

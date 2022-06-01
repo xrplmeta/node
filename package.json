@@ -2,6 +2,9 @@
 	"name": "xrplmeta",
 	"version": "1.1.0-alpha",
 	"type": "module",
+	"scripts": {
+		"start": "node src/run.js"
+	},
 	"dependencies": {
 		"@koa/router": "^10.1.1",
 		"@mwni/events": "file:../../mwni/events",

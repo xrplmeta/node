@@ -4,7 +4,7 @@ import { wait } from '@xrplkit/time'
 import Node from './node.js'
 
 
-export default function(sources){
+export function create(sources){
 	let events = new EventEmitter
 	let seenHashes = []
 	let queue = []

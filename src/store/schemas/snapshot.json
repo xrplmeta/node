@@ -54,7 +54,11 @@
 					"type": "integer",
 					"id": true
 				},
-				"time": {
+				"creationTime": {
+					"type": "integer",
+					"format": "timestamp"
+				},
+				"completionTime": {
 					"type": "integer",
 					"format": "timestamp"
 				},
