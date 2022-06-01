@@ -2,23 +2,13 @@ import log from '@mwni/log'
 import { spawn } from 'nanotasks'
 
 
-export async function spawnApp({ config, xrpl }){
+export async function run({ config, xrpl }){
 	let ctx = { config, xrpl, log }
-	let snapshotTask
-	let liveTask
-	let backfillTask
 	
-	return {
-		async run(){
-			snapshotTask = await spawn('./snapshot.js:spawnTask', ctx)
-			await snapshotTask.run()
-
-			//liveTask = await spawn('./live.js:spawn', ctx)
-			//backfillTask = await spawn('./backfill.js:spawn', ctx)
-		},
-		async terminate(){
-			if(snapshotTask)
-				await snapshotTask.terminate()
-		}
-	}
+	await spawn('./snapshot.js:run', ctx)
+	
+	await Promise.all([
+		spawn('./live.js:run', ctx),
+		spawn('./backfill.js:run', ctx)
+	])
 }

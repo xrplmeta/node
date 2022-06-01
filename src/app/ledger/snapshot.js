@@ -6,39 +6,30 @@ import { isIncomplete } from '../../lib/snapshot/state.js'
 import { addNativeEntry } from '../../lib/snapshot/native.js'
 
 
-export async function spawnTask(ctx){
+export async function run(ctx){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
 	let snapshot = await openSnapshotStore({ ...ctx, variant: 'live' })
 
-	return {
-		async run(){
-			if(!await isIncomplete({ snapshot }))
-				return
+	if(!await isIncomplete({ snapshot }))
+		return
 
-			try{
-				await copyFromFeed({ 
-					...ctx, 
-					snapshot, 
-					feed: await createFeed({ 
-						...ctx, 
-						snapshot 
-					})
-				})
-			}catch(error){
-				log.error(`fatal error while copying from ledger feed:`)
-				log.error(error.stack)
+	try{
+		await copyFromFeed({ 
+			...ctx, 
+			snapshot, 
+			feed: await createFeed({ 
+				...ctx, 
+				snapshot 
+			})
+		})
+	}catch(error){
+		log.error(`fatal error while copying from ledger feed:`)
+		log.error(error.stack)
 
-				throw error.stack
-			}
-			
-		},
-		async terminate(){
-			log.info(`rolling up snapshot datastore`)
-			await snapshot.close()
-		}
-	}
+		throw error.stack
+	}	
 }
 
 
@@ -131,4 +122,5 @@ async function copyFromFeed({ config, snapshot, feed }){
 			snapshotMarker: null
 		}
 	})
+	await snapshot.compact()
 }
