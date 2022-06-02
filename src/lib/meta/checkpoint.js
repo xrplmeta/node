@@ -1,36 +1,36 @@
 import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
-import { XFL, sum, abs, gt } from '@xrplkit/xfl'
+import { XFL, sum, abs, gt, toString } from '@xrplkit/xfl/native'
 import { sort } from '@xrplkit/xfl/extras'
-import { getCurrentIndex } from '../ledger/state.js'
+import { getCurrentIndex } from '../snapshot/state.js'
 import { storeMetas } from './metas.js'
 import { storeMetrics as storeTokenMetrics } from './token/metrics.js'
 import { storeBalance as storeTokenWhaleBalance } from './token/whales.js'
 
 
 export async function create(ctx){
-	let ledgerIndex = await getCurrentIndex({ ledger: ctx.ledger })
+	let ledgerIndex = await getCurrentIndex({ snapshot: ctx.snapshot })
 
 	log.info(`creating checkpoint at ledger #${ledgerIndex}`)
 
 	await walkTokens(ctx)
-	await walkBooks(ctx)
+	//await walkBooks(ctx)
 }
 
 async function walkTokens(ctx){
 	let counter = 0
-	let tokens = await ctx.ledger.trustlines.readMany({
+	let tokens = await ctx.snapshot.trustlines.readMany({
 		distinct: ['currency', 'issuer'],
-		include: {
+		/*include: {
 			issuer: true,
 			account: true
-		}
+		}*/
 	})
 	
 	log.info(`got`, tokens.length, `tokens to walk through`)
 
 	for(let token of tokens){
-		await extractIssuerMeta({ ...ctx, issuer: token.issuer })
+		//await extractIssuerMeta({ ...ctx, issuer: token.issuer })
 		await calculateTokenStats({ ...ctx, token })
 		await wait(1)
 
@@ -62,32 +62,38 @@ async function extractIssuerMeta({ issuer, config, meta, ledger }){
 	})
 }
 
-async function calculateTokenStats({ token, config, meta, ledger }){
-	let { currency, issuer } = token
-	let ledgerIndex = await getCurrentIndex({ ledger })
+async function calculateTokenStats({ token, config, meta, snapshot }){
+	let currency = await snapshot.currencies.readOne({
+		where: token.currency
+	})
+	let issuer = await snapshot.accounts.readOne({
+		where: token.issuer
+	})
+	let ledgerIndex = await getCurrentIndex({ snapshot })
 	let numTrustlines = 0
 	let numHolders = 0
-	let supply = XFL(0)
+	let supply = '0'
 	let whales = []
 	let maxWhales = config.ledger.tokens.captureWhales
 
-	let trustlines = await ledger.trustlines.readMany({
+
+	let trustlines = await snapshot.trustlines.iter({
 		where: {
 			currency: { code: currency.code },
 			issuer: { address: issuer.address },
 		},
 		include: {
 			holder: true
-		}
+		},
 	})
+
 
 	for await(let { holder, balance } of trustlines){
 		numTrustlines += 1
 		numHolders += balance !== '0' ? 1 : 0
 		supply = sum(supply, balance)
-
 		
-		let insertWhaleAt = -1
+		/*let insertWhaleAt = -1
 
 		while(insertWhaleAt < whales.length){
 			let whale = whales[insertWhaleAt + 1]
@@ -101,16 +107,23 @@ async function calculateTokenStats({ token, config, meta, ledger }){
 		if(insertWhaleAt !== -1){
 			whales = [
 				...whales.slice(whales.length >= maxWhales ? 1 : 0, insertWhaleAt),
-				{ account, balance },
+				{ account: holder, balance },
 				...whales.slice(insertWhaleAt)
 			]
-		}
+		}*/
 	}
 
-	if(numHolders === 0 && numTrustlines < config.ledger.tokens.ignoreBelowTrustlines){
+	//if(numHolders === 0 && numTrustlines < config.ledger.tokens.ignoreBelowTrustlines){
 		// delist token
-		return
+	//	return
+	//}
+
+
+	if(gt(supply, '8.5070592e+37')){
+		console.log(currency, issuer, toString(supply))
 	}
+
+	return
 
 	let tokenEntry = await meta.tokens.createOne({
 		data: {
