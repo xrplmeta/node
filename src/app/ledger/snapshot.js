@@ -3,7 +3,7 @@ import { wait, unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
 import { open as openSnapshotStore } from '../../store/snapshot.js'
 import { isIncomplete } from '../../lib/snapshot/state.js'
-import { addNativeEntry } from '../../lib/snapshot/native.js'
+import { add as addEntryToSnapshot } from '../../lib/snapshot/add.js'
 
 
 export async function run(ctx){
@@ -85,7 +85,7 @@ async function copyFromFeed({ config, snapshot, feed }){
 		await snapshot.tx(async () => {
 			for(let entry of chunk.objects){
 				try{
-					await addNativeEntry({ snapshot, entry })
+					await addEntryToSnapshot({ snapshot, entry })
 				}catch(error){
 					log.error(`failed to add ${entry.LedgerEntryType} ledger object "${entry.index}":`)
 					log.error(error.stack)
