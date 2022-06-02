@@ -9,6 +9,7 @@ export function create(sources){
 	let seenHashes = []
 	let queue = []
 	let nodes = []
+	let latestLedger
 
 	
 	async function workQueue(){
@@ -53,16 +54,25 @@ export function create(sources){
 
 		for(let i=0; i<connections; i++){
 			let node = new Node(spec)
+			
 
 			node.on('event', ({ hash, tx, ledger }) => {
 				if(sawHash(hash))
 					return
 
-				if(tx)
-					events.emit('tx', tx)
+				if(ledger){
+					latestLedger = { ...ledger, transactions: [] }
+				}
 
-				if(ledger)
-					events.emit('ledger', ledger)
+				if(latestLedger){
+					if(tx){
+						latestLedger.transactions.push(tx)
+					}
+
+					if(latestLedger.transactions.length === latestLedger.txn_count){
+						events.emit('ledger', latestLedger)
+					}
+				}
 			})
 
 			nodes.push(node)
