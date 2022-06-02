@@ -55,6 +55,9 @@ export default class Node extends EventEmitter{
 	}
 
 	bid(payload){
+		if(this.busy)
+			return 0
+
 		if(payload.command){
 			if(payload.ticket){
 				if(this.tasks.some(task => task.ticket === payload.ticket))
@@ -76,8 +79,12 @@ export default class Node extends EventEmitter{
 
 	async do(payload){
 		if(payload.command){
-			let result = await this.socket.request(payload)
+			this.busy = true
 			
+			let result = await this.socket.request(payload)
+
+			this.busy = false
+
 			return result
 		}else if(payload.type === 'reserveTicket'){
 			let ticket = Math.random()
