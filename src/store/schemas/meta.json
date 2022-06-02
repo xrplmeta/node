@@ -220,17 +220,17 @@
 				"taker": {
 					"$ref": "#/definitions/Account"
 				},
-				"takerPaysToken": {
+				"takerPaidToken": {
 					"$ref": "#/definitions/Token"
 				},
-				"takerPaysValue": {
+				"takerPaidValue": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"takerGetsToken": {
+				"takerGotToken": {
 					"$ref": "#/definitions/Token"
 				},
-				"takerGetsValue": {
+				"takerGotValue": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				}
