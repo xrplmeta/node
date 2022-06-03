@@ -3,7 +3,7 @@ import { wait, unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
 import { open as openSnapshotStore } from '../../store/snapshot.js'
 import { isIncomplete } from '../../lib/snapshot/state.js'
-import { add as addEntryToSnapshot } from '../../lib/snapshot/add.js'
+import { add as addEntryToSnapshot } from '../../lib/snapshot/ops.js'
 
 
 export async function run(ctx){

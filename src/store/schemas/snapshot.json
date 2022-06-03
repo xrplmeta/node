@@ -55,17 +55,19 @@
 					"id": true
 				},
 				"creationTime": {
-					"type": "integer",
-					"format": "timestamp"
+					"type": "integer"
 				},
 				"completionTime": {
-					"type": "integer",
-					"format": "timestamp"
+					"type": "integer"
 				},
 				"ledgerIndex": {
 					"type": "integer"
 				},
 				"entriesCount": {
+					"type": "integer",
+					"default": 0
+				},
+				"modifiedEntriesCount": {
 					"type": "integer",
 					"default": 0
 				},
@@ -108,6 +110,10 @@
 				},
 				"lastModifiedIndex": {
 					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"required": [
@@ -158,6 +164,10 @@
 				},
 				"lastModifiedIndex": {
 					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"required": [
@@ -204,11 +214,14 @@
 					"format": "xrpl/xfl"
 				},
 				"expiration": {
-					"type": "integer",
-					"format": "timestamp"
+					"type": "integer"
 				},
 				"lastModifiedIndex": {
 					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"required": [
@@ -246,6 +259,10 @@
 				},
 				"lastModifiedIndex": {
 					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"required": [
@@ -266,6 +283,9 @@
 				},
 				"account": {
 					"$ref": "#/definitions/Account"
+				},
+				"sequence": {
+					"type": "integer"
 				},
 				"tokenId": {
 					"type": "string",
@@ -288,22 +308,26 @@
 					"$ref": "#/definitions/Account"
 				},
 				"expiration": {
-					"type": "integer",
-					"format": "timestamp"
+					"type": "integer"
 				},
 				"lastModifiedIndex": {
 					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"required": [
 				"account",
+				"sequence",
 				"tokenId",
 				"amountCurrency",
 				"amountValue",
 				"buy"
 			],
 			"unique": [
-				["account", "tokenId"]
+				["account", "sequence"]
 			]
 		}
 	}
