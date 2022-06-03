@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../xrplkit"
+		},
+		{
+			"path": "../../structdb"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
