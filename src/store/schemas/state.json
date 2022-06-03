@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"title": "Ledger Snapshot",
+	"title": "Ledger State",
 	"type": "object",
 	"properties": {
 		"journal": {
@@ -108,7 +108,7 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"lastModifiedIndex": {
+				"modifiedAtLedgerIndex": {
 					"type": "integer"
 				},
 				"deleted": {
@@ -121,6 +121,9 @@
 			],
 			"unique": [
 				"address"
+			],
+			"index": [
+				"modifiedAtLedgerIndex"
 			]
 		},
 		"Currency": {
@@ -162,7 +165,7 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"lastModifiedIndex": {
+				"modifiedAtLedgerIndex": {
 					"type": "integer"
 				},
 				"deleted": {
@@ -178,6 +181,9 @@
 			],
 			"unique": [
 				["currency", "issuer", "holder"]
+			],
+			"index": [
+				"modifiedAtLedgerIndex"
 			]
 		},
 		"CurrencyOffer": {
@@ -216,7 +222,7 @@
 				"expiration": {
 					"type": "integer"
 				},
-				"lastModifiedIndex": {
+				"modifiedAtLedgerIndex": {
 					"type": "integer"
 				},
 				"deleted": {
@@ -234,6 +240,9 @@
 			],
 			"unique": [
 				["account", "sequence"]
+			],
+			"index": [
+				"modifiedAtLedgerIndex"
 			]
 		},
 		"NFToken": {
@@ -257,7 +266,7 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"lastModifiedIndex": {
+				"modifiedAtLedgerIndex": {
 					"type": "integer"
 				},
 				"deleted": {
@@ -272,6 +281,9 @@
 			],
 			"unique": [
 				"tokenId"
+			],
+			"index": [
+				"modifiedAtLedgerIndex"
 			]
 		},
 		"NFTokenOffer": {
@@ -311,7 +323,7 @@
 				"expiration": {
 					"type": "integer"
 				},
-				"lastModifiedIndex": {
+				"modifiedAtLedgerIndex": {
 					"type": "integer"
 				},
 				"deleted": {
@@ -329,6 +341,9 @@
 			],
 			"unique": [
 				["offerId"]
+			],
+			"index": [
+				"modifiedAtLedgerIndex"
 			]
 		}
 	}

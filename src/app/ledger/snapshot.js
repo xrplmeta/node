@@ -1,27 +1,26 @@
 import log from '@mwni/log'
 import { wait, unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
-import { open as openSnapshotStore } from '../../store/snapshot.js'
-import { isIncomplete } from '../../lib/snapshot/state.js'
-import { add as addEntryToSnapshot } from '../../lib/snapshot/ops.js'
+import { open as openStateStore } from '../../store/state.js'
+import { add as addEntryToState } from '../../lib/ledger/ops.js'
 
 
 export async function run(ctx){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	let snapshot = await openSnapshotStore({ ...ctx, variant: 'live' })
+	let state = await openStateStore({ ...ctx, variant: 'current' })
 
-	if(!await isIncomplete({ snapshot }))
+	if(!await isIncomplete(state))
 		return
 
 	try{
 		await copyFromFeed({ 
 			...ctx, 
-			snapshot, 
+			state, 
 			feed: await createFeed({ 
 				...ctx, 
-				snapshot 
+				state 
 			})
 		})
 	}catch(error){
@@ -32,17 +31,21 @@ export async function run(ctx){
 	}	
 }
 
+async function isIncomplete(state){
+	let journal = await state.journal.readOne({ last: true })
+	return !journal || journal.snapshotMarker || journal.entriesCount === 0
+}
 
-async function createFeed({ config, snapshot, xrpl }){
-	let state = await snapshot.journal.readOne({ last: true })
+async function createFeed({ config, state, xrpl }){
+	let journal = await state.journal.readOne({ last: true })
 	let ledgerIndex
 	let preferredNode
 	let marker
 
-	if(state?.snapshotMarker){
-		ledgerIndex = state.ledgerIndex
-		preferredNode = state.snapshotOrigin
-		marker = state.snapshotMarker
+	if(journal?.snapshotMarker){
+		ledgerIndex = journal.ledgerIndex
+		preferredNode = journal.snapshotOrigin
+		marker = journal.snapshotMarker
 		
 		log.info(`resuming snapshot of ledger #${ledgerIndex}`)
 	}else{
@@ -63,11 +66,11 @@ async function createFeed({ config, snapshot, xrpl }){
 }
 
 
-async function copyFromFeed({ config, snapshot, feed }){
-	let state = await snapshot.journal.readOne({ last: true })
+async function copyFromFeed({ config, state, feed }){
+	let journal = await state.journal.readOne({ last: true })
 
-	if(!state){
-		state = await snapshot.journal.createOne({
+	if(!journal){
+		journal = await state.journal.createOne({
 			data: {
 				ledgerIndex: feed.ledgerIndex,
 				creationTime: unixNow(),
@@ -82,10 +85,10 @@ async function copyFromFeed({ config, snapshot, feed }){
 		if(!chunk)
 			break
 		
-		await snapshot.tx(async () => {
+		await state.tx(async () => {
 			for(let entry of chunk.objects){
 				try{
-					await addEntryToSnapshot({ snapshot, entry })
+					await addEntryToState({ state, entry })
 				}catch(error){
 					log.error(`failed to add ${entry.LedgerEntryType} ledger object "${entry.index}":`)
 					log.error(error.stack)
@@ -93,11 +96,11 @@ async function copyFromFeed({ config, snapshot, feed }){
 				}
 			}
 
-			state = await snapshot.journal.createOne({
+			journal = await state.journal.createOne({
 				data: {
 					ledgerIndex: feed.ledgerIndex,
 					snapshotMarker: chunk.marker,
-					entriesCount: state.entriesCount + chunk.objects.length
+					entriesCount: journal.entriesCount + chunk.objects.length
 				}
 			})
 		})
@@ -105,7 +108,7 @@ async function copyFromFeed({ config, snapshot, feed }){
 		log.accumulate.info({
 			line: [
 				`copied`,
-				state.entriesCount, 
+				journal.entriesCount, 
 				`ledger objects (+%objects in %time)`
 			],
 			objects: chunk.objects.length
@@ -115,12 +118,12 @@ async function copyFromFeed({ config, snapshot, feed }){
 	log.flush()
 	log.info(`ledger snapshot complete`)
 
-	await snapshot.journal.createOne({
+	await state.journal.createOne({
 		data: {
 			ledgerIndex: feed.ledgerIndex,
 			completionTime: unixNow(),
 			snapshotMarker: null
 		}
 	})
-	await snapshot.compact()
+	await state.compact()
 }

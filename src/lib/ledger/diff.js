@@ -1,11 +1,11 @@
 import { unixNow } from '@xrplkit/time'
-import { add as addToSnapshot, remove as removeFromSnapshot } from './ops.js'
+import { add as addToState, remove as removeFromState } from './ops.js'
 import { getState } from './state.js'
 
 
-export async function advance({ ledger, snapshot }){
+export async function advance({ ledger, state }){
 	let affects = extractAffects(ledger)
-	let state = await getState({ snapshot })
+	let state = await getState({ state })
 	let newState = { 
 		ledgerIndex: state.ledgerIndex + 1,
 		entriesCount: state.entriesCount,
@@ -13,23 +13,23 @@ export async function advance({ ledger, snapshot }){
 		creationTime: unixNow()
 	}
 
-	await snapshot.tx(async () => {
+	await state.tx(async () => {
 		for(let { create, modify, remove } of affects){
 			if(create){
-				await addToSnapshot({ snapshot, entry: create })
+				await addToState({ state, entry: create })
 				newState.entriesCount++
 			}else if(modify){
-				await removeFromSnapshot({ snapshot, entry: modify.previous })
-				await addToSnapshot({ snapshot, entry: modify.final })
+				await removeFromState({ state, entry: modify.previous })
+				await addToState({ state, entry: modify.final })
 			}else if(remove){
-				await removeFromSnapshot({ snapshot, entry: remove })
+				await removeFromState({ state, entry: remove })
 				newState.entriesCount--
 			}
 
 			newState.modifiedEntriesCount++
 		}
 
-		await snapshot.journal.createOne({
+		await state.journal.createOne({
 			data: {
 				...newState,
 				completionTime: unixNow()

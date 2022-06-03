@@ -4,46 +4,46 @@ import { rippleToUnix } from '@xrplkit/time'
 import { encodeAccountID } from 'ripple-address-codec'
 
 
-export async function add({ snapshot, entry }){
+export async function add({ state, entry }){
 	switch(entry.LedgerEntryType){
 		case 'AccountRoot': 
-			return await addAccountRoot({ snapshot, entry })
+			return await addAccountRoot({ state, entry })
 			
 		case 'RippleState': 
-			return await addRippleState({ snapshot, entry })
+			return await addRippleState({ state, entry })
 
 		case 'Offer': 
-			return await addCurrencyOffer({ snapshot, entry })
+			return await addCurrencyOffer({ state, entry })
 
 		case 'NFTokenPage':
-			return await addNFTokenPage({ snapshot, entry })
+			return await addNFTokenPage({ state, entry })
 
 		case 'NFTokenOffer':
-			return await addNFTokenOffer({ snapshot, entry })
+			return await addNFTokenOffer({ state, entry })
 	}
 }
 
-export async function remove({ snapshot, entry }){
+export async function remove({ state, entry }){
 	switch(entry.LedgerEntryType){
 		case 'AccountRoot': 
-			return await removeAccountRoot({ snapshot, entry })
+			return await removeAccountRoot({ state, entry })
 			
 		case 'RippleState': 
-			return await removeRippleState({ snapshot, entry })
+			return await removeRippleState({ state, entry })
 
 		case 'Offer': 
-			return await removeCurrencyOffer({ snapshot, entry })
+			return await removeCurrencyOffer({ state, entry })
 
 		case 'NFTokenPage':
-			return await removeNFTokenPage({ snapshot, entry })
+			return await removeNFTokenPage({ state, entry })
 
 		case 'NFTokenOffer':
-			return await removeNFTokenOffer({ snapshot, entry })
+			return await removeNFTokenOffer({ state, entry })
 	}
 }
 
-async function addAccountRoot({ snapshot, entry }){
-	await snapshot.accounts.createOne({
+async function addAccountRoot({ state, entry }){
+	await state.accounts.createOne({
 		data: {
 			address: entry.Account,
 			emailHash: entry.EmailHash,
@@ -55,12 +55,12 @@ async function addAccountRoot({ snapshot, entry }){
 	})
 }
 
-async function addRippleState({ snapshot, entry }){
+async function addRippleState({ state, entry }){
 	let lowIssuer = entry.HighLimit.value !== '0' || lt(entry.Balance.value, '0')
 	let highIssuer = entry.LowLimit.value !== '0' || gt(entry.Balance.value, '0')
 
 	if(lowIssuer){
-		await snapshot.trustlines.createOne({
+		await state.trustlines.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				issuer: { address: entry.LowLimit.issuer },
@@ -73,7 +73,7 @@ async function addRippleState({ snapshot, entry }){
 	}
 
 	if(highIssuer){
-		await snapshot.trustlines.createOne({
+		await state.trustlines.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				issuer: { address: entry.HighLimit.issuer },
@@ -86,11 +86,11 @@ async function addRippleState({ snapshot, entry }){
 	}
 }
 
-async function addCurrencyOffer({ snapshot, entry }){
+async function addCurrencyOffer({ state, entry }){
 	let takerPays = fromRippledAmount(entry.TakerPays)
 	let takerGets = fromRippledAmount(entry.TakerGets)
 
-	await snapshot.currencyOffers.createOne({
+	await state.currencyOffers.createOne({
 		data: {
 			account: { address: entry.Account },
 			takerPaysCurrency: { code: takerPays.currency },
@@ -113,13 +113,13 @@ async function addCurrencyOffer({ snapshot, entry }){
 	})
 }
 
-async function addNFTokenPage({ snapshot, entry }){
+async function addNFTokenPage({ state, entry }){
 	let address = encodeAccountID(Buffer.from(entry.index.slice(0, 40), 'hex'))
 
 	for(let { NFToken } of entry.NFTokens){
 		let issuer = encodeAccountID(Buffer.from(NFToken.NFTokenID.slice(8, 48), 'hex'))
 
-		await snapshot.nfTokens.createOne({
+		await state.nfTokens.createOne({
 			data: {
 				owner: { address },
 				issuer: { address: issuer },
@@ -132,10 +132,10 @@ async function addNFTokenPage({ snapshot, entry }){
 	}
 }
 
-async function addNFTokenOffer({ snapshot, entry }){
+async function addNFTokenOffer({ state, entry }){
 	let amount = fromRippledAmount(entry.Amount)
 
-	await snapshot.nfTokenOffers.createOne({
+	await state.nfTokenOffers.createOne({
 		data: {
 			account: { address: entry.Owner },
 			offerId: entry.index,
@@ -152,7 +152,7 @@ async function addNFTokenOffer({ snapshot, entry }){
 				? rippleToUnix(entry.Expiration)
 				: null,
 			buy: entry.Flags & 0x00000001,
-			lastModifiedIndex: entry.lastModifiedIndex,
+			lastModifiedIndex: entry.lastModifiedIndex, 
 			deleted: false
 		}
 	})
@@ -160,8 +160,8 @@ async function addNFTokenOffer({ snapshot, entry }){
 
 
 
-async function removeAccountRoot({ snapshot, entry }){
-	await snapshot.accounts.createOne({
+async function removeAccountRoot({ state, entry }){
+	await state.accounts.createOne({
 		data: {
 			address: entry.Account,
 			lastModifiedIndex: entry.lastModifiedIndex,
@@ -170,12 +170,12 @@ async function removeAccountRoot({ snapshot, entry }){
 	})
 }
 
-async function removeRippleState({ snapshot, entry }){
+async function removeRippleState({ state, entry }){
 	let lowIssuer = entry.HighLimit.value !== '0' || lt(entry.Balance.value, '0')
 	let highIssuer = entry.LowLimit.value !== '0' || gt(entry.Balance.value, '0')
 
 	if(lowIssuer){
-		await snapshot.trustlines.createOne({
+		await state.trustlines.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				issuer: { address: entry.LowLimit.issuer },
@@ -187,7 +187,7 @@ async function removeRippleState({ snapshot, entry }){
 	}
 
 	if(highIssuer){
-		await snapshot.trustlines.createOne({
+		await state.trustlines.createOne({
 			data: {
 				currency: { code: entry.Balance.currency },
 				issuer: { address: entry.HighLimit.issuer },
@@ -199,8 +199,8 @@ async function removeRippleState({ snapshot, entry }){
 	}
 }
 
-async function removeCurrencyOffer({ snapshot, entry }){
-	await snapshot.currencyOffers.createOne({
+async function removeCurrencyOffer({ state, entry }){
+	await state.currencyOffers.createOne({
 		data: {
 			account: { address: entry.Account },
 			sequence: entry.Sequence,
@@ -210,9 +210,9 @@ async function removeCurrencyOffer({ snapshot, entry }){
 	})
 }
 
-async function removeNFTokenPage({ snapshot, entry }){
+async function removeNFTokenPage({ state, entry }){
 	for(let { NFToken } of entry.NFTokens){
-		await snapshot.nfTokens.createOne({
+		await state.nfTokens.createOne({
 			data: {
 				tokenId: NFToken.NFTokenID,
 				lastModifiedIndex: entry.lastModifiedIndex,
@@ -222,8 +222,8 @@ async function removeNFTokenPage({ snapshot, entry }){
 	}
 }
 
-async function removeNFTokenOffer({ snapshot, entry }){
-	await snapshot.nfTokenOffers.createOne({
+async function removeNFTokenOffer({ state, entry }){
+	await state.nfTokenOffers.createOne({
 		data: {
 			account: { address: entry.Owner },
 			sequence: entry.Sequence,
