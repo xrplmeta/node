@@ -56,6 +56,7 @@ export async function start({ config, xrpl, direction, startLedgerIndex }){
 
 					queue[index] = {
 						index: index,
+						hash: result.ledger.ledger_hash,
 						closeTime: rippleToUnix(result.ledger.close_time),
 						transactions: result.ledger.transactions
 					}
