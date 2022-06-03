@@ -15,6 +15,7 @@
 		"@xrplkit/time": "file:../../xrplkit/time",
 		"@xrplkit/toml": "file:../../xrplkit/toml",
 		"@xrplkit/xfl": "file:../../xrplkit/xfl",
+		"@xrplkit/txmeta": "file:../../xrplkit/txmeta",
 		"koa": "^2.13.4",
 		"koa-easy-ws": "^2.1.0",
 		"limiter": "2.0.1",
