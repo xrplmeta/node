@@ -3,6 +3,12 @@
 	"title": "Metadata & Marketdata Storage",
 	"type": "object",
 	"properties": {
+		"ledgers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Ledger"
+			}
+		},
 		"accounts": {
 			"type": "array",
 			"items": {
@@ -83,6 +89,105 @@
 		}
 	},
 	"definitions": {
+		"Ledger": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"index": {
+					"type": "integer"
+				},
+				"hash": {
+					"type": "string",
+					"format": "hex"
+				},
+				"closeTime": {
+					"type": "integer",
+					"format": "timestamp"
+				},
+				"txCount": {
+					"type": "integer"
+				},
+				"txTypeCounts": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/LedgerTxTypeCount"
+					}
+				},
+				"minFee": {
+					"type": "integer"
+				},
+				"maxFee": {
+					"type": "integer"
+				},
+				"avgFee": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"index",
+				"hash",
+				"closeTime",
+				"txCount",
+				"minFee",
+				"maxFee",
+				"avgFee"
+			],
+			"unique": [
+				"index"
+			]
+		},
+		"LedgerTxTypeCount": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"ledger": {
+					"$ref": "#/definitions/Ledger"
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"AccountSet",
+						"AccountDelete",
+						"CheckCancel",
+						"CheckCash",
+						"CheckCreate",
+						"DepositPreauth",
+						"EscrowCancel",
+						"EscrowCreate",
+						"EscrowFinish",
+						"NFTokenAcceptOffer",
+						"NFTokenBurn",
+						"NFTokenCancelOffer",
+						"NFTokenCreateOffer",
+						"NFTokenMint",
+						"OfferCancel",
+						"OfferCreate",
+						"Payment",
+						"PaymentChannelClaim",
+						"PaymentChannelCreate",
+						"PaymentChannelFund",
+						"SetRegularKey",
+						"SignerListSet",
+						"TicketCreate",
+						"TrustSet"
+					]
+				},
+				"count": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"ledger",
+				"type",
+				"count"
+			]
+		},
 		"Account": {
 			"type": "object",
 			"properties": {
@@ -211,14 +316,17 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"offerIdx": {
+				"maker": {
+					"$ref": "#/definitions/Account"
+				},
+				"taker": {
+					"$ref": "#/definitions/Account"
+				},
+				"sequence": {
 					"type": "integer"
 				},
 				"ledgerIndex": {
 					"type": "integer"
-				},
-				"taker": {
-					"$ref": "#/definitions/Account"
 				},
 				"takerPaidToken": {
 					"$ref": "#/definitions/Token"
@@ -237,14 +345,14 @@
 			},
 			"required": [
 				"txHash",
-				"offerIdx",
-				"ledgerIndex",
+				"maker",
 				"taker",
+				"ledgerIndex",
 				"takerPaysValue",
 				"takerGetsValue"
 			],
 			"unique": [
-				["txHash", "offerIdx"]
+				["txHash", "maker", "sequence"]
 			]
 		},
 		"TokenSupply": {
