@@ -138,7 +138,7 @@ async function addNFTokenOffer({ snapshot, entry }){
 	await snapshot.nfTokenOffers.createOne({
 		data: {
 			account: { address: entry.Owner },
-			sequence: entry.Sequence,
+			offerId: entry.index,
 			tokenId: entry.NFTokenID,
 			amountCurrency: { code: amount.currency },
 			amountIssuer: amount.issuer 

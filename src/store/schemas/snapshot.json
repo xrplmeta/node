@@ -284,8 +284,9 @@
 				"account": {
 					"$ref": "#/definitions/Account"
 				},
-				"sequence": {
-					"type": "integer"
+				"offerId": {
+					"type": "string",
+					"format": "hex"
 				},
 				"tokenId": {
 					"type": "string",
@@ -320,14 +321,14 @@
 			},
 			"required": [
 				"account",
-				"sequence",
+				"offerId",
 				"tokenId",
 				"amountCurrency",
 				"amountValue",
 				"buy"
 			],
 			"unique": [
-				["account", "sequence"]
+				["offerId"]
 			]
 		}
 	}
