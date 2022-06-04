@@ -1,26 +1,46 @@
-export async function storeBalance({ meta, token, ledgerIndex, account, balance }){
-	if(await getWhaleBalance({ meta, token, ledgerIndex, account }) === balance)
-		return
+import { eq } from '@xrplkit/xfl'
 
-	await meta.tokenWhaleBalances.createOne({
-		data: {
-			whale: {
-				token,
-				account: { address: account.address }
-			},
-			ledgerIndex,
-			value: balance,
+export async function write({ meta, token, ledgerIndex, whales }){
+	let previousWhales = await read({ meta, token, ledgerIndex })
+	let newWhales = whales
+		.filter(whale => previousWhales.every(w => w.account.address !== whale.account.address))
+
+	for(let previousWhale of previousWhales){
+		let balance
+		let modifiedWhale = whales
+			.find(whale => whale.account.address === previousWhale.account.address)
+
+		if(modifiedWhale){
+			if(eq(modifiedWhale.balance, previousWhale.balance))
+				continue
+
+			balance = modifiedWhale.balance
+		}else{
+			balance = 0
 		}
-	})
+
+		newWhales.push({
+			...previousWhale,
+			balance
+		})
+	}
+
+	for(let newWhale of newWhales){
+		await meta.tokenWhales.createOne({
+			data: {
+				...newWhale,
+				ledgerIndex,
+				token
+			}
+		})
+	}
 }
 
-export async function getBalance({ meta, token, ledgerIndex, account }){
-	let entry = await meta.tokenWhaleBalances.readOne({
+export async function read({ meta, token, ledgerIndex }){
+	return await meta.tokenWhales.readGrouped({
+		by: ['account'],
 		where: {
-			whale: {
-				token,
-				account: { address: account.address }
-			},
+			token,
 			ledgerIndex: {
 				lessThanOrEqual: ledgerIndex
 			}
@@ -28,9 +48,5 @@ export async function getBalance({ meta, token, ledgerIndex, account }){
 		orderBy: {
 			ledgerIndex: 'desc'
 		},
-		take: 1
 	})
-
-	if(entry)
-		return entry.value
 }

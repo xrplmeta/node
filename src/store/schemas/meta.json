@@ -33,10 +33,10 @@
 				"$ref": "#/definitions/Token"
 			}
 		},
-		"tokenMetas": {
+		"tokenProps": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/TokenMeta"
+				"$ref": "#/definitions/TokenProp"
 			}
 		},
 		"tokenExchanges": {
@@ -67,12 +67,6 @@
 			"type": "array",
 			"items": {
 				"$ref": "#/definitions/TokenWhale"
-			}
-		},
-		"tokenWhaleBalances": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/TokenWhaleBalance"
 			}
 		},
 		"tokenBooks": {
@@ -277,7 +271,7 @@
 				["currency", "issuer"]
 			]
 		},
-		"TokenMeta": {
+		"TokenProp": {
 			"type": "object",
 			"properties": {
 				"id": {
@@ -447,46 +441,22 @@
 				"account": {
 					"$ref": "#/definitions/Account"
 				},
-				"balances": {
-					"type": "array",
-					"items": {
-						"$ref": "#/definitions/TokenWhaleBalance"
-					}
-				}
-			},
-			"required": [
-				"token",
-				"account"
-			],
-			"unique": [
-				["token", "account"]
-			]
-		},
-		"TokenWhaleBalance": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
-				},
-				"whale": {
-					"$ref": "#/definitions/TokenWhale"
-				},
 				"ledgerIndex": {
 					"type": "integer"
 				},
-				"value": {
+				"balance": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				}
 			},
 			"required": [
-				"whale",
+				"token",
+				"account",
 				"ledgerIndex",
-				"value"
+				"balance"
 			],
 			"unique": [
-				["whale", "ledgerIndex"]
+				["token", "account", "ledgerIndex"]
 			]
 		},
 		"TokenBook": {
