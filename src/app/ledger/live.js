@@ -3,7 +3,7 @@ import { open as openMetaStore } from '../../store/meta.js'
 import { open as openStateStore } from '../../store/state.js'
 import { advance as advanceState } from '../../lib/ledger/diff.js'
 import { start as startStream } from '../../lib/ledger/stream.js'
-import { pull as pullFromState } from '../../lib/meta/pull.js'
+import { reduce as reduceState } from '../../lib/ledger/reduce/index.js'
 import { extract as extractLedgerMeta } from '../../lib/meta/ledgers.js'
 import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
 
@@ -18,7 +18,7 @@ export async function run(ctx){
 
 	let { ledgerIndex: startLedgerIndex } = await state.journal.readOne({ last: true })
 
-	await pullFromState({ ...ctx, meta, state })
+	await reduceState({ ...ctx, meta, state })
 	
 	/*let stream = await startStream({ ...ctx, direction: 'forward', startLedgerIndex })
 
