@@ -1,50 +1,41 @@
 import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 import { sum, gt, toString } from '@xrplkit/xfl/native'
-import { getCurrentIndex } from '../snapshot/state.js'
 import { storeMetas } from './props.js'
-import { storeMetrics as storeTokenMetrics } from './token/metrics.js'
+import { read as readTokenMetrics, write as writeTokenMetrics } from './token/metrics.js'
 import { storeBalance as storeTokenWhaleBalance } from './token/whales.js'
 
 
-export async function pull({ meta, state, full }){
+export async function pull({ state, ...ctx }){
 	let { ledgerIndex } = await state.journal.readOne({ last: true })
 
-	await walkTokens({ meta, state, ledgerIndex, full })
+	await walkTokens({ ...ctx, state, ledgerIndex })
 	//await walkBooks(ctx)
 }
 
-async function walkTokens({ meta, state, ledgerIndex, full }){
-	let counter = 0
-	let tokens = await ctx.snapshot.trustlines.iter({
+async function walkTokens({ state, ledgerIndex, ...ctx }){
+	let tokens = await state.trustlines.iter({
 		distinct: ['currency', 'issuer'],
 		include: {
+			currency: true,
 			issuer: true,
 			account: true
 		},
-		where: full
-			? undefined
-			: {
-				modifiedAtLedgerIndex
+		where: {
+			NOT: {
+				change: null
 			}
+		}
 	})
-	
-	log.info(`got`, tokens.length, `tokens to walk through`)
 
-	for(let token of tokens){
+	for await(let token of tokens){
 		//await extractIssuerMeta({ ...ctx, issuer: token.issuer })
-		await calculateTokenStats({ ...ctx, token })
+		await updateTokenMetrics({ ...ctx, token, state, ledgerIndex })
 		await wait(1)
 
 		log.accumulate.info({
-			line: [
-				`processed`,
-				++counter,
-				`of`,
-				tokens.length,
-				`tokens (+%tokens in %time)`
-			],
-			tokens: 1
+			line: [`pulled +%pulledTokens in %time`],
+			pulledTokens: 1
 		})
 	}
 
@@ -64,36 +55,74 @@ async function extractIssuerMeta({ issuer, config, meta, ledger }){
 	})
 }
 
-async function calculateTokenStats({ token, config, meta, snapshot }){
-	let currency = await snapshot.currencies.readOne({
-		where: token.currency
-	})
-	let issuer = await snapshot.accounts.readOne({
-		where: token.issuer
-	})
-	let ledgerIndex = await getCurrentIndex({ snapshot })
-	let numTrustlines = 0
-	let numHolders = 0
-	let supply = '0'
-	let whales = []
+async function updateTokenMetrics({ token, meta, state, ledgerIndex, config }){
+	let { currency, issuer } = token
 	let maxWhales = config.ledger.tokens.captureWhales
+	let ignoreBelowTrustlines = config.ledger.tokens.ignoreBelowTrustlines
 
+	let metrics = {
+		trustlines: await state.trustlines.count({
+			where: {
+				currency: { 
+					code: currency.code 
+				},
+				issuer: { 
+					address: issuer.address 
+				},
+			}
+		}),
+		holders: await state.trustlines.count({
+			where: {
+				currency: { 
+					code: currency.code 
+				},
+				issuer: { 
+					address: issuer.address 
+				},
+				NOT: {
+					balance: 0
+				}
+			}
+		}),
+		supply: 0,
+		...await readTokenMetrics({ 
+			meta,
+			ledgerIndex,
+			supply: true
+		})
+	}
 
-	let trustlines = await snapshot.trustlines.iter({
+	if(metrics.holders === 0 && metrics.trustlines < ignoreBelowTrustlines){
+		await meta.tokens.delete({
+			where: {
+				currency: { code: currency.code },
+				issuer: { address: issuer.address },
+			}
+		})
+		return
+	}
+
+	let whales = []
+
+	let trustlines = await state.trustlines.iter({
 		where: {
-			currency: { code: currency.code },
-			issuer: { address: issuer.address },
+			NOT: {
+				change: null
+			},
+			currency: { 
+				code: currency.code 
+			},
+			issuer: { 
+				address: issuer.address 
+			},
 		},
 		include: {
 			holder: true
-		},
+		}
 	})
 
-
 	for await(let { holder, balance } of trustlines){
-		numTrustlines += 1
-		numHolders += balance !== '0' ? 1 : 0
-		supply = sum(supply, balance)
+		metrics.supply = sum(metrics.supply, balance)
 		
 		/*let insertWhaleAt = -1
 
@@ -115,38 +144,25 @@ async function calculateTokenStats({ token, config, meta, snapshot }){
 		}*/
 	}
 
-	//if(numHolders === 0 && numTrustlines < config.ledger.tokens.ignoreBelowTrustlines){
-		// delist token
-	//	return
-	//}
 
-
-	if(gt(supply, '8.5070592e+37')){
-		console.log(currency, issuer, toString(supply))
-	}
-
-	return
-
-	let tokenEntry = await meta.tokens.createOne({
+	let { id } = await meta.tokens.createOne({
 		data: {
 			currency: { code: currency.code },
 			issuer: { address: issuer.address },
 		}
 	})
 
-	await storeTokenMetrics({
+	await writeTokenMetrics({
 		meta,
-		token: tokenEntry,
+		token: { id },
 		ledgerIndex,
-		trustlines: numTrustlines,
-		holders: numHolders,
-		supply
+		...metrics
 	})
 
 	for(let whale of whales){
 		await storeTokenWhaleBalance({
 			meta,
-			token: tokenEntry,
+			token: { id },
 			ledgerIndex,
 			...whale
 		})

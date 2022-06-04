@@ -2,7 +2,7 @@ import log from '@mwni/log'
 import { wait, unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
 import { open as openStateStore } from '../../store/state.js'
-import { add as addEntryToState } from '../../lib/ledger/ops.js'
+import { write as writeToState } from '../../lib/ledger/write.js'
 
 
 export async function run(ctx){
@@ -88,7 +88,7 @@ async function copyFromFeed({ config, state, feed }){
 		await state.tx(async () => {
 			for(let entry of chunk.objects){
 				try{
-					await addEntryToState({ state, entry })
+					await writeToState({ state, entry, change: 'new' })
 				}catch(error){
 					log.error(`failed to add ${entry.LedgerEntryType} ledger object "${entry.index}":`)
 					log.error(error.stack)

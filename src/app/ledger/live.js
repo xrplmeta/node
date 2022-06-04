@@ -18,7 +18,7 @@ export async function run(ctx){
 
 	let { ledgerIndex: startLedgerIndex } = await state.journal.readOne({ last: true })
 
-	await pullFromState({ ...ctx, meta, state, full: true })
+	await pullFromState({ ...ctx, meta, state })
 	
 	/*let stream = await startStream({ ...ctx, direction: 'forward', startLedgerIndex })
 

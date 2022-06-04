@@ -108,12 +108,13 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"modifiedAtLedgerIndex": {
-					"type": "integer"
-				},
-				"deleted": {
-					"type": "boolean",
-					"default": false
+				"change": {
+					"type": "string",
+					"enum": [
+						"new",
+						"modified",
+						"deleted"
+					]
 				}
 			},
 			"required": [
@@ -123,7 +124,7 @@
 				"address"
 			],
 			"index": [
-				"modifiedAtLedgerIndex"
+				"change"
 			]
 		},
 		"Currency": {
@@ -168,9 +169,13 @@
 				"modifiedAtLedgerIndex": {
 					"type": "integer"
 				},
-				"deleted": {
-					"type": "boolean",
-					"default": false
+				"change": {
+					"type": "string",
+					"enum": [
+						"new",
+						"modified",
+						"deleted"
+					]
 				}
 			},
 			"required": [
@@ -183,7 +188,7 @@
 				["currency", "issuer", "holder"]
 			],
 			"index": [
-				"modifiedAtLedgerIndex"
+				"change"
 			]
 		},
 		"CurrencyOffer": {
@@ -222,12 +227,13 @@
 				"expiration": {
 					"type": "integer"
 				},
-				"modifiedAtLedgerIndex": {
-					"type": "integer"
-				},
-				"deleted": {
-					"type": "boolean",
-					"default": false
+				"change": {
+					"type": "string",
+					"enum": [
+						"new",
+						"modified",
+						"deleted"
+					]
 				}
 			},
 			"required": [
@@ -242,7 +248,7 @@
 				["account", "sequence"]
 			],
 			"index": [
-				"modifiedAtLedgerIndex"
+				"change"
 			]
 		},
 		"NFToken": {
@@ -266,12 +272,13 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"modifiedAtLedgerIndex": {
-					"type": "integer"
-				},
-				"deleted": {
-					"type": "boolean",
-					"default": false
+				"change": {
+					"type": "string",
+					"enum": [
+						"new",
+						"modified",
+						"deleted"
+					]
 				}
 			},
 			"required": [
@@ -283,7 +290,7 @@
 				"tokenId"
 			],
 			"index": [
-				"modifiedAtLedgerIndex"
+				"change"
 			]
 		},
 		"NFTokenOffer": {
@@ -323,12 +330,13 @@
 				"expiration": {
 					"type": "integer"
 				},
-				"modifiedAtLedgerIndex": {
-					"type": "integer"
-				},
-				"deleted": {
-					"type": "boolean",
-					"default": false
+				"change": {
+					"type": "string",
+					"enum": [
+						"new",
+						"modified",
+						"deleted"
+					]
 				}
 			},
 			"required": [
@@ -343,7 +351,7 @@
 				["offerId"]
 			],
 			"index": [
-				"modifiedAtLedgerIndex"
+				"change"
 			]
 		}
 	}

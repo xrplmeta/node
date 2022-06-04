@@ -1,11 +1,10 @@
 import { unixNow } from '@xrplkit/time'
-import { add as addToState, remove as removeFromState } from './ops.js'
-import { getState } from './state.js'
+import { write as writeToState } from './write.js'
 
 
 export async function advance({ ledger, state }){
 	let affects = extractAffects(ledger)
-	let state = await getState({ state })
+	let journal = await state.journal.readOne({ last: true })
 	let newState = { 
 		ledgerIndex: state.ledgerIndex + 1,
 		entriesCount: state.entriesCount,
@@ -16,13 +15,13 @@ export async function advance({ ledger, state }){
 	await state.tx(async () => {
 		for(let { create, modify, remove } of affects){
 			if(create){
-				await addToState({ state, entry: create })
+				await writeToState({ state, entry: create, change: 'new' })
 				newState.entriesCount++
 			}else if(modify){
-				await removeFromState({ state, entry: modify.previous })
-				await addToState({ state, entry: modify.final })
+				await writeToState({ state, entry: modify.previous, change: 'deleted' })
+				await writeToState({ state, entry: modify.final, change: 'modified' })
 			}else if(remove){
-				await removeFromState({ state, entry: remove })
+				await writeToState({ state, entry: remove, change: 'deleted' })
 				newState.entriesCount--
 			}
 
