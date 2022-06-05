@@ -166,9 +166,6 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"modifiedAtLedgerIndex": {
-					"type": "integer"
-				},
 				"change": {
 					"type": "string",
 					"enum": [
