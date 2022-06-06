@@ -460,9 +460,12 @@
 					"type": "integer",
 					"id": true
 				},
-				"xid": {
+				"uid": {
 					"type": "string",
 					"format": "hex"
+				},
+				"rank": {
+					"type": "integer"
 				},
 				"startLedgerIndex": {
 					"type": "integer"
@@ -470,17 +473,17 @@
 				"endLedgerIndex": {
 					"type": "integer"
 				},
-				"takerPaysToken": {
+				"base": {
 					"$ref": "#/definitions/Token"
 				},
-				"takerPaysValue": {
+				"quote": {
+					"$ref": "#/definitions/Token"
+				},
+				"rate": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"takerGetsToken": {
-					"$ref": "#/definitions/Token"
-				},
-				"takerGetsValue": {
+				"volume": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				}
@@ -492,7 +495,10 @@
 				"takerGetsValue"
 			],
 			"unique": [
-				["xid"]
+				"uid"
+			],
+			"index": [
+				"rank"
 			]
 		}
 	}
