@@ -15,10 +15,10 @@
 				"$ref": "#/definitions/Account"
 			}
 		},
-		"issuerMetas": {
+		"accountProps": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/IssuerMeta"
+				"$ref": "#/definitions/AccountProp"
 			}
 		},
 		"currencies": {
@@ -69,16 +69,10 @@
 				"$ref": "#/definitions/TokenWhale"
 			}
 		},
-		"tokenBooks": {
+		"tokenOffers": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/TokenBook"
-			}
-		},
-		"tokenBookOffers": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/TokenBookOffer"
+				"$ref": "#/definitions/TokenOffer"
 			}
 		}
 	},
@@ -201,14 +195,14 @@
 				"address"
 			]
 		},
-		"IssuerMeta": {
+		"AccountProp": {
 			"type": "object",
 			"properties": {
 				"id": {
 					"type": "integer",
 					"id": true
 				},
-				"issuer": {
+				"account": {
 					"$ref": "#/definitions/Account"
 				},
 				"key": {
@@ -222,12 +216,12 @@
 				}
 			},
 			"required": [
-				"issuer",
+				"account",
 				"key",
 				"source"
 			],
 			"unique": [
-				["issuer", "key", "source"]
+				["account", "key", "source"]
 			]
 		},
 		"Currency": {
@@ -459,46 +453,16 @@
 				["token", "account", "ledgerIndex"]
 			]
 		},
-		"TokenBook": {
+		"TokenOffer": {
 			"type": "object",
 			"properties": {
 				"id": {
 					"type": "integer",
 					"id": true
 				},
-				"takerPaysToken": {
-					"$ref": "#/definitions/Token"
-				},
-				"takerGetsToken": {
-					"$ref": "#/definitions/Token"
-				},
-				"offers": {
-					"type": "array",
-					"items": {
-						"$ref": "#/definitions/TokenBookOffer"
-					}
-				}
-			},
-			"required": [],
-			"unique": [
-				["takerPaysToken", "takerGetsToken"]
-			]
-		},
-		"TokenBookOffer": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
-				},
-				"book": {
-					"$ref": "#/definitions/TokenBook"
-				},
-				"account": {
-					"$ref": "#/definitions/Account"
-				},
-				"sequence": {
-					"type": "integer"
+				"xid": {
+					"type": "string",
+					"format": "hex"
 				},
 				"startLedgerIndex": {
 					"type": "integer"
@@ -506,9 +470,15 @@
 				"endLedgerIndex": {
 					"type": "integer"
 				},
+				"takerPaysToken": {
+					"$ref": "#/definitions/Token"
+				},
 				"takerPaysValue": {
 					"type": "string",
 					"format": "xrpl/xfl"
+				},
+				"takerGetsToken": {
+					"$ref": "#/definitions/Token"
 				},
 				"takerGetsValue": {
 					"type": "string",
@@ -516,14 +486,13 @@
 				}
 			},
 			"required": [
-				"book",
-				"offerId",
+				"xid",
 				"startLedgerIndex",
 				"takerPaysValue",
 				"takerGetsValue"
 			],
 			"unique": [
-				["account", "sequence"]
+				["xid"]
 			]
 		}
 	}
