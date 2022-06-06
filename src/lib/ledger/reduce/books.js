@@ -1,25 +1,28 @@
+import crypto from 'crypto'
+import log from '@mwni/log'
 
 
-
-async function pull({ config, meta, ledger }){
-	let ledgerIndex = await getCurrentIndex({ ledger })
+export async function reduce({ state, meta, ledgerIndex, config }){
 	let counter = 0
-	let totalCount = await ledger.currencyOffers.count()
-	let offers = await ledger.currencyOffers.iter({
+	let offers = await state.currencyOffers.iter({
 		include: {
 			account: true,
 			takerPaysCurrency: true,
 			takerPaysIssuer: true,
 			takerGetsCurrency: true,
-			takerGetsIssuer: true
+			takerGetsIssuer: true,
 		}
 	})
-
-	log.info(`got`, totalCount, `currency offers to walk through`)
 	
 	for await(let offer of offers){
 		let takerPaysToken
 		let takerGetsToken
+		let xid = crypto.createHash('md5')
+			.update(offer.account.address)
+			.update(offer.sequence.toString())
+			.digest('hex')
+			.slice(0, 12)
+			.toUpperCase()
 
 		if(offer.takerPaysIssuer){
 			takerPaysToken = {
@@ -43,30 +46,23 @@ async function pull({ config, meta, ledger }){
 			}
 		}
 
-		await meta.tokenBookOffers.createOne({
+		await meta.tokenOffers.createOne({
 			data: {
-				book: {
-					takerPaysToken,
-					takerGetsToken
-				},
-				account: {
-					address: offer.account.address
-				},
-				sequence: offer.sequence,
+				xid,
+				takerPaysToken,
+				takerGetsToken,
 				takerPaysValue: offer.takerPaysValue,
 				takerGetsValue: offer.takerGetsValue,
 				startLedgerIndex: ledgerIndex
 			}
 		})
 
-		await wait(1)
-
 		log.accumulate.info({
 			line: [
-				`processed`,
+				`pulled`,
 				++counter,
 				`of`,
-				totalCount,
+				offers.length,
 				`currency offers (+%currencyOffers in %time)`
 			],
 			currencyOffers: 1
