@@ -185,6 +185,7 @@
 				["currency", "issuer", "holder"]
 			],
 			"index": [
+				"issuer",
 				"change"
 			]
 		},
