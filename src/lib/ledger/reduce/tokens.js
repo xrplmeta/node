@@ -1,22 +1,11 @@
 import log from '@mwni/log'
-import { wait } from '@xrplkit/time'
-import { sum, gt, sub, toString } from '@xrplkit/xfl/native'
-import { storeMetas } from '../../meta/props.js'
+import { sum, gt, sub } from '@xrplkit/xfl/native'
 import { read as readMetrics, write as writeMetrics } from '../../meta/token/metrics.js'
 import { read as readWhales, write as writeWhales } from '../../meta/token/whales.js'
 
 
 export async function reduce({ state, ledgerIndex, ...ctx }){
 	let counter = 0
-	let total = await state.trustlines.count({
-		distinct: ['currency', 'issuer'],
-		where: {
-			NOT: {
-				change: null
-			}
-		}
-	})
-
 	let tokens = await state.trustlines.iter({
 		distinct: ['currency', 'issuer'],
 		include: {
@@ -32,16 +21,14 @@ export async function reduce({ state, ledgerIndex, ...ctx }){
 	})
 
 	for await(let token of tokens){
-		//await extractIssuerMeta({ ...ctx, issuer: token.issuer })
 		await updateMetrics({ ...ctx, token, state, ledgerIndex })
-		await wait(1)
 
 		log.accumulate.info({
 			line: [
 				`pulled`,
 				++counter,
 				`of`,
-				total,
+				tokens.length,
 				`tokens from state (+%pulledTokens in %time)`
 			],
 			pulledTokens: 1
@@ -51,18 +38,6 @@ export async function reduce({ state, ledgerIndex, ...ctx }){
 	log.flush()
 }
 
-async function extractIssuerMeta({ issuer, config, meta, ledger }){
-	await storeMetas({
-		meta,
-		metas: {
-			emailHash: issuer.emailHash,
-			domain: issuer.domain
-			? Buffer.from(issuer.domain, 'hex').toString()
-			: undefined
-		},
-		issuer
-	})
-}
 
 async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 	let { currency, issuer } = token
@@ -159,24 +134,23 @@ async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 			}else{
 				metrics.supply = sum(metrics.supply, balance)
 
-				let insertWhaleAt = -1
+				let whale = { account: holder, balance }
+				let greaterWhaleIndex = whales
+					.findIndex(whale => gt(whale.balance, balance))
 
-				while(insertWhaleAt < whales.length){
-					let whale = whales[insertWhaleAt + 1]
 
-					if(whale && gt(whale.balance, balance))
-						break
-
-					insertWhaleAt++
+				if(greaterWhaleIndex === -1){
+					whales.push(whale)
+				}else if(greaterWhaleIndex === 0){
+					if(whales.length < maxWhales)
+						whales.unshift(whale)
+				}else{
+					whales.splice(greaterWhaleIndex, 0, whale)
 				}
 
-				if(insertWhaleAt !== -1){
-					whales = [
-						...whales.slice(whales.length >= maxWhales ? 1 : 0, insertWhaleAt),
-						{ account: holder, balance },
-						...whales.slice(insertWhaleAt)
-					]
-				}
+				if(whales.length > maxWhales)
+					whales.shift()
+
 
 				/*await state.trustlines.update({
 					data: {
@@ -195,6 +169,8 @@ async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 			ledgerIndex,
 			...metrics
 		})
+
+		
 
 		await writeWhales({
 			meta,

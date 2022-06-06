@@ -48,5 +48,8 @@ export async function read({ meta, token, ledgerIndex }){
 		orderBy: {
 			ledgerIndex: 'desc'
 		},
+		include: {
+			account: true
+		}
 	})
 }
