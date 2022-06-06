@@ -2,6 +2,7 @@ import { div, lt, gt, neg, max } from '@xrplkit/xfl'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
 import { encodeAccountID } from 'ripple-address-codec'
+import { is as isBlackholed } from './blackhole.js'
 
 
 export async function write({ state, entry, change }){
@@ -30,6 +31,8 @@ async function setAccountRoot({ state, entry, change }){
 			emailHash: entry.EmailHash,
 			domain: entry.Domain,
 			balance: div(entry.Balance, '1000000'),
+			transferRate: entry.transferRate,
+			blackholed: isBlackholed(entry),
 			change
 		}
 	})
@@ -71,6 +74,7 @@ async function setCurrencyOffer({ state, entry, change }){
 	await state.currencyOffers.createOne({
 		data: {
 			account: { address: entry.Account },
+			directory: entry.DirectoryNode,
 			takerPaysCurrency: { code: takerPays.currency },
 			takerPaysIssuer: takerPays.issuer 
 				? { address: takerPays.issuer } 

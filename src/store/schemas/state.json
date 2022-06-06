@@ -108,6 +108,12 @@
 					"type": "string",
 					"format": "hex"
 				},
+				"transferRate": {
+					"type": "integer"
+				},
+				"blackholed": {
+					"type": "boolean"
+				},
 				"change": {
 					"type": "string",
 					"enum": [
@@ -202,6 +208,10 @@
 				"sequence": {
 					"type": "integer"
 				},
+				"directory": {
+					"type": "string",
+					"format": "hex"
+				},
 				"takerPaysCurrency": {
 					"$ref": "#/definitions/Currency"
 				},
@@ -246,7 +256,13 @@
 				["account", "sequence"]
 			],
 			"index": [
-				"change"
+				["change"],
+				[
+					"takerPaysCurrency", 
+					"takerPaysIssuer",
+					"takerGetsCurrency",
+					"takerGetsIssuer"
+				]
 			]
 		},
 		"NFToken": {
