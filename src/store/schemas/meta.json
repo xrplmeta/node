@@ -491,14 +491,14 @@
 			"required": [
 				"directory",
 				"rank",
-				"expirationLedgerIndex",
+				"ledgerIndex",
 				"takerPaysValue",
 				"takerGetsValue",
 				"rate",
 				"volume"
 			],
 			"unique": [
-				["directory", "expirationLedgerIndex"]
+				["directory", "ledgerIndex"]
 			],
 			"index": [
 				"rank"
