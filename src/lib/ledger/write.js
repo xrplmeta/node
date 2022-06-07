@@ -74,7 +74,7 @@ async function setCurrencyOffer({ state, entry, change }){
 	await state.currencyOffers.createOne({
 		data: {
 			account: { address: entry.Account },
-			directory: entry.DirectoryNode,
+			directory: entry.BookDirectory,
 			takerPaysCurrency: { code: takerPays.currency },
 			takerPaysIssuer: takerPays.issuer 
 				? { address: takerPays.issuer } 
