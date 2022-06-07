@@ -34,7 +34,7 @@ export async function read({ meta, token, ledgerIndex, ...metrics }){
 			where: {
 				token,
 				ledgerIndex: {
-					lessThanOrEqual: ledgerIndex
+					lessOrEqual: ledgerIndex
 				}
 			},
 			orderBy: {
