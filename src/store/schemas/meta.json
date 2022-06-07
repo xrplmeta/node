@@ -460,17 +460,17 @@
 					"type": "integer",
 					"id": true
 				},
-				"uid": {
+				"directory": {
 					"type": "string",
 					"format": "hex"
 				},
 				"rank": {
 					"type": "integer"
 				},
-				"startLedgerIndex": {
+				"ledgerIndex": {
 					"type": "integer"
 				},
-				"endLedgerIndex": {
+				"expirationLedgerIndex": {
 					"type": "integer"
 				},
 				"base": {
@@ -489,13 +489,16 @@
 				}
 			},
 			"required": [
-				"xid",
-				"startLedgerIndex",
+				"directory",
+				"rank",
+				"expirationLedgerIndex",
 				"takerPaysValue",
-				"takerGetsValue"
+				"takerGetsValue",
+				"rate",
+				"volume"
 			],
 			"unique": [
-				"uid"
+				["directory", "expirationLedgerIndex"]
 			],
 			"index": [
 				"rank"

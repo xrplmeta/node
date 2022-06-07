@@ -1,7 +1,8 @@
 import crypto from 'crypto'
 import log from '@mwni/log'
-import { div, sum } from '@xrplkit/xfl/native'
+import { div, sum, toString } from '@xrplkit/xfl/native'
 import { sort } from '@xrplkit/xfl/extras'
+import { write as writeOffer } from '../../meta/token/offers.js'
 
 export async function reduce({ state, meta, ledgerIndex, ...ctx }){
 	let counter = 0
@@ -81,17 +82,15 @@ async function updateBook({ book, state, meta, ledgerIndex }){
 			}
 
 			dir = directories[offer.directory] = {
+				directory: offer.directory,
 				quote,
 				base,
 				rate,
-				volume: 0,
-				uid: crypto.createHash('md5')
+				volume: 0
 			}
 		}
 
 		dir.volume = sum(dir.volume, offer.takerGetsValue)
-		dir.uid.update(offer.account.address)
-		dir.uid.update(offer.sequence.toString())
 	}
 
 	let sortedDirectories = sort(
@@ -102,16 +101,23 @@ async function updateBook({ book, state, meta, ledgerIndex }){
 	for(let rank=0; rank<sortedDirectories.length; rank++){
 		let dir = sortedDirectories[rank]
 
-		await meta.tokenOffers.createOne({
-			data: {
+		console.log(dir)
+
+		await writeOffer({
+			meta,
+			ledgerIndex,
+			offer: {
 				...dir,
 				rank,
 				startLedgerIndex: ledgerIndex,
-				uid: dir.uid
+				directory: crypto.createHash('md5')
+					.update(dir.directory)
 					.digest('hex')
 					.slice(0, 12)
 					.toUpperCase()
 			}
 		})
+
+		
 	}
 }
