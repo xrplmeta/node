@@ -17,25 +17,31 @@ export async function run(ctx){
 	let state = await openStateStore({ ...ctx, variant: 'current' })
 
 	let { ledgerIndex: startLedgerIndex } = await state.journal.readOne({ last: true })
-
-	await reduceState({ ...ctx, meta, state })
 	
-	/*let stream = await startStream({ ...ctx, direction: 'forward', startLedgerIndex })
+	let stream = await startStream({ ...ctx, direction: 'forward', startLedgerIndex })
 
 	while(true){
-		if(await isCheckpointDue({ ...ctx, snapshot })){
-			await createCheckpoint({ ...ctx, snapshot, meta })
-		}
+		await reduceState({ ...ctx, meta, state })
 
-		let ledger = await stream.next()
+		let { ledger, ledgersBehind } = await stream.next()
 
 		await extractLedgerMeta({ ledger, meta })
 		await extractTokenExchanges({ ledger, meta })
-		await advanceState({ ledger, snapshot })
+		await advanceState({ ledger, state })
 
-		log.accumulate.info({
-			line: [`advanced %advancedLedgers ledgers in %time`],
-			advancedLedgers: 1
-		})
-	}*/
+		if(ledgersBehind > 0){
+			log.accumulate.info({
+				text: [
+					ledgersBehind,
+					`ledgers behind (+%advancedLedgers in %time)`
+				],
+				data: {
+					advancedLedgers: 1
+				}
+			})
+		}else{
+			log.flush()
+			log.info(`synced at ledger #${ledger.index}`)
+		}
+	}
 }

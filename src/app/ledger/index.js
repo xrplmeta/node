@@ -8,7 +8,7 @@ export async function run({ config, xrpl }){
 	await spawn('./snapshot.js:run', ctx)
 	
 	await Promise.all([
-		spawn('./live.js:run', ctx),
+		spawn('./sync.js:run', ctx),
 		spawn('./backfill.js:run', ctx)
 	])
 }
