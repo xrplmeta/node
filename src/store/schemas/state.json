@@ -15,10 +15,16 @@
 				"$ref": "#/definitions/Account"
 			}
 		},
-		"currencies": {
+		"tokens": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/Currency"
+				"$ref": "#/definitions/Token"
+			}
+		},
+		"books": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Book"
 			}
 		},
 		"trustlines": {
@@ -133,23 +139,46 @@
 				"change"
 			]
 		},
-		"Currency": {
+		"Token": {
 			"type": "object",
 			"properties": {
 				"id": {
 					"type": "integer",
 					"id": true
 				},
-				"code": {
+				"currency": {
 					"type": "string",
 					"format": "xrpl/currency"
+				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
 				}
 			},
 			"required": [
-				"code"
+				"currency",
+				"issuer"
 			],
 			"unique": [
-				"code"
+				["issuer", "currency"]
+			]
+		},
+		"Book": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"takerPays": {
+					"$ref": "#/definitions/Token"
+				},
+				"takerGets": {
+					"$ref": "#/definitions/Token"
+				}
+			},
+			"required": [],
+			"unique": [
+				["takerPays", "takerGets"]
 			]
 		},
 		"Trustline": {
@@ -159,14 +188,11 @@
 					"type": "integer",
 					"id": true
 				},
-				"currency": {
-					"$ref": "#/definitions/Currency"
-				},
-				"issuer": {
+				"account": {
 					"$ref": "#/definitions/Account"
 				},
-				"holder": {
-					"$ref": "#/definitions/Account"
+				"token": {
+					"$ref": "#/definitions/Token"
 				},
 				"balance": {
 					"type": "string",
@@ -182,16 +208,15 @@
 				}
 			},
 			"required": [
-				"currency",
-				"issuer",
-				"holder",
+				"account",
+				"token",
 				"balance"
 			],
 			"unique": [
-				["currency", "issuer", "holder"]
+				["account", "token"]
 			],
 			"index": [
-				"issuer",
+				"token",
 				"change"
 			]
 		},
@@ -208,27 +233,18 @@
 				"sequence": {
 					"type": "integer"
 				},
+				"book": {
+					"$ref": "#/definitions/Book"
+				},
 				"directory": {
 					"type": "string",
 					"format": "hex"
 				},
-				"takerPaysCurrency": {
-					"$ref": "#/definitions/Currency"
-				},
-				"takerPaysIssuer": {
-					"$ref": "#/definitions/Account"
-				},
-				"takerPaysValue": {
+				"takerPays": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"takerGetsCurrency": {
-					"$ref": "#/definitions/Currency"
-				},
-				"takerGetsIssuer": {
-					"$ref": "#/definitions/Account"
-				},
-				"takerGetsValue": {
+				"takerGets": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
@@ -247,22 +263,15 @@
 			"required": [
 				"account",
 				"sequence",
-				"takerPaysCurrency",
-				"takerPaysValue",
-				"takerGetsCurrency",
-				"takerGetsValue"
+				"takerPays",
+				"takerGets"
 			],
 			"unique": [
 				["account", "sequence"]
 			],
 			"index": [
-				["change"],
-				[
-					"takerPaysCurrency", 
-					"takerPaysIssuer",
-					"takerGetsCurrency",
-					"takerGetsIssuer"
-				]
+				"book",
+				"change"
 			]
 		},
 		"NFToken": {
@@ -325,11 +334,8 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"amountCurrency": {
-					"$ref": "#/definitions/Currency"
-				},
-				"amountIssuer": {
-					"$ref": "#/definitions/Account"
+				"amountToken": {
+					"$ref": "#/definitions/Token"
 				},
 				"amountValue": {
 					"type": "string",

@@ -45,9 +45,15 @@ async function setRippleState({ state, entry, change }){
 	if(lowIssuer){
 		await state.trustlines.createOne({
 			data: {
-				currency: { code: entry.Balance.currency },
-				issuer: { address: entry.LowLimit.issuer },
-				holder: { address: entry.HighLimit.issuer },
+				account: { 
+					address: entry.HighLimit.issuer 
+				},
+				token: {
+					currency: entry.Balance.currency,
+					issuer: {
+						address: entry.LowLimit.issuer
+					}
+				},
 				balance: max(0, neg(entry.Balance.value)),
 				change
 			}
@@ -57,9 +63,15 @@ async function setRippleState({ state, entry, change }){
 	if(highIssuer){
 		await state.trustlines.createOne({
 			data: {
-				currency: { code: entry.Balance.currency },
-				issuer: { address: entry.HighLimit.issuer },
-				holder: { address: entry.LowLimit.issuer },
+				account: { 
+					address: entry.LowLimit.issuer 
+				},
+				token: {
+					currency: entry.Balance.currency,
+					issuer: {
+						address: entry.HighLimit.issuer
+					}
+				},
 				balance: max(0, entry.Balance.value),
 				change
 			}
@@ -74,18 +86,18 @@ async function setCurrencyOffer({ state, entry, change }){
 	await state.currencyOffers.createOne({
 		data: {
 			account: { address: entry.Account },
-			directory: entry.BookDirectory,
-			takerPaysCurrency: { code: takerPays.currency },
-			takerPaysIssuer: takerPays.issuer 
-				? { address: takerPays.issuer } 
-				: null,
-			takerPaysValue: takerPays.value,
-			takerGetsCurrency: { code: takerGets.currency },
-			takerGetsIssuer: takerGets.issuer
-				? { address: takerGets.issuer }
-				: null,
-			takerGetsValue: takerGets.value,
 			sequence: entry.Sequence,
+			book: {
+				takerPays: takerPays.issuer
+					? { currency: takerPays.currency, issuer: { address: takerPays.issuer }}
+					: null,
+				takerGets: takerGets.issuer
+					? { currency: takerGets.currency, issuer: { address: takerGets.issuer }}
+					: null
+			},
+			directory: entry.BookDirectory,
+			takerPays: takerPays.value,
+			takerGets: takerGets.value,
 			expiration: entry.Expiration
 				? rippleToUnix(entry.Expiration)
 				: null,
@@ -120,9 +132,8 @@ async function setNFTokenOffer({ state, entry, change }){
 			account: { address: entry.Owner },
 			offerId: entry.index,
 			tokenId: entry.NFTokenID,
-			amountCurrency: { code: amount.currency },
-			amountIssuer: amount.issuer 
-				? { address: amount.issuer } 
+			amountToken: amount.issuer
+				? { currency: amount.currency, issuer: { address: amount.issuer } }
 				: null,
 			amountValue: amount.value,
 			destination: entry.Destination
