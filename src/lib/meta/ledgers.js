@@ -3,8 +3,19 @@ import { div, max, min, sum, floor } from "@xrplkit/xfl"
 
 
 export async function extract({ ledger, meta }){
-	if(ledger.transactions.length === 0)
+	let baseData = {
+		index: ledger.index,
+		hash: ledger.hash,
+		closeTime: ledger.closeTime,
+		txCount: ledger.transactions.length,
+	}
+
+	if(ledger.transactions.length === 0){
+		await meta.ledgers.createOne({
+			data: baseData
+		})
 		return
+	}
 
 	let types = {}
 	let fees = []
@@ -19,10 +30,7 @@ export async function extract({ ledger, meta }){
 
 	await meta.ledgers.createOne({
 		data: {
-			index: ledger.index,
-			hash: ledger.hash,
-			closeTime: ledger.closeTime,
-			txCount: ledger.transactions.length,
+			...baseData,
 			txTypeCounts: Object.entries(types)
 				.map(([type, count]) => ({ type, count })),
 			minFee: min(...fees),
@@ -34,10 +42,5 @@ export async function extract({ ledger, meta }){
 				)
 			)
 		}
-	})
-
-	log.accumulate.info({
-		line: [`recorded %ledgers ledgers in %time`],
-		ledgers: 1
 	})
 }

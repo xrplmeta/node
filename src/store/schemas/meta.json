@@ -118,10 +118,7 @@
 				"index",
 				"hash",
 				"closeTime",
-				"txCount",
-				"minFee",
-				"maxFee",
-				"avgFee"
+				"txCount"
 			],
 			"unique": [
 				"index"
@@ -501,7 +498,9 @@
 				["directory", "ledgerIndex"]
 			],
 			"index": [
-				"rank"
+				"rank",
+				"base",
+				"quote"
 			]
 		}
 	}
