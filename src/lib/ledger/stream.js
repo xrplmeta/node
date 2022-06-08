@@ -17,7 +17,6 @@ export async function start({ config, xrpl, direction, startLedgerIndex }){
 		})
 
 		targetIndex = parseInt(result.ledger.ledger_index)
-		log.info(targetIndex - currentIndex, `ledgers behind`)
 	}else{
 		targetIndex = 0
 	}
@@ -79,12 +78,13 @@ export async function start({ config, xrpl, direction, startLedgerIndex }){
 				await new Promise(resolve => resolveNext = resolve)
 			}
 
-			let next = queue[currentIndex]
+			let ledger = queue[currentIndex]
+			let ledgersBehind = targetIndex - currentIndex
 
 			delete queue[currentIndex]
 			currentIndex++
 
-			return next
+			return { ledger, ledgersBehind }
 		}
 	}
 }

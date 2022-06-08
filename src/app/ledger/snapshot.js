@@ -106,12 +106,14 @@ async function copyFromFeed({ config, state, feed }){
 		})
 		
 		log.accumulate.info({
-			line: [
+			text: [
 				`copied`,
 				journal.entriesCount, 
 				`ledger objects (+%objects in %time)`
 			],
-			objects: chunk.objects.length
+			data: {
+				objects: chunk.objects.length
+			}
 		})
 	}
 

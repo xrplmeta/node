@@ -12,22 +12,23 @@ export async function reduce({ state, ledgerIndex, ...ctx }){
 		}
 	})
 
+
 	for await(let account of accounts){
 		await updateAccount({ ...ctx, account, state, ledgerIndex })
 
 		log.accumulate.info({
-			line: [
-				`pulled`,
+			text: [
+				`reduced`,
 				++counter,
 				`of`,
 				accounts.length,
-				`accounts from state (+%pulledAccounts in %time)`
+				`accounts from ledger state (+%reducedAccounts in %time)`
 			],
-			pulledAccounts: 1
+			data: {
+				reducedAccounts: 1
+			}
 		})
 	}
-
-	log.flush()
 }
 
 async function updateAccount({ account, state, meta }){
@@ -47,7 +48,7 @@ async function updateAccount({ account, state, meta }){
 				: undefined
 			},
 			source: 'xrpl',
-			account
+			account: { address: account.address }
 		})
 	}
 }

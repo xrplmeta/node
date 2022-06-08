@@ -60,7 +60,11 @@ export async function extract({ ledger, meta }){
 	})
 
 	log.accumulate.info({
-		line: [`recorded %tokenExchanges exchanges in %time`],
-		tokenExchanges: exchanges.length
+		text: [
+			`recorded %tokenExchanges exchanges in %time`
+		],
+		data: {
+			tokenExchanges: exchanges.length
+		}
 	})
 }

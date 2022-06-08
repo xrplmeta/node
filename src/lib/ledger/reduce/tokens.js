@@ -24,18 +24,18 @@ export async function reduce({ state, ledgerIndex, ...ctx }){
 		await updateMetrics({ ...ctx, token, state, ledgerIndex })
 
 		log.accumulate.info({
-			line: [
-				`pulled`,
+			text: [
+				`reduced`,
 				++counter,
 				`of`,
 				tokens.length,
-				`tokens from state (+%pulledTokens in %time)`
+				`tokens from ledger state (+%reducedTokens in %time)`
 			],
-			pulledTokens: 1
+			data: {
+				reducedTokens: 1
+			}
 		})
 	}
-
-	log.flush()
 }
 
 
@@ -116,68 +116,56 @@ async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 		}
 	})
 
-	await state.tx(async () => {
-		for await(let { id: trustlineId, holder, balance, change } of trustlines){
-			whales = whales
-				.filter(whale => whale.account.address !== holder.address)
+	for await(let { id: trustlineId, holder, balance, change } of trustlines){
+		whales = whales
+			.filter(whale => whale.account.address !== holder.address)
 
-			if(change === 'deleted'){
-				metrics.supply = sub(metrics.supply, balance)
-				metrics.trustlines--
-				metrics.holders--
+		if(change === 'deleted'){
+			metrics.supply = sub(metrics.supply, balance)
+			metrics.trustlines--
+			metrics.holders--
 
-				await state.trustlines.delete({
-					where: {
-						id: trustlineId
-					}
-				})
-			}else{
-				metrics.supply = sum(metrics.supply, balance)
-
-				let whale = { account: holder, balance }
-				let greaterWhaleIndex = whales
-					.findIndex(whale => gt(whale.balance, balance))
-
-
-				if(greaterWhaleIndex === -1){
-					whales.push(whale)
-				}else if(greaterWhaleIndex === 0){
-					if(whales.length < maxWhales)
-						whales.unshift(whale)
-				}else{
-					whales.splice(greaterWhaleIndex, 0, whale)
+			await state.trustlines.delete({
+				where: {
+					id: trustlineId
 				}
+			})
+		}else{
+			metrics.supply = sum(metrics.supply, balance)
 
-				if(whales.length > maxWhales)
-					whales.shift()
+			let whale = { account: holder, balance }
+			let greaterWhaleIndex = whales
+				.findIndex(whale => gt(whale.balance, balance))
 
 
-				/*await state.trustlines.update({
-					data: {
-						change: null
-					},
-					where: {
-						id: trustlineId
-					}
-				})*/
+			if(greaterWhaleIndex === -1){
+				whales.push(whale)
+			}else if(greaterWhaleIndex === 0){
+				if(whales.length < maxWhales)
+					whales.unshift(whale)
+			}else{
+				whales.splice(greaterWhaleIndex, 0, whale)
 			}
+
+			if(whales.length > maxWhales)
+				whales.shift()
 		}
+	}
 
-		await writeMetrics({
-			meta,
-			token: { id: tokenId },
-			ledgerIndex,
-			...metrics
-		})
+	await writeMetrics({
+		meta,
+		token: { id: tokenId },
+		ledgerIndex,
+		...metrics
+	})
 
-		
+	
 
-		await writeWhales({
-			meta,
-			token: { id: tokenId },
-			ledgerIndex,
-			whales
-		})
+	await writeWhales({
+		meta,
+		token: { id: tokenId },
+		ledgerIndex,
+		whales
 	})
 }
 

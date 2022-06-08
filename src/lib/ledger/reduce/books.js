@@ -24,14 +24,16 @@ export async function reduce({ state, meta, ledgerIndex, ...ctx }){
 		await updateBook({ ...ctx, book, state, meta, ledgerIndex })
 
 		log.accumulate.info({
-			line: [
-				`pulled`,
+			text: [
+				`reduced`,
 				++counter,
 				`of`,
 				books.length,
-				`books from state (+%pulledBooks in %time)`
+				`books from ledger state (+%reducedBooks in %time)`
 			],
-			pulledBooks: 1
+			data: {
+				reducedBooks: 1
+			}
 		})
 	}
 }
@@ -101,8 +103,6 @@ async function updateBook({ book, state, meta, ledgerIndex }){
 	for(let rank=0; rank<sortedDirectories.length; rank++){
 		let dir = sortedDirectories[rank]
 
-		console.log(dir)
-
 		await writeOffer({
 			meta,
 			ledgerIndex,
@@ -117,7 +117,5 @@ async function updateBook({ book, state, meta, ledgerIndex }){
 					.toUpperCase()
 			}
 		})
-
-		
 	}
 }
