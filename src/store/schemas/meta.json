@@ -21,12 +21,6 @@
 				"$ref": "#/definitions/AccountProp"
 			}
 		},
-		"currencies": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/Currency"
-			}
-		},
 		"tokens": {
 			"type": "array",
 			"items": {
@@ -221,25 +215,6 @@
 				["account", "key", "source"]
 			]
 		},
-		"Currency": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
-				},
-				"code": {
-					"type": "string",
-					"format": "xrpl/currency"
-				}
-			},
-			"required": [
-				"code"
-			],
-			"unique": [
-				"code"
-			]
-		},
 		"Token": {
 			"type": "object",
 			"properties": {
@@ -247,19 +222,20 @@
 					"type": "integer",
 					"id": true
 				},
-				"currency": {
-					"$ref": "#/definitions/Currency"
-				},
 				"issuer": {
 					"$ref": "#/definitions/Account"
+				},
+				"currency": {
+					"type": "string",
+					"format": "xrpl/currency"
 				}
 			},
 			"required": [
-				"currency",
-				"issuer"
+				"issuer",
+				"currency"
 			],
 			"unique": [
-				["currency", "issuer"]
+				["issuer", "currency"]
 			]
 		},
 		"TokenProp": {
