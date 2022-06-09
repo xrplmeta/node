@@ -146,17 +146,17 @@
 					"type": "integer",
 					"id": true
 				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
+				},
 				"currency": {
 					"type": "string",
 					"format": "xrpl/currency"
-				},
-				"issuer": {
-					"$ref": "#/definitions/Account"
 				}
 			},
 			"required": [
-				"currency",
-				"issuer"
+				"issuer",
+				"currency"
 			],
 			"unique": [
 				["issuer", "currency"]
