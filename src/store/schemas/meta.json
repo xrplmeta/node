@@ -15,10 +15,16 @@
 				"$ref": "#/definitions/Account"
 			}
 		},
-		"accountProps": {
+		"issuers": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/AccountProp"
+				"$ref": "#/definitions/Issuer"
+			}
+		},
+		"issuerProps": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/IssuerProp"
 			}
 		},
 		"tokens": {
@@ -43,6 +49,12 @@
 			"type": "array",
 			"items": {
 				"$ref": "#/definitions/TokenSupply"
+			}
+		},
+		"tokenMarketcap": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenMarketcap"
 			}
 		},
 		"tokenTrustlines": {
@@ -189,7 +201,7 @@
 				"address"
 			]
 		},
-		"AccountProp": {
+		"Issuer": {
 			"type": "object",
 			"properties": {
 				"id": {
@@ -198,6 +210,38 @@
 				},
 				"account": {
 					"$ref": "#/definitions/Account"
+				},
+				"domain": {
+					"type": "string",
+					"format": "hex"
+				},
+				"emailHash": {
+					"type": "string",
+					"format": "hex"
+				},
+				"transferRate": {
+					"type": "integer"
+				},
+				"blackholed": {
+					"type": "boolean"
+				},
+			},
+			"required": [
+				"address"
+			],
+			"unique": [
+				"address"
+			]
+		},
+		"IssuerProp": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"issuer": {
+					"$ref": "#/definitions/Issuer"
 				},
 				"key": {
 					"type": "string"
