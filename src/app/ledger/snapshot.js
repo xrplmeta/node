@@ -2,7 +2,7 @@ import log from '@mwni/log'
 import { wait, unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
 import { open as openStateStore } from '../../store/state.js'
-import { write as writeToState } from '../../lib/ledger/write.js'
+import { write as writeToState } from '../../core/ledger/write.js'
 
 
 export async function run(ctx){

@@ -208,8 +208,9 @@
 					"type": "integer",
 					"id": true
 				},
-				"account": {
-					"$ref": "#/definitions/Account"
+				"address": {
+					"type": "string",
+					"format": "xrpl/address"
 				},
 				"domain": {
 					"type": "string",
@@ -224,7 +225,7 @@
 				},
 				"blackholed": {
 					"type": "boolean"
-				},
+				}
 			},
 			"required": [
 				"address"
@@ -254,12 +255,12 @@
 				}
 			},
 			"required": [
-				"account",
+				"issuer",
 				"key",
 				"source"
 			],
 			"unique": [
-				["account", "key", "source"]
+				["issuer", "key", "source"]
 			]
 		},
 		"Token": {
@@ -270,7 +271,7 @@
 					"id": true
 				},
 				"issuer": {
-					"$ref": "#/definitions/Account"
+					"$ref": "#/definitions/Issuer"
 				},
 				"currency": {
 					"type": "string",
@@ -431,6 +432,33 @@
 				},
 				"value": {
 					"type": "integer"
+				}
+			},
+			"required": [
+				"token",
+				"ledgerIndex",
+				"value"
+			],
+			"unique": [
+				["token", "ledgerIndex"]
+			]
+		},
+		"TokenMarketcap": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"value": {
+					"type": "string",
+					"format": "xrpl/xfl"
 				}
 			},
 			"required": [
