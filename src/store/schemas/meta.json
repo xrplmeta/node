@@ -3,6 +3,12 @@
 	"title": "Metadata & Marketdata Storage",
 	"type": "object",
 	"properties": {
+		"snapshots": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Snapshot"
+			}
+		},
 		"ledgers": {
 			"type": "array",
 			"items": {
@@ -15,16 +21,10 @@
 				"$ref": "#/definitions/Account"
 			}
 		},
-		"issuers": {
+		"accountProps": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/Issuer"
-			}
-		},
-		"issuerProps": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/IssuerProp"
+				"$ref": "#/definitions/AccountProp"
 			}
 		},
 		"tokens": {
@@ -83,6 +83,42 @@
 		}
 	},
 	"definitions": {
+		"Snapshot": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"creationTime": {
+					"type": "integer"
+				},
+				"completionTime": {
+					"type": "integer"
+				},
+				"ledgerIndex": {
+					"type": "integer"
+				},
+				"entriesCount": {
+					"type": "integer",
+					"default": 0
+				},
+				"originNode": {
+					"type": "string"
+				},
+				"marker": {
+					"type": "any"
+				}
+			},
+			"required": [
+				"creationTime",
+				"ledgerIndex",
+				"originNode"
+			],
+			"unique": [
+				"ledgerIndex"
+			]
+		},
 		"Ledger": {
 			"type": "object",
 			"properties": {
@@ -192,25 +228,10 @@
 				"address": {
 					"type": "string",
 					"format": "xrpl/address"
-				}
-			},
-			"required": [
-				"address"
-			],
-			"unique": [
-				"address"
-			]
-		},
-		"Issuer": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
 				},
-				"address": {
+				"balance": {
 					"type": "string",
-					"format": "xrpl/address"
+					"format": "xrpl/xfl"
 				},
 				"domain": {
 					"type": "string",
@@ -234,7 +255,7 @@
 				"address"
 			]
 		},
-		"IssuerProp": {
+		"AccountProp": {
 			"type": "object",
 			"properties": {
 				"id": {
@@ -242,7 +263,7 @@
 					"id": true
 				},
 				"issuer": {
-					"$ref": "#/definitions/Issuer"
+					"$ref": "#/definitions/Account"
 				},
 				"key": {
 					"type": "string"
@@ -271,7 +292,7 @@
 					"id": true
 				},
 				"issuer": {
-					"$ref": "#/definitions/Issuer"
+					"$ref": "#/definitions/Account"
 				},
 				"currency": {
 					"type": "string",

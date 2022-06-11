@@ -4,9 +4,9 @@ import schemas from './schemas/index.js'
 import codecs from './codecs/index.js'
 
 
-export async function open({ config }){
-	return await openDatabase({
-		file: `${config.data.dir}/meta.db`,
+export function open({ ctx }){
+	return openDatabase({
+		file: `${ctx.config.data.dir}/meta.db`,
 		schema: schemas.meta,
 		journalMode: 'WAL',
 		codecs

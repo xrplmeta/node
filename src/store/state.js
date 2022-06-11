@@ -14,7 +14,7 @@ export async function open({ config, variant }){
 		)
 	}
 
-	return await openDatabase({
+	return openDatabase({
 		file,
 		schema: schemas.state,
 		journalMode: 'WAL',
