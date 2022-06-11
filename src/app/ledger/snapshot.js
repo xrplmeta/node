@@ -1,28 +1,25 @@
 import log from '@mwni/log'
-import { wait, unixNow } from '@xrplkit/time'
+import { unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
-import { open as openStateStore } from '../../store/state.js'
-import { write as writeToState } from '../../core/ledger/write.js'
+import { open as openMetaStore } from '../../store/meta.js'
+import { diff as diffLedgerObjects } from '../../core/diff/index.js'
 
 
-export async function run(ctx){
+export async function run({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	let state = await openStateStore({ ...ctx, variant: 'current' })
+	ctx = {
+		...ctx,
+		meta: openMetaStore({ ctx }),
+		snapshotState: meta.snapshots.readOne({ last: true })
+	}
 
-	if(!await isIncomplete(state))
+	if(ctx.snapshotState && !ctx.snapshotState.marker && ctx.snapshotState.entriesCount > 0)
 		return
 
 	try{
-		await copyFromFeed({ 
-			...ctx, 
-			state, 
-			feed: await createFeed({ 
-				...ctx, 
-				state 
-			})
-		})
+		await copyFromFeed({ ctx, feed: await createFeed({ ctx })})
 	}catch(error){
 		log.error(`fatal error while copying from ledger feed:`)
 		log.error(error.stack)
@@ -31,50 +28,36 @@ export async function run(ctx){
 	}	
 }
 
-async function isIncomplete(state){
-	let journal = await state.journal.readOne({ last: true })
-	return !journal || journal.snapshotMarker || journal.entriesCount === 0
-}
-
-async function createFeed({ config, state, xrpl }){
-	let journal = await state.journal.readOne({ last: true })
+async function createFeed({ ctx }){
 	let ledgerIndex
-	let preferredNode
-	let marker
 
-	if(journal?.snapshotMarker){
-		ledgerIndex = journal.ledgerIndex
-		preferredNode = journal.snapshotOrigin
-		marker = journal.snapshotMarker
-		
+	if(ctx.snapshotState.marker){
+		ledgerIndex = ctx.snapshotState.ledgerIndex
 		log.info(`resuming snapshot of ledger #${ledgerIndex}`)
 	}else{
-		let { result } = await xrpl.request({
+		let { result } = await ctx.xrpl.request({
 			command: 'ledger', 
 			ledger_index: 'validated'
 		})
 
 		ledgerIndex = parseInt(result.ledger.ledger_index)
-
 		log.info(`creating snapshot of ledger #${ledgerIndex} - this may take a long time`)
 	}
 
-	return await spawn(
-		'../../lib/xrpl/feed.js:create', 
-		{ config, xrpl, ledgerIndex, preferredNode, marker }
-	)
+	return await spawn('../../lib/xrpl/snapshot.js:start', { ctx, ledgerIndex })
 }
 
 
-async function copyFromFeed({ config, state, feed }){
-	let journal = await state.journal.readOne({ last: true })
+async function copyFromFeed({ ctx, feed }){
+	ctx.ledgerIndex = feed.ledgerIndex
+	ctx.forwardDiff = true
 
-	if(!journal){
-		journal = await state.journal.createOne({
+	if(!ctx.snapshotState){
+		ctx.snapshotState = ctx.meta.snapshots.createOne({
 			data: {
 				ledgerIndex: feed.ledgerIndex,
 				creationTime: unixNow(),
-				snapshotOrigin: feed.node
+				originNode: feed.node
 			}
 		})
 	}
@@ -85,30 +68,30 @@ async function copyFromFeed({ config, state, feed }){
 		if(!chunk)
 			break
 		
-		await state.tx(async () => {
-			for(let entry of chunk.objects){
-				try{
-					await writeToState({ state, entry, change: 'new' })
-				}catch(error){
-					log.error(`failed to add ${entry.LedgerEntryType} ledger object "${entry.index}":`)
-					log.error(error.stack)
-					throw error
-				}
-			}
+		ctx.meta.tx(async () => {
+			diffLedgerObjects({
+				ctx,
+				deltas: chunk.objects.map(entry => ({ 
+					type: entry.LedgerEntryType,
+					final: entry 
+				}))
+			})
 
-			journal = await state.journal.createOne({
+			ctx.snapshotState = ctx.meta.snapshots.updateOne({
 				data: {
-					ledgerIndex: feed.ledgerIndex,
-					snapshotMarker: chunk.marker,
-					entriesCount: journal.entriesCount + chunk.objects.length
+					marker: chunk.marker,
+					entriesCount: snap.entriesCount + chunk.objects.length
+				},
+				where: {
+					ledgerIndex: feed.ledgerIndex
 				}
 			})
 		})
 		
 		log.accumulate.info({
 			text: [
-				`copied`,
-				journal.entriesCount, 
+				`processed`,
+				ctx.snapshotState.entriesCount, 
 				`ledger objects (+%objects in %time)`
 			],
 			data: {
@@ -120,12 +103,13 @@ async function copyFromFeed({ config, state, feed }){
 	log.flush()
 	log.info(`ledger snapshot complete`)
 
-	await state.journal.createOne({
+	ctx.meta.snapshots.updateOne({
 		data: {
-			ledgerIndex: feed.ledgerIndex,
 			completionTime: unixNow(),
-			snapshotMarker: null
+			marker: null
+		},
+		where: {
+			ledgerIndex: feed.ledgerIndex
 		}
 	})
-	await state.compact()
 }
