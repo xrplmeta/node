@@ -1,7 +1,7 @@
 import { eq } from '@xrplkit/xfl'
 
-export async function write({ meta, token, ledgerIndex, whales }){
-	let previousWhales = await read({ meta, token, ledgerIndex })
+export function write({ meta, token, ledgerIndex, whales }){
+	let previousWhales = read({ meta, token, ledgerIndex })
 	let newWhales = whales
 		.filter(whale => previousWhales.every(w => w.account.address !== whale.account.address))
 
@@ -26,7 +26,7 @@ export async function write({ meta, token, ledgerIndex, whales }){
 	}
 
 	for(let newWhale of newWhales){
-		await meta.tokenWhales.createOne({
+		meta.tokenWhales.createOne({
 			data: {
 				...newWhale,
 				ledgerIndex,
@@ -36,8 +36,8 @@ export async function write({ meta, token, ledgerIndex, whales }){
 	}
 }
 
-export async function read({ meta, token, ledgerIndex }){
-	return await meta.tokenWhales.readGrouped({
+export function read({ meta, token, ledgerIndex }){
+	return meta.tokenWhales.readGrouped({
 		by: ['account'],
 		where: {
 			token,

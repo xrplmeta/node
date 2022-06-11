@@ -19,9 +19,7 @@ export async function extract({ ledger, meta }){
 
 			if(exchange.takerPaid.issuer){
 				takerPaidToken = {
-					currency: { 
-						code: exchange.takerPaid.currency 
-					},
+					currency: exchange.takerPaid.currency,
 					issuer: { 
 						address: exchange.takerPaid.issuer 
 					}
@@ -30,9 +28,7 @@ export async function extract({ ledger, meta }){
 
 			if(exchange.takerGot.issuer){
 				takerGotToken = {
-					currency: { 
-						code: exchange.takerGot.currency 
-					},
+					currency: exchange.takerGot.currency,
 					issuer: { 
 						address: exchange.takerGot.issuer 
 					}

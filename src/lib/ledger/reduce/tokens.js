@@ -2,17 +2,14 @@ import log from '@mwni/log'
 import { sum, gt, sub } from '@xrplkit/xfl/native'
 import { read as readMetrics, write as writeMetrics } from '../../meta/token/metrics.js'
 import { read as readWhales, write as writeWhales } from '../../meta/token/whales.js'
+import { write as writeProps } from '../../meta/props.js'
+import { detect as detectLegacyNFT } from '../../meta/legacy-nft/detection.js'
 
 
-export async function reduce({ state, ledgerIndex, ...ctx }){
+export function reduce({ state, ledgerIndex, ...ctx }){
 	let counter = 0
-	let tokens = await state.trustlines.iter({
-		distinct: ['currency', 'issuer'],
-		include: {
-			currency: true,
-			issuer: true,
-			account: true
-		},
+	let tokens = state.trustlines.readMany({
+		distinct: ['token'],
 		where: {
 			NOT: {
 				change: null
@@ -20,8 +17,8 @@ export async function reduce({ state, ledgerIndex, ...ctx }){
 		}
 	})
 
-	for await(let token of tokens){
-		await updateMetrics({ ...ctx, token, state, ledgerIndex })
+	for(let { token } of tokens.reverse()){
+		updateMetrics({ ...ctx, tokenId: token.id, state, ledgerIndex })
 
 		log.accumulate.info({
 			text: [
@@ -39,29 +36,31 @@ export async function reduce({ state, ledgerIndex, ...ctx }){
 }
 
 
-async function updateMetrics({ token, meta, state, ledgerIndex, config }){
-	let { currency, issuer } = token
+function updateMetrics({ tokenId, meta, state, ledgerIndex, config }){
+	let { currency, issuer } = state.tokens.readOne({
+		where: {
+			id: tokenId
+		},
+		include: {
+			issuer: true
+		}
+	})
+
 	let maxWhales = config.ledger.tokens.captureWhales
 	let ignoreBelowTrustlines = config.ledger.tokens.ignoreBelowTrustlines
 
 	let metrics = {
-		trustlines: await state.trustlines.count({
+		trustlines: state.trustlines.count({
 			where: {
-				currency: { 
-					code: currency.code 
-				},
-				issuer: { 
-					address: issuer.address 
-				},
+				token: {
+					id: tokenId
+				}
 			}
 		}),
-		holders: await state.trustlines.count({
+		holders: state.trustlines.count({
 			where: {
-				currency: { 
-					code: currency.code 
-				},
-				issuer: { 
-					address: issuer.address 
+				token: {
+					id: tokenId
 				},
 				NOT: {
 					balance: 0
@@ -69,63 +68,50 @@ async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 			}
 		}),
 		supply: 0,
-		...await readMetrics({ 
+		...readMetrics({ 
 			meta,
 			ledgerIndex,
 			supply: true
 		})
 	}
 
-	if(metrics.holders === 0 && metrics.trustlines < ignoreBelowTrustlines){
-		await meta.tokens.delete({
-			where: {
-				currency: { code: currency.code },
-				issuer: { address: issuer.address },
-			}
-		})
-		return
-	}
-
-	let { id: tokenId } = await meta.tokens.createOne({
+	let { id } = meta.tokens.createOne({
 		data: {
-			currency: { code: currency.code },
+			currency,
 			issuer: { address: issuer.address },
 		}
 	})
-
-	let whales = await readWhales({
+	
+	let whales = readWhales({
 		meta,
 		ledgerIndex,
-		token: { id: tokenId }
+		token: { id }
 	})
-
-	let trustlines = await state.trustlines.iter({
+	
+	let trustlines = state.trustlines.readMany({
 		where: {
+			token: {
+				id: tokenId
+			},
 			NOT: {
 				change: null
 			},
-			currency: { 
-				code: currency.code 
-			},
-			issuer: { 
-				address: issuer.address 
-			},
 		},
 		include: {
-			holder: true
+			account: true
 		}
 	})
-
-	for await(let { id: trustlineId, holder, balance, change } of trustlines){
+	
+	for(let { id: trustlineId, account, balance, change } of trustlines){
 		whales = whales
-			.filter(whale => whale.account.address !== holder.address)
+			.filter(whale => whale.account.address !== account.address)
 
 		if(change === 'deleted'){
 			metrics.supply = sub(metrics.supply, balance)
 			metrics.trustlines--
 			metrics.holders--
 
-			await state.trustlines.delete({
+			state.trustlines.delete({
 				where: {
 					id: trustlineId
 				}
@@ -133,7 +119,7 @@ async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 		}else{
 			metrics.supply = sum(metrics.supply, balance)
 
-			let whale = { account: holder, balance }
+			let whale = { account, balance }
 			let greaterWhaleIndex = whales
 				.findIndex(whale => gt(whale.balance, balance))
 
@@ -152,20 +138,48 @@ async function updateMetrics({ token, meta, state, ledgerIndex, config }){
 		}
 	}
 
-	await writeMetrics({
+	if()
+
+	if(metrics.holders === 0 && metrics.trustlines < ignoreBelowTrustlines){
+		meta.tokens.delete({
+			where: {
+				currency,
+				issuer: { address: issuer.address },
+			}
+		})
+		return
+	}
+	
+	writeMetrics({
 		meta,
-		token: { id: tokenId },
+		token: { id },
 		ledgerIndex,
 		...metrics
 	})
-
 	
-
-	await writeWhales({
+	writeWhales({
 		meta,
-		token: { id: tokenId },
+		token: { id },
 		ledgerIndex,
 		whales
 	})
+
+	if(issuer.change){
+		updateIssuer({ account: issuer, state, meta })
+	}
 }
 
+async function updateIssuer({ account, state, meta }){
+	writeProps({
+		meta,
+		props: {
+			blackholed: account.blackholed,
+			emailHash: account.emailHash,
+			domain: account.domain
+				? Buffer.from(account.domain, 'hex').toString()
+				: undefined
+		},
+		source: 'xrpl',
+		account: { address: account.address }
+	})
+}

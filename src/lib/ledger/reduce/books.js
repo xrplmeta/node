@@ -4,15 +4,10 @@ import { div, sum, toString } from '@xrplkit/xfl/native'
 import { sort } from '@xrplkit/xfl/extras'
 import { write as writeOffer } from '../../meta/token/offers.js'
 
-export async function reduce({ state, meta, ledgerIndex, ...ctx }){
+export function reduce({ state, meta, ledgerIndex, ...ctx }){
 	let counter = 0
-	let books = await state.currencyOffers.iter({
-		distinct: [
-			'takerPaysCurrency', 
-			'takerPaysIssuer', 
-			'takerGetsCurrency', 
-			'takerGetsIssuer'
-		],
+	let books = state.currencyOffers.readMany({
+		distinct: ['book'],
 		where: {
 			NOT: {
 				change: null
@@ -20,9 +15,9 @@ export async function reduce({ state, meta, ledgerIndex, ...ctx }){
 		}
 	})
 
-	for await(let book of books){
-		await updateBook({ ...ctx, book, state, meta, ledgerIndex })
-
+	for(let { book } of books){
+		updateBook({ ...ctx, bookId: book.id, state, meta, ledgerIndex })
+		
 		log.accumulate.info({
 			text: [
 				`reduced`,
@@ -38,18 +33,47 @@ export async function reduce({ state, meta, ledgerIndex, ...ctx }){
 	}
 }
 
-async function updateBook({ book, state, meta, ledgerIndex }){
-	let directories = {}
-	let offers = await state.currencyOffers.readMany({
+function updateBook({ bookId, state, meta, ledgerIndex }){
+	let base
+	let quote
+	let book = state.books.readOne({
 		where: {
-			...book
+			id: bookId
 		},
 		include: {
-			account: true,
-			takerPaysCurrency: true,
-			takerPaysIssuer: true,
-			takerGetsCurrency: true,
-			takerGetsIssuer: true,
+			takerPays: {
+				issuer: true
+			},
+			takerGets: {
+				issuer: true
+			}
+		}
+	})
+
+	if(book.takerPays){
+		quote = {
+			currency: book.takerPays.currency,
+			issuer: {
+				address: book.takerPays.issuer.address
+			}
+		}
+	}
+
+	if(book.takerGets){
+		base = {
+			currency: book.takerGets.currency,
+			issuer: {
+				address: book.takerGets.issuer.address
+			}
+		}
+	}
+
+	let directories = {}
+	let offers = state.currencyOffers.readMany({
+		where: {
+			book: {
+				id: bookId
+			}
 		}
 	})
 
@@ -57,42 +81,18 @@ async function updateBook({ book, state, meta, ledgerIndex }){
 		let dir = directories[offer.directory]
 
 		if(!dir){
-			let base
-			let quote
-			let rate = div(offer.takerPaysValue, offer.takerGetsValue)
-
-			if(offer.takerPaysIssuer){
-				quote = {
-					currency: {
-						code: offer.takerPaysCurrency.code
-					},
-					issuer: {
-						address: offer.takerPaysIssuer.address
-					}
+			try{
+				dir = directories[offer.directory] = {
+					directory: offer.directory,
+					rate: div(offer.takerPays, offer.takerGets),
+					volume: 0
 				}
-			}
-	
-			if(offer.takerGetsIssuer){
-				base = {
-					currency: {
-						code: offer.takerGetsCurrency.code
-					},
-					issuer: {
-						address: offer.takerGetsIssuer.address
-					}
-				}
-			}
-
-			dir = directories[offer.directory] = {
-				directory: offer.directory,
-				quote,
-				base,
-				rate,
-				volume: 0
+			}catch{
+				continue
 			}
 		}
 
-		dir.volume = sum(dir.volume, offer.takerGetsValue)
+		dir.volume = sum(dir.volume, offer.takerGets)
 	}
 
 	let sortedDirectories = sort(
@@ -103,11 +103,13 @@ async function updateBook({ book, state, meta, ledgerIndex }){
 	for(let rank=0; rank<sortedDirectories.length; rank++){
 		let dir = sortedDirectories[rank]
 
-		await writeOffer({
+		writeOffer({
 			meta,
 			ledgerIndex,
 			offer: {
 				...dir,
+				base,
+				quote,
 				rank,
 				startLedgerIndex: ledgerIndex,
 				directory: crypto.createHash('md5')

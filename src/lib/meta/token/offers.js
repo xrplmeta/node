@@ -1,14 +1,14 @@
 import { eq } from "@xrplkit/xfl"
 
-export async function write({ meta, ledgerIndex, offer }){
-	let previous = await read({ meta, ledgerIndex, directory: offer.directory })
+export function write({ meta, ledgerIndex, offer }){
+	let previous = read({ meta, ledgerIndex, directory: offer.directory })
 
 	if(previous){
 		if(previous.ledgerIndex < ledgerIndex){
 			if(eq(previous.volume, offer.volume))
 				return
 
-			await meta.tokenOffers.update({
+			meta.tokenOffers.update({
 				data: {
 					expirationLedgerIndex: ledgerIndex
 				},
@@ -19,7 +19,7 @@ export async function write({ meta, ledgerIndex, offer }){
 		}
 	}
 
-	await meta.tokenOffers.createOne({
+	meta.tokenOffers.createOne({
 		data: {
 			...offer,
 			ledgerIndex
@@ -27,7 +27,7 @@ export async function write({ meta, ledgerIndex, offer }){
 	})
 }
 
-export async function read({ meta, ledgerIndex, directory }){
+export function read({ meta, ledgerIndex, directory }){
 	return meta.tokenOffers.readOne({
 		where: {
 			directory,

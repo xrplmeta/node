@@ -43,5 +43,7 @@ export async function run(ctx){
 			log.flush()
 			log.info(`synced at ledger #${ledger.index}`)
 		}
+
+		process.exit()
 	}
 }

@@ -1,4 +1,4 @@
-export async function write({ meta, props, source, account, token, nft }){
+export function write({ meta, props, source, account, token, nft }){
 	let table
 	let subject
 
@@ -9,7 +9,7 @@ export async function write({ meta, props, source, account, token, nft }){
 
 	for(let [key, value] of Object.entries(props)){
 		if(value == undefined){
-			await meta[table].delete({
+			meta[table].delete({
 				where: {
 					account,
 					key,
@@ -17,7 +17,7 @@ export async function write({ meta, props, source, account, token, nft }){
 				}
 			})
 		}else{
-			await meta[table].createOne({
+			meta[table].createOne({
 				data: {
 					account,
 					key,

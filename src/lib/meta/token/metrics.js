@@ -5,8 +5,8 @@ const metricTables = {
 }
 
 
-export async function write({ meta, token, ledgerIndex, ...metrics }){
-	let point = await read({ meta, token, ledgerIndex, ...metrics })
+export function write({ meta, token, ledgerIndex, ...metrics }){
+	let point = read({ meta, token, ledgerIndex, ...metrics })
 
 	for(let [key, value] of Object.entries(metrics)){
 		let table = metricTables[key]
@@ -14,7 +14,7 @@ export async function write({ meta, token, ledgerIndex, ...metrics }){
 		if(point[key] === value)
 			continue
 
-		await meta[table].createOne({
+		meta[table].createOne({
 			data: {
 				token,
 				ledgerIndex,
@@ -24,13 +24,13 @@ export async function write({ meta, token, ledgerIndex, ...metrics }){
 	}
 }
 
-export async function read({ meta, token, ledgerIndex, ...metrics }){
+export function read({ meta, token, ledgerIndex, ...metrics }){
 	let point = {}
 
 	for(let key of Object.keys(metrics)){
 		let table = metricTables[key]
 
-		let entry = await meta[table].readOne({
+		let entry = meta[table].readOne({
 			where: {
 				token,
 				ledgerIndex: {

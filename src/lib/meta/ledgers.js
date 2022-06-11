@@ -2,7 +2,7 @@ import log from '@mwni/log'
 import { div, max, min, sum, floor } from "@xrplkit/xfl"
 
 
-export async function extract({ ledger, meta }){
+export function extract({ ledger, meta }){
 	let baseData = {
 		index: ledger.index,
 		hash: ledger.hash,
@@ -11,7 +11,7 @@ export async function extract({ ledger, meta }){
 	}
 
 	if(ledger.transactions.length === 0){
-		await meta.ledgers.createOne({
+		meta.ledgers.createOne({
 			data: baseData
 		})
 		return
@@ -28,7 +28,7 @@ export async function extract({ ledger, meta }){
 		fees.push(transaction.Fee)
 	}
 
-	await meta.ledgers.createOne({
+	meta.ledgers.createOne({
 		data: {
 			...baseData,
 			txTypeCounts: Object.entries(types)
