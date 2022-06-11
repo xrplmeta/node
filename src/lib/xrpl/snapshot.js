@@ -1,7 +1,7 @@
 import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 
-export async function create({ config, xrpl, ledgerIndex, preferredNode, marker }){
+export async function start({ config, xrpl, ledgerIndex, preferredNode, marker }){
 	let chunkSize = config.ledger.snapshot.fetchChunkSize || 10000
 	let queue = []
 	

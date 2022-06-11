@@ -5,7 +5,7 @@ const blackholeAccounts = [
 	'rrrrrrrrrrrrrrrrrrrn5RM1rHd'
 ]
 
-export function is(ledgerEntry){
+export function isBlackholed(ledgerEntry){
 	if(!blackholeAccounts.includes(ledgerEntry.RegularKey))
 		return false
 
