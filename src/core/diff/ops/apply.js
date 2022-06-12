@@ -1,3 +1,8 @@
+import { sum, sub, gt, eq } from '@xrplkit/xfl'
+import { read as readTokenMetrics, write as writeTokenMetrics } from '../../meta/token/metrics.js'
+import { read as readTokenWhales, write as writeTokenWhales } from '../../meta/token/whales.js'
+
+
 export function AccountRoot({ ctx, deltas }){
 	for(let { previous, final } of deltas){
 		if(final){
@@ -16,7 +21,6 @@ export function AccountRoot({ ctx, deltas }){
 
 export function RippleState({ ctx, deltas }){
 	const maxWhales = ctx.config.ledger.tokens.captureWhales
-	const ignoreBelowTrustlines = ctx.config.ledger.tokens.ignoreBelowTrustlines
 
 	let token = ctx.meta.tokens.createOne({
 		data: deltas[0].token
@@ -26,7 +30,7 @@ export function RippleState({ ctx, deltas }){
 		trustlines: 0,
 		holders: 0,
 		supply: 0,
-		...readMetrics({ 
+		...readTokenMetrics({ 
 			ctx, 
 			token, 
 			ledgerIndex: ctx.ledgerIndex,
@@ -39,109 +43,48 @@ export function RippleState({ ctx, deltas }){
 		})
 	}
 
-	for(let { previous, final } of deltas){
-		
-	}
-}
-
-export function CurrencyOffer({ meta, deltas }){
-	
-}
-
-export function NFTokenPage({ meta, deltas }){
-	
-}
-
-export function NFTokenOffer({ meta, deltas }){
-	
-}
-
-
-
-function updateMetrics({ tokenId, meta, state, ledgerIndex, config }){
-	let { currency, issuer } = state.tokens.readOne({
-		where: {
-			id: tokenId
-		},
-		include: {
-			issuer: true
-		}
-	})
-
-	let maxWhales = config.ledger.tokens.captureWhales
-	let ignoreBelowTrustlines = config.ledger.tokens.ignoreBelowTrustlines
-
-	let metrics = {
-		trustlines: state.trustlines.count({
-			where: {
-				token: {
-					id: tokenId
-				}
-			}
-		}),
-		holders: state.trustlines.count({
-			where: {
-				token: {
-					id: tokenId
-				},
-				NOT: {
-					balance: 0
-				}
-			}
-		}),
-		supply: 0,
-		...readMetrics({ 
-			meta,
-			ledgerIndex,
-			supply: true
-		})
-	}
-
-	let { id } = meta.tokens.createOne({
-		data: {
-			currency,
-			issuer: { address: issuer.address },
-		}
-	})
-	
-	let whales = readWhales({
-		meta,
+	let whales = readTokenWhales({
+		ctx,
 		ledgerIndex,
-		token: { id }
+		token
 	})
-	
-	let trustlines = state.trustlines.readMany({
-		where: {
-			token: {
-				id: tokenId
-			},
-			NOT: {
-				change: null
-			},
-		},
-		include: {
-			account: true
-		}
-	})
-	
-	for(let { id: trustlineId, account, balance, change } of trustlines){
-		whales = whales
-			.filter(whale => whale.account.address !== account.address)
 
-		if(change === 'deleted'){
-			metrics.supply = sub(metrics.supply, balance)
-			metrics.trustlines--
-			metrics.holders--
+	for(let { previous, final } of deltas){
+		if(previous && final){
+			metrics.supply = sum(
+				metrics.supply,
+				sub(final.balance, previous.final)
+			)
 
-			state.trustlines.delete({
-				where: {
-					id: trustlineId
-				}
-			})
+			if(eq(previous.balance, 0) && gt(final.balance, 0)){
+				metrics.holders++
+			}else if(eq(final.balance, 0) && gt(previous.balance, 0)){
+				metrics.holders--
+			}
+		}else if(final){
+			metrics.trustlines++
+
+			if(gt(final.balance, 0)){
+				metrics.supply = sum(metrics.supply, final.balance)
+				metrics.holders++
+			}
 		}else{
-			metrics.supply = sum(metrics.supply, balance)
+			metrics.trustlines--
 
-			let whale = { account, balance }
+			if(gt(previous.balance, 0)){
+				metrics.supply = sub(metrics.supply, previous.balance)
+				metrics.holders--
+			}
+		}
+
+		if(previous){
+			whales = whales.filter(
+				whale => whale.account.address !== previous.account.address
+			)
+		}
+
+		if(final){
+			let whale = { account: final.account, balance: final.balance }
 			let greaterWhaleIndex = whales
 				.findIndex(whale => gt(whale.balance, balance))
 
@@ -159,49 +102,194 @@ function updateMetrics({ tokenId, meta, state, ledgerIndex, config }){
 				whales.shift()
 		}
 	}
-
-	if()
-
-	if(metrics.holders === 0 && metrics.trustlines < ignoreBelowTrustlines){
-		meta.tokens.delete({
-			where: {
-				currency,
-				issuer: { address: issuer.address },
-			}
-		})
-		return
-	}
 	
-	writeMetrics({
-		meta,
-		token: { id },
+	writeTokenMetrics({
+		ctx,
+		token,
 		ledgerIndex,
-		...metrics
+		metrics
 	})
 	
-	writeWhales({
-		meta,
-		token: { id },
+	writeTokenWhales({
+		ctx,
+		token,
 		ledgerIndex,
 		whales
 	})
+}
 
-	if(issuer.change){
-		updateIssuer({ account: issuer, state, meta })
+export function CurrencyOffer({ ctx, deltas }){
+	let { takerPaysToken, takerGetsToken } = deltas[0]
+	let base
+	let quote
+
+	if(takerPaysToken){
+		quote = {
+			currency: takerPaysToken.currency,
+			issuer: {
+				address: takerGetsToken.issuer.address
+			}
+		}
+	}
+
+	if(takerGetsToken){
+		base = {
+			currency: takerGetsToken.currency,
+			issuer: {
+				address: takerGetsToken.issuer.address
+			}
+		}
+	}
+
+	let directories = {}
+	let offers = state.currencyOffers.readMany({
+		where: {
+			book: {
+				id: bookId
+			}
+		}
+	})
+
+	for(let offer of offers){
+		let dir = directories[offer.directory]
+
+		if(!dir){
+			try{
+				dir = directories[offer.directory] = {
+					directory: offer.directory,
+					rate: div(offer.takerPays, offer.takerGets),
+					volume: 0
+				}
+			}catch{
+				continue
+			}
+		}
+
+		dir.volume = sum(dir.volume, offer.takerGets)
+	}
+
+	let sortedDirectories = sort(
+		Object.values(directories),
+		'rate'
+	)
+
+	for(let rank=0; rank<sortedDirectories.length; rank++){
+		let dir = sortedDirectories[rank]
+
+		writeOffer({
+			meta,
+			ledgerIndex,
+			offer: {
+				...dir,
+				base,
+				quote,
+				rank,
+				startLedgerIndex: ledgerIndex,
+				directory: crypto.createHash('md5')
+					.update(dir.directory)
+					.digest('hex')
+					.slice(0, 12)
+					.toUpperCase()
+			}
+		})
 	}
 }
 
-async function updateIssuer({ account, state, meta }){
-	writeProps({
-		meta,
-		props: {
-			blackholed: account.blackholed,
-			emailHash: account.emailHash,
-			domain: account.domain
-				? Buffer.from(account.domain, 'hex').toString()
-				: undefined
+export function NFTokenPage({ ctx, deltas }){
+	
+}
+
+export function NFTokenOffer({ ctx, deltas }){
+	
+}
+
+
+
+function updateBook({ bookId, state, meta, ledgerIndex }){
+	let base
+	let quote
+	let book = state.books.readOne({
+		where: {
+			id: bookId
 		},
-		source: 'xrpl',
-		account: { address: account.address }
+		include: {
+			takerPays: {
+				issuer: true
+			},
+			takerGets: {
+				issuer: true
+			}
+		}
 	})
+
+	if(book.takerPays){
+		quote = {
+			currency: book.takerPays.currency,
+			issuer: {
+				address: book.takerPays.issuer.address
+			}
+		}
+	}
+
+	if(book.takerGets){
+		base = {
+			currency: book.takerGets.currency,
+			issuer: {
+				address: book.takerGets.issuer.address
+			}
+		}
+	}
+
+	let directories = {}
+	let offers = state.currencyOffers.readMany({
+		where: {
+			book: {
+				id: bookId
+			}
+		}
+	})
+
+	for(let offer of offers){
+		let dir = directories[offer.directory]
+
+		if(!dir){
+			try{
+				dir = directories[offer.directory] = {
+					directory: offer.directory,
+					rate: div(offer.takerPays, offer.takerGets),
+					volume: 0
+				}
+			}catch{
+				continue
+			}
+		}
+
+		dir.volume = sum(dir.volume, offer.takerGets)
+	}
+
+	let sortedDirectories = sort(
+		Object.values(directories),
+		'rate'
+	)
+
+	for(let rank=0; rank<sortedDirectories.length; rank++){
+		let dir = sortedDirectories[rank]
+
+		writeOffer({
+			meta,
+			ledgerIndex,
+			offer: {
+				...dir,
+				base,
+				quote,
+				rank,
+				startLedgerIndex: ledgerIndex,
+				directory: crypto.createHash('md5')
+					.update(dir.directory)
+					.digest('hex')
+					.slice(0, 12)
+					.toUpperCase()
+			}
+		})
+	}
 }
