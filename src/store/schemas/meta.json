@@ -507,6 +507,12 @@
 				"ledgerIndex": {
 					"type": "integer"
 				},
+				"expirationLedgerIndex": {
+					"type": "integer"
+				},
+				"rank": {
+					"type": "integer"
+				},
 				"balance": {
 					"type": "string",
 					"format": "xrpl/xfl"
@@ -516,10 +522,14 @@
 				"token",
 				"account",
 				"ledgerIndex",
+				"rank",
 				"balance"
 			],
 			"unique": [
 				["token", "account", "ledgerIndex"]
+			],
+			"index": [
+				"rank"
 			]
 		},
 		"TokenOffer": {
@@ -533,13 +543,13 @@
 					"type": "string",
 					"format": "hex"
 				},
-				"rank": {
-					"type": "integer"
-				},
 				"ledgerIndex": {
 					"type": "integer"
 				},
 				"expirationLedgerIndex": {
+					"type": "integer"
+				},
+				"rank": {
 					"type": "integer"
 				},
 				"base": {
