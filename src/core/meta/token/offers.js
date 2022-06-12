@@ -1,6 +1,6 @@
 import { eq } from "@xrplkit/xfl"
 
-export function write({ meta, ledgerIndex, offer }){
+export function write({ ctx, base, quote, ledgerIndex, offers }){
 	let previous = read({ meta, ledgerIndex, directory: offer.directory })
 
 	if(previous){
@@ -27,14 +27,29 @@ export function write({ meta, ledgerIndex, offer }){
 	})
 }
 
-export function read({ meta, ledgerIndex, directory }){
-	return meta.tokenOffers.readOne({
+export function read({ ctx, base, quote, ledgerIndex, limit = 9999999 }){
+	return ctx.meta.tokenOffers.readMany({
 		where: {
-			directory,
-			startLedgerIndex: {
+			base,
+			quote,
+			ledgerIndex: {
 				lessOrEqual: ledgerIndex
-			}
-		}
+			},
+			OR: [
+				{
+					expirationLedgerIndex: null
+				},
+				{
+					expirationLedgerIndex: {
+						greaterThan: ledgerIndex
+					}
+				}
+			]
+		},
+		orderBy: {
+			rank: 'asc'
+		},
+		take: limit
 	})
 }
 
