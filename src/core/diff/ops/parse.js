@@ -9,10 +9,12 @@ export function AccountRoot({ entry }){
 	return {
 		address: entry.Account,
 		emailHash: entry.EmailHash,
-		domain: entry.Domain,
 		balance: div(entry.Balance, '1000000'),
 		transferRate: entry.transferRate,
-		blackholed: isBlackholed(entry)
+		blackholed: isBlackholed(entry),
+		domain: account.domain
+			? Buffer.from(account.domain, 'hex').toString()
+			: undefined,
 	}
 }
 
