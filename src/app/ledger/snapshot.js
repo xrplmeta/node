@@ -9,11 +9,8 @@ export async function run({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	ctx = {
-		...ctx,
-		meta: openMetaStore({ ctx }),
-		snapshotState: meta.snapshots.readOne({ last: true })
-	}
+	ctx.meta = openMetaStore({ ctx })
+	ctx.snapshotState = ctx.meta.snapshots.readOne({ last: true })
 
 	if(ctx.snapshotState && !ctx.snapshotState.marker && ctx.snapshotState.entriesCount > 0)
 		return
@@ -31,7 +28,7 @@ export async function run({ ctx }){
 async function createFeed({ ctx }){
 	let ledgerIndex
 
-	if(ctx.snapshotState.marker){
+	if(ctx.snapshotState?.marker){
 		ledgerIndex = ctx.snapshotState.ledgerIndex
 		log.info(`resuming snapshot of ledger #${ledgerIndex}`)
 	}else{
@@ -76,14 +73,14 @@ async function copyFromFeed({ ctx, feed }){
 					final: entry 
 				}))
 			})
-
+			
 			ctx.snapshotState = ctx.meta.snapshots.updateOne({
 				data: {
 					marker: chunk.marker,
-					entriesCount: snap.entriesCount + chunk.objects.length
+					entriesCount: ctx.snapshotState.entriesCount + chunk.objects.length
 				},
 				where: {
-					ledgerIndex: feed.ledgerIndex
+					ledgerIndex: ctx.ledgerIndex
 				}
 			})
 		})
