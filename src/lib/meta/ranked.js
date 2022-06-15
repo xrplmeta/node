@@ -1,15 +1,17 @@
 import { eq, gt } from '@xrplkit/xfl'
 
 
-const rankPadding = 10
+const rankPadding = 1000000
 
 
-export function writeRanked({ ctx, table, where, ledgerIndex, items, compare, rankBy, include }){
+export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, include }){
 	let newItems = []
-	let previousItems = readRanked({ ctx, table, where, ledgerIndex, include })
+	let previousItems = read({ ctx, table, where, ledgerIndex, include })
+		.reverse()
+		
 	let expiredItems = previousItems.filter(
 		pi => items.every(
-			item => compare.unique(item, pi)
+			item => !compare.unique(item, pi)
 		)
 	)
 	let unchangedItems = previousItems.filter(
@@ -41,7 +43,7 @@ export function writeRanked({ ctx, table, where, ledgerIndex, items, compare, ra
 	for(let item of expiredItems){
 		ctx.meta[table].updateOne({
 			data: {
-				expirationLedgerIndex: ledgerIndex
+				sequenceEnd: ledgerIndex
 			},
 			where: {
 				id: item.id
@@ -89,13 +91,11 @@ export function writeRanked({ ctx, table, where, ledgerIndex, items, compare, ra
 		}
 
 		islands.push(island)
-		i = island.end+1
+		i = island.end + 1
 	}
 
-	let writeItems = []
-
+	
 	for(let island of islands){
-		console.log(island)
 		if(island.end === finalItems.length - 1){
 			let lastRank = unchangedItems.length > 0
 				? unchangedItems[unchangedItems.length - 1].rank
@@ -110,45 +110,88 @@ export function writeRanked({ ctx, table, where, ledgerIndex, items, compare, ra
 				: 0
 
 			for(let i=0; i<island.items.length; i++){
-				island.items[i].rank = firstRank - (island.items.length - i + 1) * rankPadding
+				island.items[i].rank = firstRank - (island.items.length - i) * rankPadding
 			}
 		}else{
-			let headRank = finalItems[island.start]
-			let tailRank = finalItems[island.end]
+			let headRank = finalItems[island.start - 1].rank
+			let tailRank = finalItems[island.end + 1].rank
+			let gap = Math.floor((tailRank - headRank) / (island.items.length + 1))
+
+			if(gap < 1){
+				ctx.meta[table].updateMany({
+					data: {
+						sequenceEnd: ledgerIndex
+					},
+					where: {
+						id: {
+							in: previousItems.map(pi => pi.id)
+						}
+					}
+				})
+
+				return write({ 
+					ctx, 
+					table, 
+					where, 
+					ledgerIndex, 
+					items, 
+					compare, 
+					rankBy, 
+					include 
+				})
+			}
+
+			for(let i=0; i<island.items.length; i++){
+				island.items[i].rank = headRank + (i + 1) * gap
+			}
 		}
 
+		
 		for(let item of island.items){
 			ctx.meta[table].createOne({
 				data: {
 					...item,
-					ledgerIndex,
-					expirationLedgerIndex: null
+					sequenceStart: ledgerIndex,
+					sequenceEnd: null
 				}
 			})
 		}
 	}
 }
 
-export function readRanked({ ctx, table, where, ledgerIndex, include, limit, offset }){
+export function read({ ctx, table, where, ledgerIndex, include, limit, offset }){
 	return ctx.meta[table].readMany({
 		where: {
 			...where,
-			ledgerIndex: {
-				lessOrEqual: ledgerIndex
-			},
-			OR: [
+			AND: [
 				{
-					expirationLedgerIndex: null
+					OR: [
+						{
+							sequenceStart: null
+						},
+						{
+							sequenceStart: {
+								lessOrEqual: ledgerIndex
+							}
+						}
+					]
 				},
 				{
-					expirationLedgerIndex: {
-						greaterThan: ledgerIndex
-					}
+					OR: [
+						{
+							sequenceEnd: null
+						},
+						{
+							sequenceEnd: {
+								greaterThan: ledgerIndex
+							}
+						}
+					]
 				}
 			]
 		},
 		orderBy: {
-			rank: 'asc'
+			rank: 'desc'
 		},
 		include,
 		take: limit,

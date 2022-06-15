@@ -1,5 +1,4 @@
 {
-	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"title": "Metadata & Marketdata Storage",
 	"type": "object",
 	"properties": {
@@ -504,10 +503,10 @@
 				"account": {
 					"$ref": "#/definitions/Account"
 				},
-				"ledgerIndex": {
+				"sequenceStart": {
 					"type": "integer"
 				},
-				"expirationLedgerIndex": {
+				"sequenceEnd": {
 					"type": "integer"
 				},
 				"rank": {
@@ -521,12 +520,12 @@
 			"required": [
 				"token",
 				"account",
-				"ledgerIndex",
+				"sequenceStart",
 				"rank",
 				"balance"
 			],
 			"unique": [
-				["token", "account", "ledgerIndex"]
+				["token", "account", "sequenceStart"]
 			],
 			"index": [
 				"rank"
@@ -539,50 +538,47 @@
 					"type": "integer",
 					"id": true
 				},
-				"directory": {
-					"type": "string",
-					"format": "hex"
+				"takerGets": {
+					"$ref": "#/definitions/Token"
 				},
-				"ledgerIndex": {
+				"takerPays": {
+					"$ref": "#/definitions/Token"
+				},
+				"quality": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"sequenceStart": {
 					"type": "integer"
 				},
-				"expirationLedgerIndex": {
+				"sequenceEnd": {
 					"type": "integer"
 				},
 				"rank": {
 					"type": "integer"
 				},
-				"base": {
-					"$ref": "#/definitions/Token"
-				},
-				"quote": {
-					"$ref": "#/definitions/Token"
-				},
-				"rate": {
+				"size": {
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"volume": {
-					"type": "string",
-					"format": "xrpl/xfl"
+				"offersCount": {
+					"type": "integer"
 				}
 			},
 			"required": [
-				"directory",
+				"quality",
+				"sequenceStart",
 				"rank",
-				"ledgerIndex",
-				"takerPaysValue",
-				"takerGetsValue",
-				"rate",
-				"volume"
+				"size",
+				"offersCount"
 			],
 			"unique": [
-				["directory", "ledgerIndex"]
+				["takerGets", "takerPays", "quality", "sequenceStart"]
 			],
 			"index": [
-				"rank",
-				"base",
-				"quote"
+				"takerGets",
+				"takerPays",
+				"rank"
 			]
 		}
 	}

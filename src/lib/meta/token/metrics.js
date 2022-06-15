@@ -1,3 +1,6 @@
+import { write as writeSimple, read as readSimple } from '../simple.js'
+
+
 const metricTables = {
 	trustlines: 'tokenTrustlines',
 	holders: 'tokenHolders',
@@ -7,20 +10,16 @@ const metricTables = {
 
 
 export function write({ ctx, token, ledgerIndex, metrics }){
-	let point = read({ ctx, token, ledgerIndex, metrics })
-
 	for(let [key, value] of Object.entries(metrics)){
-		let table = metricTables[key]
-
-		if(point[key] === value)
-			continue
-
-		ctx.meta[table].createOne({
-			data: {
-				token,
-				ledgerIndex,
-				value
-			}
+		writeSimple({
+			ctx,
+			table: metricTables[key],
+			where: {
+				token
+			},
+			ledgerIndex,
+			item: { value },
+			compare: (a, b) => a === b
 		})
 	}
 }
@@ -29,19 +28,13 @@ export function read({ ctx, token, ledgerIndex, metrics }){
 	let point = {}
 
 	for(let key of Object.keys(metrics)){
-		let table = metricTables[key]
-
-		let entry = ctx.meta[table].readOne({
+		let entry = readSimple({
+			ctx,
+			table: metricTables[key],
 			where: {
-				token,
-				ledgerIndex: {
-					lessOrEqual: ledgerIndex
-				}
+				token
 			},
-			orderBy: {
-				ledgerIndex: 'desc'
-			},
-			take: 1
+			ledgerIndex
 		})
 
 		if(entry)

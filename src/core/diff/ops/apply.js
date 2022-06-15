@@ -1,6 +1,7 @@
 import { sum, sub, gt, eq } from '@xrplkit/xfl'
-import { read as readTokenMetrics, write as writeTokenMetrics } from '../../meta/token/metrics.js'
-import { read as readTokenWhales, write as writeTokenWhales } from '../../meta/token/whales.js'
+import { read as readTokenMetrics, write as writeTokenMetrics } from '../../../lib/meta/token/metrics.js'
+import { read as readTokenWhales, write as writeTokenWhales } from '../../../lib/meta/token/whales.js'
+import { read as readTokenOffers, write as writeTokenOffers } from '../../../lib/meta/token/offers.js'
 
 
 export function AccountRoot({ ctx, deltas }){
@@ -23,7 +24,7 @@ export function RippleState({ ctx, deltas }){
 	const maxWhales = ctx.config.ledger.tokens.captureWhales
 
 	let token = ctx.meta.tokens.createOne({
-		data: deltas[0].token
+		data: deltas[0].final.token || deltas[0].previous.token
 	})
 
 	let metrics = {
@@ -45,7 +46,7 @@ export function RippleState({ ctx, deltas }){
 
 	let whales = readTokenWhales({
 		ctx,
-		ledgerIndex,
+		ledgerIndex: ctx.ledgerIndex,
 		token
 	})
 
@@ -77,16 +78,14 @@ export function RippleState({ ctx, deltas }){
 			}
 		}
 
-		if(previous){
-			whales = whales.filter(
-				whale => whale.account.address !== previous.account.address
-			)
-		}
+		whales = whales.filter(
+			whale => whale.account.address !== (previous?.account.address || final?.account.address)
+		)
 
-		if(final){
+		if(final && gt(final.balance, 0)){
 			let whale = { account: final.account, balance: final.balance }
 			let greaterWhaleIndex = whales
-				.findIndex(whale => gt(whale.balance, balance))
+				.findIndex(whale => gt(whale.balance, final.balance))
 
 
 			if(greaterWhaleIndex === -1){
@@ -106,93 +105,65 @@ export function RippleState({ ctx, deltas }){
 	writeTokenMetrics({
 		ctx,
 		token,
-		ledgerIndex,
+		ledgerIndex: ctx.ledgerIndex,
 		metrics
 	})
 	
 	writeTokenWhales({
 		ctx,
 		token,
-		ledgerIndex,
+		ledgerIndex: ctx.ledgerIndex,
 		whales
 	})
 }
 
-export function CurrencyOffer({ ctx, deltas }){
-	let { takerPaysToken, takerGetsToken } = deltas[0]
-	let base
-	let quote
+export function Offer({ ctx, deltas }){
+	let { takerPays, takerGets } = deltas[0].previous || deltas[0].final
+	let book = { takerPays, takerGets }
+	let ledgerIndex = ctx.ledgerIndex
+	let stacks = readTokenOffers({ ctx, book, ledgerIndex })
 
-	if(takerPaysToken){
-		quote = {
-			currency: takerPaysToken.currency,
-			issuer: {
-				address: takerGetsToken.issuer.address
+	for(let { previous, final } of deltas){
+		let stack = stacks.find(
+			stack => eq(stack.quality, previous?.quality || final?.quality)
+		)
+
+		if(previous && final){
+			stack.size = sum(
+				stack.size, 
+				sub(final.size, previous.size)
+			)
+		}else if(final){
+			if(stack){
+				stack.size = sum(stack.size, final.size)
+				stack.offersCount++
+			}else{
+				stacks.push({
+					takerPays,
+					takerGets,
+					quality: final.quality,
+					size: final.size,
+					offersCount: 1,
+				})
+			}
+		}else{
+			stack.size = sub(stack.size, previous.size)
+			stack.offersCount--
+
+			if(stack.offersCount <= 0){
+				stacks = stacks.filter(
+					s => s !== stack
+				)
 			}
 		}
 	}
 
-	if(takerGetsToken){
-		base = {
-			currency: takerGetsToken.currency,
-			issuer: {
-				address: takerGetsToken.issuer.address
-			}
-		}
-	}
-
-	let directories = {}
-	let offers = state.currencyOffers.readMany({
-		where: {
-			book: {
-				id: bookId
-			}
-		}
+	writeTokenOffers({
+		ctx,
+		book,
+		ledgerIndex,
+		offers: stacks
 	})
-
-	for(let offer of offers){
-		let dir = directories[offer.directory]
-
-		if(!dir){
-			try{
-				dir = directories[offer.directory] = {
-					directory: offer.directory,
-					rate: div(offer.takerPays, offer.takerGets),
-					volume: 0
-				}
-			}catch{
-				continue
-			}
-		}
-
-		dir.volume = sum(dir.volume, offer.takerGets)
-	}
-
-	let sortedDirectories = sort(
-		Object.values(directories),
-		'rate'
-	)
-
-	for(let rank=0; rank<sortedDirectories.length; rank++){
-		let dir = sortedDirectories[rank]
-
-		writeOffer({
-			meta,
-			ledgerIndex,
-			offer: {
-				...dir,
-				base,
-				quote,
-				rank,
-				startLedgerIndex: ledgerIndex,
-				directory: crypto.createHash('md5')
-					.update(dir.directory)
-					.digest('hex')
-					.slice(0, 12)
-					.toUpperCase()
-			}
-		})
-	}
 }
 
 export function NFTokenPage({ ctx, deltas }){
@@ -203,7 +174,7 @@ export function NFTokenOffer({ ctx, deltas }){
 	
 }
 
-
+/*
 
 function updateBook({ bookId, state, meta, ledgerIndex }){
 	let base
@@ -292,4 +263,4 @@ function updateBook({ bookId, state, meta, ledgerIndex }){
 			}
 		})
 	}
-}
+}*/

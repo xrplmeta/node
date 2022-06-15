@@ -12,8 +12,8 @@ export function AccountRoot({ entry }){
 		balance: div(entry.Balance, '1000000'),
 		transferRate: entry.transferRate,
 		blackholed: isBlackholed(entry),
-		domain: account.domain
-			? Buffer.from(account.domain, 'hex').toString()
+		domain: entry.domain
+			? Buffer.from(entry.domain, 'hex').toString()
 			: undefined,
 	}
 }
@@ -56,22 +56,30 @@ export function RippleState({ entry }){
 	return transformed
 }
 
-export function CurrencyOffer({ entry }){
+export function Offer({ entry }){
 	let takerPays = fromRippledAmount(entry.TakerPays)
 	let takerGets = fromRippledAmount(entry.TakerGets)
+	let quality
+	let size = takerGets.value
+
+	try{
+		quality = div(takerGets.value, takerPays.value)
+	}catch{
+		return
+	}
 
 	return {
 		account: { address: entry.Account },
 		sequence: entry.Sequence,
 		directory: entry.BookDirectory,
-		takerPaysToken: takerPays.issuer
+		takerPays: takerPays.issuer
 			? { currency: takerPays.currency, issuer: { address: takerPays.issuer }}
 			: null,
-		takerGetsToken: takerGets.issuer
+		takerGets: takerGets.issuer
 			? { currency: takerGets.currency, issuer: { address: takerGets.issuer }}
 			: null,
-		takerPaysValue: takerPays.value,
-		takerGetsValue: takerGets.value,
+		quality,
+		size,
 		expiration: entry.Expiration
 			? rippleToUnix(entry.Expiration)
 			: null

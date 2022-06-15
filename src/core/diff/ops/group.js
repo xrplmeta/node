@@ -27,11 +27,11 @@ export function RippleState({ previous, final }){
 	return groups
 }
 
-export function CurrencyOffer({ previous, final }){
+export function Offer({ previous, final }){
 	let entry = previous || final
 
 	return [{
-		key: `${entry.takerPaysToken?.currency}:${entry.takerPaysToken?.issuer}/${entry.takerGetsToken?.currency}:${entry.takerGetsToken?.issuer}`,
+		key: `${entry.takerPays?.currency}:${entry.takerPays?.issuer}/${entry.takerGets?.currency}:${entry.takerGets?.issuer}`,
 		previous,
 		final
 	}]
