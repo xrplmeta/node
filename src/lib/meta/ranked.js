@@ -31,6 +31,13 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 
 			if(compare.diff(item, previousItem))
 				continue
+
+			if(ctx.inSnapshot){
+				item.sequenceStart = Math.max(
+					item.sequenceStart, 
+					previousItem.sequenceStart
+				)
+			}
 			
 			newItems.push(item)
 			expiredItems.push(previousItem)
@@ -198,24 +205,33 @@ export function read({ ctx, table, where, ledgerIndex, include, limit, offset })
 function expire({ ctx, table, ledgerIndex, items }){
 	let ids = items.map(item => item.id)
 
-
-	ctx.meta[table].deleteMany({
-		where: {
-			id: {
-				in: ids
-			},
-			sequenceStart: ledgerIndex
-		}
-	})
-
-	ctx.meta[table].updateMany({
-		data: {
-			sequenceEnd: ledgerIndex
-		},
-		where: {
-			id: {
-				in: ids
+	if(ctx.inSnapshot){
+		ctx.meta[table].deleteMany({
+			where: {
+				id: {
+					in: ids
+				}
 			}
-		}
-	})
+		})
+	}else{
+		ctx.meta[table].deleteMany({
+			where: {
+				id: {
+					in: ids
+				},
+				sequenceStart: ledgerIndex
+			}
+		})
+	
+		ctx.meta[table].updateMany({
+			data: {
+				sequenceEnd: ledgerIndex
+			},
+			where: {
+				id: {
+					in: ids
+				}
+			}
+		})
+	}
 }

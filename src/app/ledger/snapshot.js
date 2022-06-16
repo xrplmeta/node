@@ -47,7 +47,7 @@ async function createFeed({ ctx }){
 
 async function copyFromFeed({ ctx, feed }){
 	ctx.ledgerIndex = feed.ledgerIndex
-	ctx.forwardDiff = true
+	ctx.inSnapshot = true
 
 	if(!ctx.snapshotState){
 		ctx.snapshotState = ctx.meta.snapshots.createOne({

@@ -19,7 +19,7 @@ export function write({ ctx, token, ledgerIndex, metrics }){
 			},
 			ledgerIndex,
 			item: { value },
-			compare: (a, b) => a === b
+			compare: (a, b) => a.value === b.value
 		})
 	}
 }
