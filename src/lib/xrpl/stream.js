@@ -3,7 +3,7 @@ import { rippleToUnix, wait } from '@xrplkit/time'
 
 const concurrency = 4
 
-export async function start({ config, xrpl, direction, startLedgerIndex }){
+export async function start({ ctx, startLedgerIndex }){
 	let strideIndex = direction === 'forward' ? 1 : 1
 	let currentIndex = startLedgerIndex
 	let targetIndex
@@ -11,7 +11,7 @@ export async function start({ config, xrpl, direction, startLedgerIndex }){
 	let queue = {}
 
 	if(direction === 'forward'){
-		let { result } = await xrpl.request({ 
+		let { result } = await ctx.xrpl.request({ 
 			command: 'ledger', 
 			ledger_index: 'validated' 
 		})
@@ -46,7 +46,7 @@ export async function start({ config, xrpl, direction, startLedgerIndex }){
 				queue[index] = undefined
 
 				try{
-					let { result } = await xrpl.request({ 
+					let { result } = await ctx.xrpl.request({ 
 						command: 'ledger', 
 						ledger_index: index,
 						transactions: true,
@@ -54,7 +54,7 @@ export async function start({ config, xrpl, direction, startLedgerIndex }){
 					})
 
 					queue[index] = {
-						index: index,
+						sequence: index,
 						hash: result.ledger.ledger_hash,
 						closeTime: rippleToUnix(result.ledger.close_time),
 						transactions: result.ledger.transactions

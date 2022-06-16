@@ -1,10 +1,15 @@
 import * as parsers from './ops/parse.js'
 import * as groupers from './ops/group.js'
 import * as appliers from './ops/apply.js'
+import { deriveDeltas } from './tx.js'
 
 
-export function diff({ ctx, deltas }){
+export function diff({ ctx, deltas, ledger }){
 	let groups = {}
+
+	if(!deltas){
+		deltas = deriveDeltas({ ledger })
+	}
 
 	for(let { type, previous, final } of deltas){
 		let parse = parsers[type]
@@ -43,7 +48,9 @@ export function diff({ ctx, deltas }){
 	}
 
 	for(let [type, group] of Object.entries(groups)){
-		for(let deltas of Object.values(group)){
+		let batches = Object.values(group)
+
+		for(let deltas of batches){
 			appliers[type]({ ctx, deltas })
 		}
 	}
