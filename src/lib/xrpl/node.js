@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
 import Socket from '@xrplkit/socket'
+import log from '@mwni/log'
 
 
 export default class Node extends EventEmitter{
@@ -31,10 +32,15 @@ export default class Node extends EventEmitter{
 		})
 
 		this.socket.on('connected', () => {
-			this.socket.request({
-				command: 'subscribe',
-				streams: ['ledger', 'transactions']
-			})
+			try{
+				this.socket.request({
+					command: 'subscribe',
+					streams: ['ledger', 'transactions']
+				})
+			}catch(error){
+				log.warn(`failed to subscribe to node "${this.name}":`)
+				log.warn(error)
+			}
 		})
 
 		this.socket.on('disconnected', async event => {
