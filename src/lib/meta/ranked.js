@@ -40,6 +40,10 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 		}
 	}
 
+	if(expiredItems.length > 0){
+		expire({ ctx, table, ledgerIndex, items: expiredItems })
+	}
+
 	for(let item of expiredItems){
 		ctx.meta[table].updateOne({
 			data: {
@@ -118,16 +122,7 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 			let gap = Math.floor((tailRank - headRank) / (island.items.length + 1))
 
 			if(gap < 1){
-				ctx.meta[table].updateMany({
-					data: {
-						sequenceEnd: ledgerIndex
-					},
-					where: {
-						id: {
-							in: previousItems.map(pi => pi.id)
-						}
-					}
-				})
+				expire({ ctx, table, ledgerIndex, items: previousItems })
 
 				return write({ 
 					ctx, 
@@ -150,9 +145,9 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 		for(let item of island.items){
 			ctx.meta[table].createOne({
 				data: {
-					...item,
 					sequenceStart: ledgerIndex,
-					sequenceEnd: null
+					sequenceEnd: null,
+					...item,
 				}
 			})
 		}
@@ -196,5 +191,31 @@ export function read({ ctx, table, where, ledgerIndex, include, limit, offset })
 		include,
 		take: limit,
 		skip: offset
+	})
+}
+
+
+function expire({ ctx, table, ledgerIndex, items }){
+	let ids = items.map(item => item.id)
+
+
+	ctx.meta[table].deleteMany({
+		where: {
+			id: {
+				in: ids
+			},
+			sequenceStart: ledgerIndex
+		}
+	})
+
+	ctx.meta[table].updateMany({
+		data: {
+			sequenceEnd: ledgerIndex
+		},
+		where: {
+			id: {
+				in: ids
+			}
+		}
 	})
 }

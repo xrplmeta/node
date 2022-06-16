@@ -34,7 +34,8 @@ export function RippleState({ entry }){
 					address: entry.LowLimit.issuer
 				}
 			},
-			balance: max(0, neg(entry.Balance.value))
+			balance: max(0, neg(entry.Balance.value)),
+			previousSequence: entry.PreviousTxnLgrSeq
 		}
 	}
 
@@ -49,7 +50,8 @@ export function RippleState({ entry }){
 					address: entry.HighLimit.issuer
 				}
 			},
-			balance: max(0, entry.Balance.value)
+			balance: max(0, entry.Balance.value),
+			previousSequence: entry.PreviousTxnLgrSeq
 		}
 	}
 
@@ -72,20 +74,28 @@ export function Offer({ entry }){
 		account: { address: entry.Account },
 		sequence: entry.Sequence,
 		directory: entry.BookDirectory,
-		takerPays: takerPays.issuer
-			? { currency: takerPays.currency, issuer: { address: takerPays.issuer }}
-			: null,
-		takerGets: takerGets.issuer
-			? { currency: takerGets.currency, issuer: { address: takerGets.issuer }}
-			: null,
+		takerPays: {
+			currency: takerPays.currency,
+			issuer: takerPays.issuer
+				? { address: takerPays.issuer }
+				: undefined
+		},
+		takerGets: {
+			currency: takerGets.currency,
+			issuer: takerGets.issuer
+				? { address: takerGets.issuer }
+				: undefined
+		},
 		quality,
 		size,
 		expiration: entry.Expiration
 			? rippleToUnix(entry.Expiration)
-			: null
+			: null,
+		previousSequence: entry.PreviousTxnLgrSeq
 	}
 }
 
+/*
 export function NFTokenPage({ entry }){
 	let address = encodeAccountID(Buffer.from(entry.index.slice(0, 40), 'hex'))
 	let page = {
@@ -127,3 +137,4 @@ export function NFTokenOffer({ entry }){
 		buy: entry.Flags & 0x00000001
 	}
 }
+*/

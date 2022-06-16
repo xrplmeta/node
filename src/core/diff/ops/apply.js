@@ -27,6 +27,12 @@ export function RippleState({ ctx, deltas }){
 		data: deltas[0].final.token || deltas[0].previous.token
 	})
 
+	let latestPreviousSequence = Math.min(
+		...deltas.map(
+			({ previous, final }) => final.previousSequence || previous.previousSequence
+		)
+	)
+
 	let metrics = {
 		trustlines: 0,
 		holders: 0,
@@ -35,7 +41,6 @@ export function RippleState({ ctx, deltas }){
 			ctx, 
 			token, 
 			ledgerIndex: ctx.ledgerIndex,
-			forward: ctx.forwardDiff,
 			metrics: {
 				trustlines: true,
 				holders: true,
@@ -83,10 +88,14 @@ export function RippleState({ ctx, deltas }){
 		)
 
 		if(final && gt(final.balance, 0)){
-			let whale = { account: final.account, balance: final.balance }
+			let whale = { 
+				account: final.account, 
+				balance: final.balance,
+				sequenceStart: final.previousSequence
+			}
+
 			let greaterWhaleIndex = whales
 				.findIndex(whale => gt(whale.balance, final.balance))
-
 
 			if(greaterWhaleIndex === -1){
 				whales.push(whale)
@@ -105,7 +114,7 @@ export function RippleState({ ctx, deltas }){
 	writeTokenMetrics({
 		ctx,
 		token,
-		ledgerIndex: ctx.ledgerIndex,
+		ledgerIndex: latestPreviousSequence,
 		metrics
 	})
 	
@@ -129,6 +138,7 @@ export function Offer({ ctx, deltas }){
 		)
 
 		if(previous && final){
+			stack.sequenceStart = ledgerIndex
 			stack.size = sum(
 				stack.size, 
 				sub(final.size, previous.size)
@@ -137,6 +147,7 @@ export function Offer({ ctx, deltas }){
 			if(stack){
 				stack.size = sum(stack.size, final.size)
 				stack.offersCount++
+				stack.sequenceStart = Math.max(stack.sequenceStart, final.previousSequence)
 			}else{
 				stacks.push({
 					takerPays,
@@ -144,9 +155,11 @@ export function Offer({ ctx, deltas }){
 					quality: final.quality,
 					size: final.size,
 					offersCount: 1,
+					sequenceStart: final.previousSequence
 				})
 			}
 		}else{
+			stack.sequenceStart = ledgerIndex
 			stack.size = sub(stack.size, previous.size)
 			stack.offersCount--
 
