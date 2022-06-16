@@ -28,7 +28,7 @@ export async function run({ ctx }){
 async function createFeed({ ctx }){
 	let ledgerIndex
 
-	if(ctx.snapshotState?.marker){
+	if(ctx.snapshotState){
 		ledgerIndex = ctx.snapshotState.ledgerIndex
 		log.info(`resuming snapshot of ledger #${ledgerIndex}`)
 	}else{
