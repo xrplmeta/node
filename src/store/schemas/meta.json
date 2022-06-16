@@ -299,7 +299,6 @@
 				}
 			},
 			"required": [
-				"issuer",
 				"currency"
 			],
 			"unique": [

@@ -5,10 +5,19 @@ import codecs from './codecs/index.js'
 
 
 export function open({ ctx }){
-	return openDatabase({
+	let meta = openDatabase({
 		file: `${ctx.config.data.dir}/meta.db`,
 		schema: schemas.meta,
 		journalMode: 'WAL',
-		codecs
+		codecs,
+		debug: ctx.config.debug?.queries
 	})
+
+	meta.tokens.createOne({
+		data: {
+			currency: 'XRP'
+		}
+	})
+
+	return meta
 }
