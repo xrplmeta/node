@@ -3,6 +3,9 @@ import { unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
 import { open as openMetaStore } from '../../store/meta.js'
 import { diff as diffLedgerObjects } from '../../core/diff/index.js'
+import { fetch as fetchLedger } from '../../lib/xrpl/ledger.js'
+import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
+import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
 
 
 export async function run({ ctx }){
@@ -26,33 +29,36 @@ export async function run({ ctx }){
 }
 
 async function createFeed({ ctx }){
-	let ledgerIndex
+	let ledgerSequence
 
 	if(ctx.snapshotState){
-		ledgerIndex = ctx.snapshotState.ledgerIndex
-		log.info(`resuming snapshot of ledger #${ledgerIndex}`)
+		ledgerSequence = ctx.snapshotState.ledgerSequence
+		log.info(`resuming snapshot of ledger #${ledgerSequence}`)
 	}else{
-		let { result } = await ctx.xrpl.request({
-			command: 'ledger', 
-			ledger_index: 'validated'
+		let ledger = await fetchLedger({ 
+			ctx, 
+			sequence: 'validated'
 		})
 
-		ledgerIndex = parseInt(result.ledger.ledger_index)
-		log.info(`creating snapshot of ledger #${ledgerIndex} - this may take a long time`)
+		extractLedgerMeta({ ctx, ledger })
+		extractTokenExchanges({ ctx, ledger })
+
+		ledgerSequence = ledger.sequence
+		log.info(`creating snapshot of ledger #${ledgerSequence} - this may take a long time`)
 	}
 
-	return await spawn('../../lib/xrpl/snapshot.js:start', { ctx, ledgerIndex })
+	return await spawn('../../lib/xrpl/snapshot.js:start', { ctx, ledgerSequence })
 }
 
 
 async function copyFromFeed({ ctx, feed }){
-	ctx.ledgerIndex = feed.ledgerIndex
+	ctx.ledgerSequence = feed.ledgerSequence
 	ctx.inSnapshot = true
 
 	if(!ctx.snapshotState){
 		ctx.snapshotState = ctx.meta.snapshots.createOne({
 			data: {
-				ledgerIndex: feed.ledgerIndex,
+				ledgerSequence: feed.ledgerSequence,
 				creationTime: unixNow(),
 				originNode: feed.node
 			}
@@ -80,7 +86,7 @@ async function copyFromFeed({ ctx, feed }){
 					entriesCount: ctx.snapshotState.entriesCount + chunk.objects.length
 				},
 				where: {
-					ledgerIndex: ctx.ledgerIndex
+					ledgerSequence: ctx.ledgerSequence
 				}
 			})
 		})
@@ -106,7 +112,7 @@ async function copyFromFeed({ ctx, feed }){
 			marker: null
 		},
 		where: {
-			ledgerIndex: feed.ledgerIndex
+			ledgerSequence: feed.ledgerSequence
 		}
 	})
 }
