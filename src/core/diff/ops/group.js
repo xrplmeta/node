@@ -1,6 +1,14 @@
 export function AccountRoot({ previous, final }){
+	let address = previous?.address || final?.address
+
 	return [{
-		key: previous?.address || final?.address,
+		group: {
+			type: 'Account',
+			key: address,
+			account: {
+				address
+			}
+		},
 		previous,
 		final
 	}]
@@ -18,7 +26,11 @@ export function RippleState({ previous, final }){
 			continue
 
 		groups.push({
-			key: `${entry.token.currency}:${entry.token.issuer.address}`,
+			group: {
+				type: 'Token',
+				token: entry.token,
+				key: `${entry.token.currency}:${entry.token.issuer.address}`,
+			},
 			previous: previous ? previous[side] : undefined,
 			final: final ? final[side] : undefined
 		})
@@ -29,9 +41,20 @@ export function RippleState({ previous, final }){
 
 export function Offer({ previous, final }){
 	let entry = previous || final
+	let key = (
+		`${entry.takerPays?.currency}:${entry.takerPays?.issuer?.address}/`
+		+ `${entry.takerGets?.currency}:${entry.takerGets?.issuer?.address}`
+	)
 
 	return [{
-		key: `${entry.takerPays?.currency}:${entry.takerPays?.issuer}/${entry.takerGets?.currency}:${entry.takerGets?.issuer}`,
+		group: {
+			type: 'Book',
+			book: {
+				takerPays: entry.takerPays,
+				takerGets: entry.takerGets,
+			},
+			key
+		},
 		previous,
 		final
 	}]
@@ -41,7 +64,13 @@ export function NFTokenPage({ previous, final }){
 	let entry = previous || final
 
 	return [{
-		key: entry.account.address,
+		group: {
+			type: 'NFTPage',
+			account: {
+				address: entry.account.address
+			},
+			key: entry.account.address,
+		},
 		previous,
 		final
 	}]
@@ -51,7 +80,13 @@ export function NFTokenOffer({ previous, final }){
 	let entry = previous || final
 
 	return [{
-		key: entry.tokenId,
+		group: {
+			type: 'NFTOffer',
+			nft: {
+				tokenId: entry.tokenId,
+			},
+			key: entry.tokenId,
+		},
 		previous,
 		final
 	}]

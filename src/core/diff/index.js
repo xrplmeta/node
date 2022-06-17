@@ -33,25 +33,29 @@ export function diff({ ctx, deltas, ledger }){
 			final: parsedFinal 
 		})
 
-		for(let { key, previous, final } of grouped){
-			if(!groups[type])
-				groups[type] = {}
+		for(let { group, previous, final } of grouped){
+			if(!groups[group.key])
+				groups[group.key] = {
+					...group,
+					deltas: []
+				}
 
-			if(!groups[type][key])
-				groups[type][key] = []
-
-			groups[type][key].push({ 
-				previous, 
-				final 
+			groups[group.key].deltas.push({
+				previous,
+				final
 			})
 		}
 	}
 
-	for(let [type, group] of Object.entries(groups)){
-		let batches = Object.values(group)
-
-		for(let deltas of batches){
-			appliers[type]({ ctx, deltas })
-		}
+	for(let { type, key, ...group } of Object.values(groups)){
+		appliers[type]({ ctx, ...group })
 	}
+
+	return Object.values(groups).reduce(
+		(subjects, { key, deltas, ...group }) => {
+			subjects[key] = group
+			return subjects
+		},
+		{}
+	)
 }

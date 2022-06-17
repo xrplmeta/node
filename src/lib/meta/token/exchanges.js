@@ -2,7 +2,8 @@ import log from '@mwni/log'
 import { extractExchanges } from '@xrplkit/txmeta'
 
 
-export async function extract({ ledger, meta }){
+export function extract({ ctx, ledger }){
+	let subjects = {}
 	let exchanges = []
 
 	for(let transaction of ledger.transactions){
@@ -12,48 +13,51 @@ export async function extract({ ledger, meta }){
 	if(exchanges.length === 0)
 		return
 
-	await meta.tx(async () => {
-		for(let exchange of exchanges){
-			let takerPaidToken
-			let takerGotToken
-
-			if(exchange.takerPaid.issuer){
-				takerPaidToken = {
-					currency: exchange.takerPaid.currency,
-					issuer: { 
-						address: exchange.takerPaid.issuer 
-					}
-				}
-			}
-
-			if(exchange.takerGot.issuer){
-				takerGotToken = {
-					currency: exchange.takerGot.currency,
-					issuer: { 
-						address: exchange.takerGot.issuer 
-					}
-				}
-			}
-
-			await meta.tokenExchanges.createOne({
-				data: {
-					txHash: exchange.hash,
-					ledgerIndex: ledger.index,
-					taker: {
-						address: exchange.taker
-					},
-					maker: {
-						address: exchange.maker
-					},
-					sequence: exchange.sequence,
-					takerPaidToken,
-					takerGotToken,
-					takerPaidValue: exchange.takerPaid.value,
-					takerGotValue: exchange.takerGot.value,
-				}
-			})
+	for(let { hash, sequence, maker, taker, takerPaid, takerGot } of exchanges){
+		let takerPaidToken = {
+			currency: takerPaid.currency,
+			issuer: takerPaid.issuer
+				? { address: takerPaid.issuer }
+				: undefined
 		}
-	})
+
+		let takerGotToken = {
+			currency: takerGot.currency,
+			issuer: takerGot.issuer
+				? { address: takerGot.issuer }
+				: undefined
+		}
+
+		
+		for(let token of [takerPaidToken, takerGotToken]){
+			if(token.issuer)
+				subjects = {
+					...subjects,
+					[`${token.currency}:${token.issuer.address}`]: {
+						type: 'Token',
+						token
+					}
+				}
+		}
+
+		ctx.meta.tokenExchanges.createOne({
+			data: {
+				txHash: hash,
+				ledgerSequence: ledger.sequence,
+				taker: {
+					address: taker
+				},
+				maker: {
+					address: maker
+				},
+				sequence,
+				takerPaidToken,
+				takerGotToken,
+				takerPaidValue: takerPaid.value,
+				takerGotValue: takerGot.value,
+			}
+		})
+	}
 
 	log.accumulate.info({
 		text: [
@@ -63,4 +67,6 @@ export async function extract({ ledger, meta }){
 			tokenExchanges: exchanges.length
 		}
 	})
+
+	return subjects
 }

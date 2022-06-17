@@ -1,32 +1,44 @@
 import log from '@mwni/log'
 import { open as openMetaStore } from '../../store/meta.js'
 import { diff as diffLedgerState } from '../../core/diff/index.js'
-import { start as startStream } from '../../lib/ledger/stream.js'
-import { extract as extractLedgerMeta } from '../../lib/meta/ledgers.js'
+import { startForward as startStream } from '../../lib/xrpl/stream.js'
+import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
 import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
+import { update as updateMarketcaps } from '../../core/composite/marketcap.js'
 
 
-export async function run(ctx){
+export async function run({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	ctx.meta = openMetaStore(ctx)
+	log.info('starting')
 
-	let { ledgerIndex: startLedgerIndex } = ctx.meta.ledgers.readOne({
+	ctx.meta = openMetaStore({ ctx })
+
+	let { sequence: lastSequence } = ctx.meta.ledgers.readOne({
 		orderBy: {
-			ledgerIndex: 'desc'
+			sequence: 'desc'
 		},
 		take: 1
 	})
 	
-	let stream = await startStream({ ctx, startLedgerIndex })
+	let stream = await startStream({ 
+		ctx, 
+		startSequence: lastSequence + 1 
+	})
 
 	while(true){
-		let { ledger, ledgersBehind } = await stream.next()
+		let ledger = await stream.next()
+		let ledgersBehind = stream.targetSequence - stream.currentSequence
+		let subjects = {}
 
-		extractLedgerMeta({ ctx, ledger })
-		extractTokenExchanges({ ctx, ledger })
-		diffLedgerState({ ctx, ledger })
+		ctx.meta.tx(() => {
+			subjects = { ...subjects, ...extractLedgerMeta({ ctx, ledger }) }
+			subjects = { ...subjects, ...extractTokenExchanges({ ctx, ledger }) }
+			subjects = { ...subjects, ...diffLedgerState({ ctx, ledger }) }
+			subjects = { ...subjects, ...updateMarketcaps({ ctx, ledger, subjects }) }
+		})
+
 
 		if(ledgersBehind > 0){
 			log.accumulate.info({
@@ -40,9 +52,7 @@ export async function run(ctx){
 			})
 		}else{
 			log.flush()
-			log.info(`synced at ledger #${ledger.index}`)
+			log.info(`synced with ledger #${ledger.index}`)
 		}
-
-		process.exit()
 	}
 }

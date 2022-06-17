@@ -4,7 +4,7 @@ import { read as readTokenWhales, write as writeTokenWhales } from '../../../lib
 import { read as readTokenOffers, write as writeTokenOffers } from '../../../lib/meta/token/offers.js'
 
 
-export function AccountRoot({ ctx, deltas }){
+export function Account({ ctx, account, deltas }){
 	for(let { previous, final } of deltas){
 		if(final){
 			ctx.meta.accounts.createOne({ 
@@ -20,11 +20,11 @@ export function AccountRoot({ ctx, deltas }){
 	}
 }
 
-export function RippleState({ ctx, deltas }){
+export function Token({ ctx, token, deltas }){
 	const maxWhales = ctx.config.ledger.tokens.captureWhales
 
-	let token = ctx.meta.tokens.createOne({
-		data: deltas[0].final.token || deltas[0].previous.token
+	token = ctx.meta.tokens.createOne({
+		data: token
 	})
 
 	let latestPreviousSequence = Math.min(
@@ -40,7 +40,7 @@ export function RippleState({ ctx, deltas }){
 		...readTokenMetrics({ 
 			ctx, 
 			token, 
-			ledgerIndex: ctx.ledgerIndex,
+			ledgerSequence: ctx.ledgerSequence,
 			metrics: {
 				trustlines: true,
 				holders: true,
@@ -51,7 +51,7 @@ export function RippleState({ ctx, deltas }){
 
 	let whales = readTokenWhales({
 		ctx,
-		ledgerIndex: ctx.ledgerIndex,
+		ledgerSequence: ctx.ledgerSequence,
 		token
 	})
 
@@ -114,23 +114,21 @@ export function RippleState({ ctx, deltas }){
 	writeTokenMetrics({
 		ctx,
 		token,
-		ledgerIndex: latestPreviousSequence,
+		ledgerSequence: latestPreviousSequence,
 		metrics
 	})
 	
 	writeTokenWhales({
 		ctx,
 		token,
-		ledgerIndex: ctx.ledgerIndex,
+		ledgerSequence: ctx.ledgerSequence,
 		whales
 	})
 }
 
-export function Offer({ ctx, deltas }){
-	let { takerPays, takerGets } = deltas[0].previous || deltas[0].final
-	let book = { takerPays, takerGets }
-	let ledgerIndex = ctx.ledgerIndex
-	let stacks = readTokenOffers({ ctx, book, ledgerIndex })
+export function Book({ ctx, book, deltas }){
+	let ledgerSequence = ctx.ledgerSequence
+	let stacks = readTokenOffers({ ctx, book, ledgerSequence })
 
 	for(let { previous, final } of deltas){
 		let stack = stacks.find(
@@ -138,7 +136,7 @@ export function Offer({ ctx, deltas }){
 		)
 
 		if(previous && final){
-			stack.sequenceStart = ledgerIndex
+			stack.sequenceStart = ledgerSequence
 			stack.size = sum(
 				stack.size, 
 				sub(final.size, previous.size)
@@ -150,8 +148,7 @@ export function Offer({ ctx, deltas }){
 				stack.sequenceStart = Math.max(stack.sequenceStart, final.previousSequence)
 			}else{
 				stacks.push({
-					takerPays,
-					takerGets,
+					...book,
 					quality: final.quality,
 					size: final.size,
 					offersCount: 1,
@@ -159,7 +156,7 @@ export function Offer({ ctx, deltas }){
 				})
 			}
 		}else{
-			stack.sequenceStart = ledgerIndex
+			stack.sequenceStart = ledgerSequence
 			stack.size = sub(stack.size, previous.size)
 			stack.offersCount--
 
@@ -174,22 +171,22 @@ export function Offer({ ctx, deltas }){
 	writeTokenOffers({
 		ctx,
 		book,
-		ledgerIndex,
+		ledgerSequence,
 		offers: stacks
 	})
 }
 
-export function NFTokenPage({ ctx, deltas }){
+export function NFTPage({ ctx, account, deltas }){
 	
 }
 
-export function NFTokenOffer({ ctx, deltas }){
+export function NFTOffer({ ctx, nft, deltas }){
 	
 }
 
 /*
 
-function updateBook({ bookId, state, meta, ledgerIndex }){
+function updateBook({ bookId, state, meta, ledgerSequence }){
 	let base
 	let quote
 	let book = state.books.readOne({
@@ -261,13 +258,13 @@ function updateBook({ bookId, state, meta, ledgerIndex }){
 
 		writeOffer({
 			meta,
-			ledgerIndex,
+			ledgerSequence,
 			offer: {
 				...dir,
 				base,
 				quote,
 				rank,
-				startLedgerIndex: ledgerIndex,
+				startledgerSequence: ledgerSequence,
 				directory: crypto.createHash('md5')
 					.update(dir.directory)
 					.digest('hex')
