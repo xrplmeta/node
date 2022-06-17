@@ -30,7 +30,7 @@ writeRanked({
 	include: {
 		account: true
 	},
-	ledgerIndex: 2,
+	ledgerSequence: 2,
 	items: [
 		{
 			token,

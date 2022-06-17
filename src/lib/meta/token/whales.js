@@ -1,7 +1,7 @@
 import { eq } from '@xrplkit/xfl'
 import { write as writeRanked, read as readRanked } from '../ranked.js'
 
-export function write({ ctx, token, ledgerIndex, whales }){
+export function write({ ctx, token, ledgerSequence, whales }){
 	writeRanked({
 		ctx,
 		table: 'tokenWhales',
@@ -11,7 +11,7 @@ export function write({ ctx, token, ledgerIndex, whales }){
 		include: {
 			account: true
 		},
-		ledgerIndex,
+		ledgerSequence,
 		items: whales.map(
 			whale => ({ ...whale, token })
 		),
@@ -23,7 +23,7 @@ export function write({ ctx, token, ledgerIndex, whales }){
 	})
 }
 
-export function read({ ctx, token, ledgerIndex }){
+export function read({ ctx, token, ledgerSequence }){
 	return readRanked({
 		ctx,
 		table: 'tokenWhales',
@@ -33,6 +33,6 @@ export function read({ ctx, token, ledgerIndex }){
 		include: {
 			account: true
 		},
-		ledgerIndex
+		ledgerSequence
 	})
 }

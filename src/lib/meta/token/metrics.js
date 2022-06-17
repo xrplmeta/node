@@ -9,7 +9,7 @@ const metricTables = {
 }
 
 
-export function write({ ctx, token, ledgerIndex, metrics }){
+export function write({ ctx, token, ledgerSequence, metrics }){
 	for(let [key, value] of Object.entries(metrics)){
 		writeSimple({
 			ctx,
@@ -17,14 +17,14 @@ export function write({ ctx, token, ledgerIndex, metrics }){
 			where: {
 				token
 			},
-			ledgerIndex,
+			ledgerSequence,
 			item: { value },
 			compare: (a, b) => a.value === b.value
 		})
 	}
 }
 
-export function read({ ctx, token, ledgerIndex, metrics }){
+export function read({ ctx, token, ledgerSequence, metrics }){
 	let point = {}
 
 	for(let key of Object.keys(metrics)){
@@ -34,7 +34,7 @@ export function read({ ctx, token, ledgerIndex, metrics }){
 			where: {
 				token
 			},
-			ledgerIndex
+			ledgerSequence
 		})
 
 		if(entry)

@@ -4,9 +4,9 @@ import { eq, gt } from '@xrplkit/xfl'
 const rankPadding = 1000000
 
 
-export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, include }){
+export function write({ ctx, table, where, ledgerSequence, items, compare, rankBy, include }){
 	let newItems = []
-	let previousItems = read({ ctx, table, where, ledgerIndex, include })
+	let previousItems = read({ ctx, table, where, ledgerSequence, include })
 		.reverse()
 		
 	let expiredItems = previousItems.filter(
@@ -48,13 +48,13 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 	}
 
 	if(expiredItems.length > 0){
-		expire({ ctx, table, ledgerIndex, items: expiredItems })
+		expire({ ctx, table, ledgerSequence, items: expiredItems })
 	}
 
 	for(let item of expiredItems){
 		ctx.meta[table].updateOne({
 			data: {
-				sequenceEnd: ledgerIndex
+				sequenceEnd: ledgerSequence
 			},
 			where: {
 				id: item.id
@@ -129,13 +129,13 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 			let gap = Math.floor((tailRank - headRank) / (island.items.length + 1))
 
 			if(gap < 1){
-				expire({ ctx, table, ledgerIndex, items: previousItems })
+				expire({ ctx, table, ledgerSequence, items: previousItems })
 
 				return write({ 
 					ctx, 
 					table, 
 					where, 
-					ledgerIndex, 
+					ledgerSequence, 
 					items, 
 					compare, 
 					rankBy, 
@@ -152,7 +152,7 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 		for(let item of island.items){
 			ctx.meta[table].createOne({
 				data: {
-					sequenceStart: ledgerIndex,
+					sequenceStart: ledgerSequence,
 					sequenceEnd: null,
 					...item,
 				}
@@ -161,7 +161,7 @@ export function write({ ctx, table, where, ledgerIndex, items, compare, rankBy, 
 	}
 }
 
-export function read({ ctx, table, where, ledgerIndex, include, limit, offset }){
+export function read({ ctx, table, where, ledgerSequence, include, limit, offset }){
 	return ctx.meta[table].readMany({
 		where: {
 			...where,
@@ -173,7 +173,7 @@ export function read({ ctx, table, where, ledgerIndex, include, limit, offset })
 						},
 						{
 							sequenceStart: {
-								lessOrEqual: ledgerIndex
+								lessOrEqual: ledgerSequence
 							}
 						}
 					]
@@ -185,7 +185,7 @@ export function read({ ctx, table, where, ledgerIndex, include, limit, offset })
 						},
 						{
 							sequenceEnd: {
-								greaterThan: ledgerIndex
+								greaterThan: ledgerSequence
 							}
 						}
 					]
@@ -202,7 +202,7 @@ export function read({ ctx, table, where, ledgerIndex, include, limit, offset })
 }
 
 
-function expire({ ctx, table, ledgerIndex, items }){
+function expire({ ctx, table, ledgerSequence, items }){
 	let ids = items.map(item => item.id)
 
 	if(ctx.inSnapshot){
@@ -219,13 +219,13 @@ function expire({ ctx, table, ledgerIndex, items }){
 				id: {
 					in: ids
 				},
-				sequenceStart: ledgerIndex
+				sequenceStart: ledgerSequence
 			}
 		})
 	
 		ctx.meta[table].updateMany({
 			data: {
-				sequenceEnd: ledgerIndex
+				sequenceEnd: ledgerSequence
 			},
 			where: {
 				id: {

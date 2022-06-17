@@ -1,18 +1,18 @@
-export function write({ ctx, table, where, ledgerIndex, item, compare }){
+export function write({ ctx, table, where, ledgerSequence, item, compare }){
 	let point = read({ 
 		ctx, 
 		table, 
 		where, 
-		ledgerIndex: ctx.inSnapshot
+		ledgerSequence: ctx.inSnapshot
 			? 1_000_000_000_000
-			: ledgerIndex
+			: ledgerSequence
 	})
 
 	if(ctx.inSnapshot && point){
 		ctx.meta[table].updateOne({
 			data: {
 				...item,
-				ledgerIndex: Math.max(ledgerIndex, point.ledgerIndex)
+				ledgerSequence: Math.max(ledgerSequence, point.ledgerSequence)
 			},
 			where: {
 				id: point.id
@@ -26,22 +26,22 @@ export function write({ ctx, table, where, ledgerIndex, item, compare }){
 			data: {
 				...where,
 				...item,
-				ledgerIndex
+				ledgerSequence
 			}
 		})
 	}
 }
 
-export function read({ ctx, table, where, ledgerIndex }){
+export function read({ ctx, table, where, ledgerSequence }){
 	return ctx.meta[table].readOne({
 		where: {
 			...where,
-			ledgerIndex: {
-				lessOrEqual: ledgerIndex
+			ledgerSequence: {
+				lessOrEqual: ledgerSequence
 			}
 		},
 		orderBy: {
-			ledgerIndex: 'desc'
+			ledgerSequence: 'desc'
 		},
 		take: 1
 	})

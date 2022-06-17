@@ -1,15 +1,15 @@
 import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 
-export async function start({ ctx, ledgerIndex }){
-	let chunkSize = ctx.config.ledger.snapshot.fetchChunkSize || 10000
+export async function start({ ctx, ledgerSequence }){
+	let chunkSize = ctx.config.ledger.snapshotChunkSize || 10000
 	let marker = ctx.snapshotState?.marker
 	let queue = []
 	
 	let { result, node: assignedNode } = await ctx.xrpl.request({
 		type: 'reserveTicket',
 		task: 'snapshot',
-		ledgerIndex,
+		ledgerSequence,
 		node: ctx.snapshotState?.originNode
 	})
 
@@ -26,7 +26,7 @@ export async function start({ ctx, ledgerIndex }){
 			try{
 				let { result } = await ctx.xrpl.request({
 					command: 'ledger_data',
-					ledger_index: ledgerIndex,
+					ledger_index: ledgerSequence,
 					limit: chunkSize,
 					marker,
 					ticket
@@ -62,7 +62,7 @@ export async function start({ ctx, ledgerIndex }){
 	})()
 
 	return {
-		ledgerIndex,
+		ledgerSequence,
 		node: assignedNode,
 		async next(){
 			if(queue.length > 0)

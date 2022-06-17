@@ -95,7 +95,7 @@
 				"completionTime": {
 					"type": "integer"
 				},
-				"ledgerIndex": {
+				"ledgerSequence": {
 					"type": "integer"
 				},
 				"entriesCount": {
@@ -111,11 +111,11 @@
 			},
 			"required": [
 				"creationTime",
-				"ledgerIndex",
+				"ledgerSequence",
 				"originNode"
 			],
 			"unique": [
-				"ledgerIndex"
+				"ledgerSequence"
 			]
 		},
 		"Ledger": {
@@ -125,7 +125,7 @@
 					"type": "integer",
 					"id": true
 				},
-				"index": {
+				"sequence": {
 					"type": "integer"
 				},
 				"hash": {
@@ -156,13 +156,13 @@
 				}
 			},
 			"required": [
-				"index",
+				"sequence",
 				"hash",
 				"closeTime",
 				"txCount"
 			],
 			"unique": [
-				"index"
+				"sequence"
 			]
 		},
 		"LedgerTxTypeCount": {
@@ -353,7 +353,7 @@
 				"sequence": {
 					"type": "integer"
 				},
-				"ledgerIndex": {
+				"ledgerSequence": {
 					"type": "integer"
 				},
 				"takerPaidToken": {
@@ -375,7 +375,7 @@
 				"txHash",
 				"maker",
 				"taker",
-				"ledgerIndex",
+				"ledgerSequence",
 				"takerPaysValue",
 				"takerGetsValue"
 			],
@@ -393,7 +393,7 @@
 				"token": {
 					"$ref": "#/definitions/Token"
 				},
-				"ledgerIndex": {
+				"ledgerSequence": {
 					"type": "integer"
 				},
 				"value": {
@@ -403,11 +403,11 @@
 			},
 			"required": [
 				"token",
-				"ledgerIndex",
+				"ledgerSequence",
 				"value"
 			],
 			"unique": [
-				["token", "ledgerIndex"]
+				["token", "ledgerSequence"]
 			]
 		},
 		"TokenTrustlines": {
@@ -420,7 +420,7 @@
 				"token": {
 					"$ref": "#/definitions/Token"
 				},
-				"ledgerIndex": {
+				"ledgerSequence": {
 					"type": "integer"
 				},
 				"value": {
@@ -429,11 +429,11 @@
 			},
 			"required": [
 				"token",
-				"ledgerIndex",
+				"ledgerSequence",
 				"value"
 			],
 			"unique": [
-				["token", "ledgerIndex"]
+				["token", "ledgerSequence"]
 			]
 		},
 		"TokenHolders": {
@@ -446,7 +446,7 @@
 				"token": {
 					"$ref": "#/definitions/Token"
 				},
-				"ledgerIndex": {
+				"ledgerSequence": {
 					"type": "integer"
 				},
 				"value": {
@@ -455,11 +455,11 @@
 			},
 			"required": [
 				"token",
-				"ledgerIndex",
+				"ledgerSequence",
 				"value"
 			],
 			"unique": [
-				["token", "ledgerIndex"]
+				["token", "ledgerSequence"]
 			]
 		},
 		"TokenMarketcap": {
@@ -472,7 +472,7 @@
 				"token": {
 					"$ref": "#/definitions/Token"
 				},
-				"ledgerIndex": {
+				"ledgerSequence": {
 					"type": "integer"
 				},
 				"value": {
@@ -482,11 +482,11 @@
 			},
 			"required": [
 				"token",
-				"ledgerIndex",
+				"ledgerSequence",
 				"value"
 			],
 			"unique": [
-				["token", "ledgerIndex"]
+				["token", "ledgerSequence"]
 			]
 		},
 		"TokenWhale": {
