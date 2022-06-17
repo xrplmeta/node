@@ -1,90 +1,110 @@
 import log from '@mwni/log'
-import { rippleToUnix, wait } from '@xrplkit/time'
+import { wait } from '@xrplkit/time'
+import { fetch as fetchLedger } from './ledger.js'
 
-const concurrency = 4
 
-export async function start({ ctx, startLedgerIndex }){
-	let strideIndex = direction === 'forward' ? 1 : 1
-	let currentIndex = startLedgerIndex
-	let targetIndex
+
+export async function startForward({ ctx, startSequence }){
+	let latestLedger = await fetchLedger({ 
+		ctx,
+		sequence: 'validated' 
+	})
+
+	let stream = createStream({
+		startSequence,
+		targetSequence: latestLedger.sequence
+	})
+
+	ctx.xrpl.on('ledger', ledger => {
+		stream.targetSequence = ledger.sequence
+	})
+
+	createFiller({ ctx, stream, stride: 1 })
+	
+	return stream
+}
+
+function createStream({ startSequence, targetSequence }){
+	let currentSequence = startSequence
 	let resolveNext
-	let queue = {}
+	let ledgers = {}
 
-	if(direction === 'forward'){
-		let { result } = await ctx.xrpl.request({ 
-			command: 'ledger', 
-			ledger_index: 'validated' 
-		})
+	return {
+		get currentSequence(){
+			return currentSequence
+		},
 
-		targetIndex = parseInt(result.ledger.ledger_index)
-	}else{
-		targetIndex = 0
+		get targetSequence(){
+			return targetSequence
+		},
+
+		get ledgers(){
+			return ledgers
+		},
+
+		get resolveNext(){
+			return resolveNext
+		},
+
+		async next(){
+			while(!ledgers[currentSequence]){
+				await new Promise(resolve => resolveNext = resolve)
+			}
+
+			let ledger = ledgers[currentSequence]
+
+			delete ledgers[currentSequence]
+			currentSequence += Math.sign(targetSequence - currentSequence)
+
+			return ledger
+		}
 	}
+}
+
+
+function createFiller({ ctx, stream, stride }){
+	const concurrency = ctx.xrpl.connectionsCount
+	const maxQueueSize = ctx.config.ledger.streamQueueSize
 
 	for(let n=0; n<concurrency; n++){
 		(async () => {
-			let index = currentIndex
+			let sequence = stream.currentSequence
 
 			while(true){
-				let stepsToTarget = (targetIndex - index) * strideIndex
+				let stepsToTarget = (stream.targetSequence - sequence) * stride
 	
 				if(stepsToTarget < 0){
 					await wait(100)
 					continue
 				}
 
-				if(Object.keys(queue).length > 1000){
+				if(Object.keys(stream.ledgers).length > maxQueueSize){
 					await wait(1000)
 					continue
 				}
 
-				if(queue.hasOwnProperty(index)){
-					index += strideIndex
+				if(stream.ledgers.hasOwnProperty(sequence)){
+					sequence += stride
 					continue
 				}
 
-				queue[index] = undefined
+				stream.ledgers[sequence] = undefined
 
 				try{
-					let { result } = await ctx.xrpl.request({ 
-						command: 'ledger', 
-						ledger_index: index,
-						transactions: true,
-						expand: true
+					stream.ledgers[sequence] = await fetchLedger({ 
+						ctx, 
+						sequence 
 					})
 
-					queue[index] = {
-						sequence: index,
-						hash: result.ledger.ledger_hash,
-						closeTime: rippleToUnix(result.ledger.close_time),
-						transactions: result.ledger.transactions
-					}
-
-					if(resolveNext)
-						resolveNext()
+					if(stream.resolveNext)
+						stream.resolveNext()
 						
 				}catch(error){
 					console.error(`failed to fetch ledger #${index}:`)
 					console.error(error)
-					delete queue[index]
+					delete stream.ledgers[sequence]
 				}
 			}
 		})()
-	}
-
-	return {
-		async next(){
-			while(!queue[currentIndex]){
-				await new Promise(resolve => resolveNext = resolve)
-			}
-
-			let ledger = queue[currentIndex]
-			let ledgersBehind = targetIndex - currentIndex
-
-			delete queue[currentIndex]
-			currentIndex++
-
-			return { ledger, ledgersBehind }
-		}
 	}
 }

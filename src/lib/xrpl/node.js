@@ -31,9 +31,9 @@ export default class Node extends EventEmitter{
 			}*/
 		})
 
-		this.socket.on('connected', () => {
+		this.socket.on('connected', async () => {
 			try{
-				this.socket.request({
+				await this.socket.request({
 					command: 'subscribe',
 					streams: ['ledger', 'transactions']
 				})

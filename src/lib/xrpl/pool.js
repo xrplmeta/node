@@ -1,16 +1,15 @@
-import EventEmitter from 'events'
 import log from '@mwni/log'
+import { EventEmitter } from '@mwni/events'
 import { wait } from '@xrplkit/time'
 import Node from './node.js'
 
 
 export function create(sources){
-	let events = new EventEmitter
+	let events = new EventEmitter().bind({})
 	let seenHashes = []
 	let queue = []
 	let nodes = []
 	let latestLedger
-
 	
 	async function workQueue(){
 		while(true){
@@ -98,6 +97,9 @@ export function create(sources){
 						accepted
 					})
 				})
+			},
+			get connectionsCount(){
+				return nodes.length
 			}
 		}
 	)
