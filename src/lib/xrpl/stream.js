@@ -17,6 +17,9 @@ export async function startForward({ ctx, startSequence }){
 
 	ctx.xrpl.on('ledger', ledger => {
 		stream.targetSequence = ledger.sequence
+		stream.ledgers[ledger.sequence] = ledger
+
+		stream.resolveNext()
 	})
 
 	createFiller({ ctx, stream, stride: 1 })
@@ -26,7 +29,7 @@ export async function startForward({ ctx, startSequence }){
 
 function createStream({ startSequence, targetSequence }){
 	let currentSequence = startSequence
-	let resolveNext
+	let resolveNext = () => 0
 	let ledgers = {}
 
 	return {
@@ -36,6 +39,10 @@ function createStream({ startSequence, targetSequence }){
 
 		get targetSequence(){
 			return targetSequence
+		},
+
+		set targetSequence(sequence){
+			targetSequence = sequence
 		},
 
 		get ledgers(){
@@ -54,7 +61,7 @@ function createStream({ startSequence, targetSequence }){
 			let ledger = ledgers[currentSequence]
 
 			delete ledgers[currentSequence]
-			currentSequence += Math.sign(targetSequence - currentSequence)
+			currentSequence += targetSequence >= currentSequence ? 1 : -1
 
 			return ledger
 		}
@@ -96,12 +103,11 @@ function createFiller({ ctx, stream, stride }){
 						sequence 
 					})
 
-					if(stream.resolveNext)
-						stream.resolveNext()
+					stream.resolveNext()
 						
 				}catch(error){
-					console.error(`failed to fetch ledger #${index}:`)
-					console.error(error)
+					console.warn(`failed to fetch ledger #${index}:`)
+					console.warn(error)
 					delete stream.ledgers[sequence]
 				}
 			}
