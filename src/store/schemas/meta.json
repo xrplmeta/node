@@ -26,6 +26,12 @@
 				"$ref": "#/definitions/AccountProp"
 			}
 		},
+		"accountBalances": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/AccountBalance"
+			}
+		},
 		"tokens": {
 			"type": "array",
 			"items": {
@@ -283,6 +289,37 @@
 				["issuer", "key", "source"]
 			]
 		},
+		"AccountBalance": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerSequence": {
+					"type": "integer"
+				},
+				"balance": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				}
+			},
+			"required": [
+				"account",
+				"token",
+				"ledgerSequence",
+				"balance"
+			],
+			"unique": [
+				["account", "token", "ledgerSequence"]
+			]
+		},
 		"Token": {
 			"type": "object",
 			"properties": {
@@ -510,18 +547,13 @@
 				},
 				"rank": {
 					"type": "integer"
-				},
-				"balance": {
-					"type": "string",
-					"format": "xrpl/xfl"
 				}
 			},
 			"required": [
 				"token",
 				"account",
 				"sequenceStart",
-				"rank",
-				"balance"
+				"rank"
 			],
 			"unique": [
 				["token", "account", "sequenceStart"]

@@ -1,4 +1,5 @@
 import { sum, sub, gt, eq } from '@xrplkit/xfl'
+import { write as writeBalance } from '../../../lib/meta/generic/balances.js'
 import { read as readTokenMetrics, write as writeTokenMetrics } from '../../../lib/meta/token/metrics.js'
 import { read as readTokenWhales, write as writeTokenWhales } from '../../../lib/meta/token/whales.js'
 import { read as readTokenOffers, write as writeTokenOffers } from '../../../lib/meta/token/offers.js'
@@ -6,17 +7,21 @@ import { read as readTokenOffers, write as writeTokenOffers } from '../../../lib
 
 export function Account({ ctx, account, deltas }){
 	for(let { previous, final } of deltas){
-		if(final){
+		if(!ctx.inBackfill){
 			ctx.meta.accounts.createOne({ 
 				data: final 
 			})
-		}else{
-			ctx.meta.accounts.deleteOne({
-				where: {
-					address: previous.address
-				}
-			})
 		}
+
+		writeBalance({
+			ctx,
+			account,
+			token: { currency: 'XRP' },
+			ledgerSequence: ctx.ledgerSequence,
+			balance: final
+				? final.balance
+				: '0'
+		})
 	}
 }
 
@@ -56,6 +61,16 @@ export function Token({ ctx, token, deltas }){
 	})
 
 	for(let { previous, final } of deltas){
+		writeBalance({
+			ctx,
+			account,
+			token,
+			ledgerSequence: ctx.ledgerSequence,
+			balance: final
+				? final.balance
+				: '0'
+		})
+		
 		if(previous && final){
 			metrics.supply = sum(
 				metrics.supply,
