@@ -58,17 +58,30 @@ export function RippleState({ entry }){
 	return transformed
 }
 
+function parseQuality(bookDirectory, pays, gets) {
+var qualityHex = bookDirectory.substring(bookDirectory.length - 16);
+var mantissa = new BigNumber(qualityHex.substring(2), 16);
+var offset = parseInt(qualityHex.substring(0, 2), 16) - 100;
+var quality = mantissa.toString() + 'e' + offset.toString();
+return adjustQualityForXRP(quality, pays, gets);
+}
+
 export function Offer({ entry }){
 	let takerPays = fromRippledAmount(entry.TakerPays)
 	let takerGets = fromRippledAmount(entry.TakerGets)
-	let quality
 	let size = takerGets.value
+	let qualityHex = entry.BookDirectory.slice(-16)
 
-	try{
-		quality = div(takerGets.value, takerPays.value)
-	}catch{
-		return
-	}
+	let qualityMantissa = Buffer.from(`00${qualityHex.slice(2)}`, 'hex')
+		.readBigInt64BE(0)
+
+	let qualityExponent = Buffer.from(qualityHex.slice(0, 2), 'hex')
+		.readInt8(0) 
+		- 100
+		+ (takerPays.currency === 'XRP' ? -6 : 0) 
+		- (takerGets.currency === 'XRP' ? -6 : 0)
+
+	let quality = `${qualityMantissa}e${qualityExponent}`
 
 	return {
 		account: { address: entry.Account },
