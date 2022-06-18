@@ -8,10 +8,14 @@ export async function fetch({ ctx, sequence }){
 		expand: true
 	})
 
+	return format(result.ledger)
+}
+
+export function format(ledger){
 	return {
-		sequence: parseInt(result.ledger.ledger_index),
-		hash: result.ledger.ledger_hash,
-		closeTime: rippleToUnix(result.ledger.close_time),
-		transactions: result.ledger.transactions
+		sequence: parseInt(ledger.ledger_index),
+		hash: ledger.ledger_hash,
+		closeTime: rippleToUnix(ledger.close_time || ledger.ledger_time),
+		transactions: ledger.transactions
 	}
 }

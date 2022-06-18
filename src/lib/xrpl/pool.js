@@ -1,6 +1,7 @@
 import log from '@mwni/log'
 import { EventEmitter } from '@mwni/events'
 import { wait } from '@xrplkit/time'
+import { format as formatLedger } from './ledger.js'
 import Node from './node.js'
 
 
@@ -69,7 +70,7 @@ export function create(sources){
 					}
 
 					if(latestLedger.transactions.length === latestLedger.txn_count){
-						events.emit('ledger', latestLedger)
+						events.emit('ledger', formatLedger(latestLedger))
 					}
 				}
 			})
