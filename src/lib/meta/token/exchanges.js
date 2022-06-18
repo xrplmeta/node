@@ -1,5 +1,6 @@
 import log from '@mwni/log'
 import { extractExchanges } from '@xrplkit/txmeta'
+import { div } from '@xrplkit/xfl'
 
 
 export function extract({ ctx, ledger }){
@@ -69,4 +70,54 @@ export function extract({ ctx, ledger }){
 	})
 
 	return subjects
+}
+
+
+export function read({ ctx, base, quote, takerGot, ledgerSequence }){
+	let exchange = ctx.meta.tokenExchanges.readOne({
+		where: {
+			OR: [
+				{
+					takerPaidToken: base,
+					takerGotToken: quote
+				},
+				{
+					takerPaidToken: quote,
+					takerGotToken: base
+				}
+			],
+			ledgerSequence: {
+				lessOrEqual: ledgerSequence
+			}
+		},
+		orderBy: {
+			ledgerSequence: 'desc'
+		}
+	})
+
+	if(!exchange)
+		return
+
+	return align({ base, quote, exchange })
+}
+
+export function align({ base, quote, exchange }){
+	let { takerPaidToken, takerGotToken, takerPaidValue, takerGotValue, ...props } = exchange
+
+	if(
+		takerPaidToken.currency === base.currency && 
+		takerPaidToken.issuer?.address === base.issuer?.address
+	){
+		return {
+			...props,
+			price: div(takerGotValue, takerPaidValue),
+			volume: takerPaidValue
+		}
+	}else{
+		return {
+			...props,
+			price: div(takerPaidValue, takerGotValue),
+			volume: takerGotValue
+		}
+	}
 }
