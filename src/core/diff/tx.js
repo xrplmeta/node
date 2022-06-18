@@ -1,7 +1,7 @@
 export function deriveDeltas({ ledger }){
 	let deltas = []
 
-	for(let transaction of ledger.transactions.reverse()){
+	for(let transaction of ledger.transactions){
 		let meta = transaction.meta || transaction.metaData
 
 		for(let { NewNode, ModifiedNode, DeletedNode } of meta.AffectedNodes){
@@ -31,6 +31,7 @@ export function deriveDeltas({ ledger }){
 					type: DeletedNode.LedgerEntryType,
 					previous: {
 						...DeletedNode.FinalFields,
+						...DeletedNode.PreviousFields,
 						PreviousTxnLgrSeq: ledger.sequence
 					}
 				})

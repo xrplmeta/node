@@ -9,6 +9,7 @@ export function diff({ ctx, deltas, ledger }){
 
 	if(!deltas){
 		deltas = deriveDeltas({ ledger })
+		ctx = { ...ctx, ledgerSequence: ledger.sequence }
 	}
 
 	for(let { type, previous, final } of deltas){

@@ -29,7 +29,7 @@ export function Token({ ctx, token, deltas }){
 
 	let latestPreviousSequence = Math.min(
 		...deltas.map(
-			({ previous, final }) => final.previousSequence || previous.previousSequence
+			({ previous, final }) => final?.previousSequence || previous?.previousSequence
 		)
 	)
 
@@ -59,7 +59,7 @@ export function Token({ ctx, token, deltas }){
 		if(previous && final){
 			metrics.supply = sum(
 				metrics.supply,
-				sub(final.balance, previous.final)
+				sub(final.balance, previous.balance)
 			)
 
 			if(eq(previous.balance, 0) && gt(final.balance, 0)){
@@ -136,6 +136,10 @@ export function Book({ ctx, book, deltas }){
 		)
 
 		if(previous && final){
+			if(!stack){
+				throw new Error(`missing meta entry`)
+			}
+
 			stack.sequenceStart = ledgerSequence
 			stack.size = sum(
 				stack.size, 
@@ -156,6 +160,12 @@ export function Book({ ctx, book, deltas }){
 				})
 			}
 		}else{
+			if(!stack){
+				console.log(stacks)
+				console.log(previous)
+				throw new Error(`missing meta entry`)
+			}
+			
 			stack.sequenceStart = ledgerSequence
 			stack.size = sub(stack.size, previous.size)
 			stack.offersCount--
