@@ -19,7 +19,7 @@ export function write({ ctx, table, where, ledgerSequence, item, compare }){
 			}
 		})
 	}else{
-		if(point && compare(point, item))
+		if(compare(point, item))
 			return
 
 		ctx.meta[table].createOne({
