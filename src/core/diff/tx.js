@@ -4,12 +4,12 @@ export function deriveDeltas({ ledger }){
 	for(let transaction of ledger.transactions){
 		let meta = transaction.meta || transaction.metaData
 
-		for(let { NewNode, ModifiedNode, DeletedNode } of meta.AffectedNodes){
-			if(NewNode && NewNode.NewFields){
+		for(let { CreatedNode, ModifiedNode, DeletedNode } of meta.AffectedNodes){
+			if(CreatedNode && CreatedNode.NewFields){
 				deltas.push({
-					type: NewNode.LedgerEntryType,
+					type: CreatedNode.LedgerEntryType,
 					final: {
-						...NewNode.NewFields,
+						...CreatedNode.NewFields,
 						PreviousTxnLgrSeq: ledger.sequence
 					}
 				})
