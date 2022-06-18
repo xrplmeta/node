@@ -17,5 +17,10 @@ export function format(ledger){
 		hash: ledger.ledger_hash,
 		closeTime: rippleToUnix(ledger.close_time || ledger.ledger_time),
 		transactions: ledger.transactions
+			.map(
+				tx => tx.transaction
+					? { ...tx.transaction, metaData: tx.meta }
+					: tx
+			)
 	}
 }
