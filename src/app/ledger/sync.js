@@ -27,6 +27,7 @@ export async function run({ ctx }){
 		startSequence: lastSequence + 1 
 	})
 
+	
 	while(true){
 		let ledger = await stream.next()
 		let ledgersBehind = stream.targetSequence - stream.currentSequence
@@ -52,7 +53,7 @@ export async function run({ ctx }){
 			})
 		}else{
 			log.flush()
-			log.info(`synced with ledger #${ledger.index}`)
+			log.info(`synced with ledger #${ledger.sequence}`)
 		}
 	}
 }
