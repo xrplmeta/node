@@ -1,16 +1,15 @@
 import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 
-export async function start({ ctx, ledgerSequence }){
+export async function start({ ctx, ledgerSequence, marker, node }){
 	let chunkSize = ctx.config.ledger.snapshotChunkSize || 10000
-	let marker = ctx.snapshotState?.marker
 	let queue = []
 	
 	let { result, node: assignedNode } = await ctx.xrpl.request({
 		type: 'reserveTicket',
 		task: 'snapshot',
 		ledgerSequence,
-		node: ctx.snapshotState?.originNode
+		node
 	})
 
 	let ticket = result.ticket

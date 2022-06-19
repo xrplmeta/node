@@ -6,6 +6,8 @@ import { diff as diffLedgerObjects } from '../../core/diff/index.js'
 import { fetch as fetchLedger } from '../../lib/xrpl/ledger.js'
 import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
 import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
+import { updateAll as updateAllMarketcaps } from '../../core/postdiff/marketcap.js'
+import { updateAll as updateAllOfferFunds } from '../../core/postdiff/offerfunds.js'
 
 
 export async function run({ ctx }){
@@ -15,56 +17,82 @@ export async function run({ ctx }){
 	ctx.meta = openMetaStore({ ctx })
 	ctx.snapshotState = ctx.meta.snapshots.readOne({ last: true })
 
-	if(ctx.snapshotState && !ctx.snapshotState.marker && ctx.snapshotState.entriesCount > 0)
-		return
+	if(!ctx.snapshotState){
+		await createSnapshotEntry({ ctx })
+		
+		log.info(`creating snapshot of ledger #${ctx.snapshotState.ledgerSequence} - this may take a long time`)
+	}else{
+		log.info(`resuming snapshot of ledger #${ctx.snapshotState.ledgerSequence}`)
+	}
 
-	try{
-		await copyFromFeed({ ctx, feed: await createFeed({ ctx })})
-	}catch(error){
-		log.error(`fatal error while copying from ledger feed:`)
-		log.error(error.stack)
+	ctx.ledgerSequence = ctx.snapshotState.ledgerSequence
+	ctx.inSnapshot = true
 
-		throw error.stack
-	}	
+	if(ctx.snapshotState.entriesCount === 0 || ctx.snapshotState.marker){
+		try{
+			await copyFromFeed({ 
+				ctx, 
+				feed: await createFeed({ 
+					ctx,
+					marker: ctx.snapshotState.marker,
+					node: ctx.snapshotState.originNode
+				})
+			})
+		}catch(error){
+			log.error(`fatal error while copying from ledger feed:`)
+			log.error(error.stack)
+	
+			throw error.stack
+		}
+	}
+
+	if(!ctx.snapshotState.completionTime){
+		applyPostDiffs({ ctx })
+
+		ctx.meta.snapshots.updateOne({
+			data: {
+				completionTime: unixNow(),
+				marker: null
+			},
+			where: {
+				ledgerSequence: ctx.snapshotState.ledgerSequence
+			}
+		})
+
+		log.info(`ledger snapshot complete`)
+	}
+}
+
+async function createSnapshotEntry({ ctx }){
+	let ledger = await fetchLedger({ 
+		ctx, 
+		sequence: 'validated'
+	})
+
+	extractLedgerMeta({ ctx, ledger })
+	extractTokenExchanges({ ctx, ledger })
+
+	ctx.snapshotState = ctx.meta.snapshots.createOne({
+		data: {
+			ledgerSequence: feed.ledgerSequence,
+			creationTime: unixNow(),
+			originNode: feed.node
+		}
+	})
 }
 
 async function createFeed({ ctx }){
-	let ledgerSequence
-
-	if(ctx.snapshotState){
-		ledgerSequence = ctx.snapshotState.ledgerSequence
-		log.info(`resuming snapshot of ledger #${ledgerSequence}`)
-	}else{
-		let ledger = await fetchLedger({ 
+	return await spawn(
+		'../../lib/xrpl/snapshot.js:start', 
+		{ 
 			ctx, 
-			sequence: 'validated'
-		})
-
-		extractLedgerMeta({ ctx, ledger })
-		extractTokenExchanges({ ctx, ledger })
-
-		ledgerSequence = ledger.sequence
-		log.info(`creating snapshot of ledger #${ledgerSequence} - this may take a long time`)
-	}
-
-	return await spawn('../../lib/xrpl/snapshot.js:start', { ctx, ledgerSequence })
+			ledgerSequence: ctx.snapshotState.ledgerSequence 
+		}
+	)
 }
 
 
 async function copyFromFeed({ ctx, feed }){
-	ctx.ledgerSequence = feed.ledgerSequence
-	ctx.inSnapshot = true
-
-	if(!ctx.snapshotState){
-		ctx.snapshotState = ctx.meta.snapshots.createOne({
-			data: {
-				ledgerSequence: feed.ledgerSequence,
-				creationTime: unixNow(),
-				originNode: feed.node
-			}
-		})
-	}
-
 	while(true){
 		let chunk = await feed.next()
 		
@@ -104,15 +132,18 @@ async function copyFromFeed({ ctx, feed }){
 	}
 
 	log.flush()
-	log.info(`ledger snapshot complete`)
+	log.info(`reached end of ledger data`)
+}
 
-	ctx.meta.snapshots.updateOne({
-		data: {
-			completionTime: unixNow(),
-			marker: null
-		},
-		where: {
-			ledgerSequence: feed.ledgerSequence
-		}
-	})
+
+function applyPostDiffs({ ctx }){
+	log.info(`applying postdiff operations ...`)
+
+	log.time.info(`marketcaps`, `calculating marketcaps ...`)
+	updateAllMarketcaps({ ctx })
+	log.time.info(`marketcaps`, `calculated marketcaps in %`)
+
+	log.time.info(`offerfunds`, `constraining offer funds ...`)
+	updateAllOfferFunds({ ctx })
+	log.time.info(`offerfunds`, `constrained offer funds in %`)
 }
