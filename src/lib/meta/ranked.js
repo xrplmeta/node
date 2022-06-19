@@ -21,8 +21,6 @@ export function write({ ctx, table, where, ledgerSequence, items, compare, inclu
 
 	let orderIndex = 0
 
-	console.log(assocs, previousItems.length)
-
 	for(let i=0; i<items.length; i++){
 		let item = items[i]
 		let previousIndex = assocs[i]
@@ -133,7 +131,6 @@ export function write({ ctx, table, where, ledgerSequence, items, compare, inclu
 					ledgerSequence, 
 					items, 
 					compare, 
-					rankBy, 
 					include 
 				})
 			}
