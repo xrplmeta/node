@@ -13,18 +13,17 @@ export function write({ ctx, token, ledgerSequence, whales }){
 		},
 		ledgerSequence,
 		items: whales.map(
-			whale => ({ ...whale, token })
+			({ balance, ...whale }) => ({ ...whale, token })
 		),
 		compare: {
 			unique: (a, b) => a.account.address === b.account.address,
 			diff: (a, b) => true
-		},
-		rankBy: 'balance'
+		}
 	})
 }
 
 export function read({ ctx, token, ledgerSequence }){
-	return readRanked({
+	let whales = readRanked({
 		ctx,
 		table: 'tokenWhales',
 		where: {
@@ -35,4 +34,31 @@ export function read({ ctx, token, ledgerSequence }){
 		},
 		ledgerSequence
 	})
+
+	if(whales.length === 0)
+		return []
+
+	let balances = ctx.meta.accountBalances.readMany({
+		where: {
+			token: { 
+				id: token.id
+			},
+			account: {
+				id: {
+					in: whales.map(
+						whale => whale.account.id
+					)
+				}
+			}
+		}
+	})
+
+	return whales.map(
+		whale => ({
+			...whale,
+			balance: balances.find(
+				balance => balance.account.id === whale.account.id
+			).balance
+		})
+	)
 }
