@@ -314,6 +314,9 @@
 			],
 			"unique": [
 				["account", "token", "ledgerSequence"]
+			],
+			"index": [
+				"token"
 			]
 		},
 		"Token": {
