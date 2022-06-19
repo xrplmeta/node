@@ -5,6 +5,7 @@ import { startForward as startStream } from '../../lib/xrpl/stream.js'
 import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
 import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
 import { update as updateMarketcaps } from '../../core/postdiff/marketcap.js'
+import { update as updateOfferFunds } from '../../core/postdiff/offerfunds.js'
 
 
 export async function run({ ctx }){
@@ -33,11 +34,14 @@ export async function run({ ctx }){
 		let ledgersBehind = stream.targetSequence - stream.currentSequence
 		let subjects = {}
 
+		ctx.ledgerSequence = ledger.sequence
+
 		ctx.meta.tx(() => {
 			subjects = { ...subjects, ...extractLedgerMeta({ ctx, ledger }) }
 			subjects = { ...subjects, ...extractTokenExchanges({ ctx, ledger }) }
 			subjects = { ...subjects, ...diffLedgerState({ ctx, ledger }) }
-			subjects = { ...subjects, ...updateMarketcaps({ ctx, ledger, subjects }) }
+			subjects = { ...subjects, ...updateMarketcaps({ ctx, subjects }) }
+			subjects = { ...subjects, ...updateOfferFunds({ ctx, subjects }) }
 		})
 
 

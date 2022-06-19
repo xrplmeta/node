@@ -574,9 +574,19 @@
 				"takerPays": {
 					"$ref": "#/definitions/Token"
 				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
 				"quality": {
 					"type": "string",
 					"format": "xrpl/xfl"
+				},
+				"size": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"offersCount": {
+					"type": "integer"
 				},
 				"sequenceStart": {
 					"type": "integer"
@@ -586,28 +596,22 @@
 				},
 				"rank": {
 					"type": "integer"
-				},
-				"size": {
-					"type": "string",
-					"format": "xrpl/xfl"
-				},
-				"offersCount": {
-					"type": "integer"
 				}
 			},
 			"required": [
+				"account",
 				"quality",
-				"sequenceStart",
-				"rank",
 				"size",
-				"offersCount"
+				"offersCount",
+				"sequenceStart",
+				"rank"
 			],
 			"unique": [
 				["takerGets", "takerPays", "quality", "sequenceStart"]
 			],
 			"index": [
-				"takerGets",
 				"takerPays",
+				"account",
 				"rank"
 			]
 		}
