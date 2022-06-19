@@ -4,7 +4,7 @@ import { diff as diffLedgerState } from '../../core/diff/index.js'
 import { startForward as startStream } from '../../lib/xrpl/stream.js'
 import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
 import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
-import { update as updateMarketcaps } from '../../core/composite/marketcap.js'
+import { update as updateMarketcaps } from '../../core/postdiff/marketcap.js'
 
 
 export async function run({ ctx }){
