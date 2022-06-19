@@ -11,7 +11,7 @@ export function write({ ctx, account, token, ledgerSequence, balance }){
 		},
 		ledgerSequence,
 		item: { balance },
-		compare: (a, b) => eq(a?.value || '0', b?.value || '0')
+		compare: (a, b) => eq(a?.balance || '0', b?.balance || '0')
 	})
 }
 
