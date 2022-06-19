@@ -17,7 +17,7 @@ export function write({ ctx, token, ledgerSequence, whales }){
 		),
 		compare: {
 			unique: (a, b) => a.account.address === b.account.address,
-			diff: (a, b) => eq(a.balance, b.balance)
+			diff: (a, b) => true
 		},
 		rankBy: 'balance'
 	})

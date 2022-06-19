@@ -1,5 +1,5 @@
 import { open } from '../store/meta.js'
-import { writeRanked } from '../lib/meta/ranked.js'
+import { write as writeRanked } from '../lib/meta/ranked.js'
 import { eq } from '@xrplkit/xfl'
 
 let ctx = {
@@ -36,27 +36,24 @@ writeRanked({
 			token,
 			account: {
 				address: 'rn97Zbg9V6biqJoZ6EQ8RtuaMUTYHWFXyw'
-			},
-			balance: '100'
+			}
+		},
+	
+		{
+			token,
+			account: {
+				address: 'rMwNibdiFaEzsTaFCG1NnmAM3Rv3vHUy5L'
+			}
 		},
 		{
 			token,
 			account: {
 				address: 'ra5F8PphThJeP2W8fCuygXPNPGMr3qYzkC'
-			},
-			balance: '10'
-		},
-		{
-			token,
-			account: {
-				address: 'rHtAhRdhzMhhGcMZvFY3oEUHyUEsKqQHKW'
-			},
-			balance: '211'
+			}
 		},
 	],
 	compare: {
 		unique: (a, b) => a.account.address === b.account.address,
-		diff: (a, b) => eq(a.balance, b.balance)
-	},
-	rankBy: 'balance'
+		diff: (a, b) => true
+	}
 })

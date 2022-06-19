@@ -1,80 +1,75 @@
-import { eq, gt } from '@xrplkit/xfl'
-
-
 const rankPadding = 1000000
 
 
-export function write({ ctx, table, where, ledgerSequence, items, compare, rankBy, include }){
-	let newItems = []
+export function write({ ctx, table, where, ledgerSequence, items, compare, include }){
 	let previousItems = read({ ctx, table, where, ledgerSequence, include })
-		.reverse()
-		
+	let unchangedItems = []
+	let newItems = []
+	let finalItems = []
+
 	let expiredItems = previousItems.filter(
 		pi => items.every(
 			item => !compare.unique(item, pi)
 		)
 	)
-	let unchangedItems = previousItems.filter(
-		pi => !expiredItems.includes(pi)
+
+	let assocs = items.map(
+		item => previousItems.findIndex(
+			previousItem => compare.unique(item, previousItem)
+		)
 	)
 
-	for(let index=0; index<items.length; index++){
-		let item = items[index]
-		let previousIndex = previousItems.findIndex(
-			pi => compare.unique(item, pi)
-		)
-		
+	let orderIndex = 0
+
+	console.log(assocs, previousItems.length)
+
+	for(let i=0; i<items.length; i++){
+		let item = items[i]
+		let previousIndex = assocs[i]
+
 		if(previousIndex === -1){
 			newItems.push(item)
 		}else{
 			let previousItem = previousItems[previousIndex]
 
-			if(compare.diff(item, previousItem))
-				continue
-
-			if(ctx.inSnapshot){
-				item.sequenceStart = Math.max(
-					item.sequenceStart, 
-					previousItem.sequenceStart
-				)
+			if(previousIndex === orderIndex && compare.diff(item, previousItem)){
+				finalItems.push(previousItem)
+				unchangedItems.push(previousItem)
+			}else{
+				finalItems.push({ ...item, id: undefined })
+				expiredItems.push(previousItem)
 			}
-			
-			newItems.push(item)
-			expiredItems.push(previousItem)
-			unchangedItems = unchangedItems.filter(
-				ui => ui !== previousItem
-			)
+
+			orderIndex++
+
+			for(let u=i+1; u<items.length; u++){
+				if(assocs[u] !== -1)
+					break
+
+				finalItems.push({ ...items[u], id: undefined })
+				i++
+			}
+
+			for(let u=previousIndex+1; u<previousItems.length; u++){
+				if(assocs.includes(u))
+					break
+
+				orderIndex++
+			}
 		}
+	}
+
+	if(newItems.length > 0){
+		finalItems = [
+			...newItems.map(
+				item => ({ ...item, id: undefined })
+			),
+			...finalItems
+		]
 	}
 
 	if(expiredItems.length > 0){
 		expire({ ctx, table, ledgerSequence, items: expiredItems })
-	}
-
-	for(let item of expiredItems){
-		ctx.meta[table].updateOne({
-			data: {
-				sequenceEnd: ledgerSequence
-			},
-			where: {
-				id: item.id
-			}
-		})
-	}
-
-	let finalItems = unchangedItems.slice()
-
-	for(let { id, ...item } of newItems){
-		let greaterIndex = finalItems
-			.findIndex(ui => gt(ui[rankBy], item[rankBy]))
-
-		if(greaterIndex === -1){
-			finalItems.push(item)
-		}else if(greaterIndex === 0){
-			finalItems.unshift(item)
-		}else{
-			finalItems.splice(greaterIndex, 0, item)
-		}
 	}
 
 	let islands = []
@@ -161,43 +156,28 @@ export function write({ ctx, table, where, ledgerSequence, items, compare, rankB
 	}
 }
 
-export function read({ ctx, table, where, ledgerSequence, include, limit, offset }){
+export function read({ ctx, table, where, ledgerSequence, include }){
 	return ctx.meta[table].readMany({
 		where: {
 			...where,
-			AND: [
+			sequenceStart: {
+				lessOrEqual: ledgerSequence
+			},
+			OR: [
 				{
-					OR: [
-						{
-							sequenceStart: null
-						},
-						{
-							sequenceStart: {
-								lessOrEqual: ledgerSequence
-							}
-						}
-					]
+					sequenceEnd: null
 				},
 				{
-					OR: [
-						{
-							sequenceEnd: null
-						},
-						{
-							sequenceEnd: {
-								greaterThan: ledgerSequence
-							}
-						}
-					]
+					sequenceEnd: {
+						greaterThan: ledgerSequence
+					}
 				}
 			]
 		},
 		orderBy: {
-			rank: 'desc'
+			rank: 'asc'
 		},
-		include,
-		take: limit,
-		skip: offset
+		include
 	})
 }
 

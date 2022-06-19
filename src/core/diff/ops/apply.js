@@ -1,4 +1,5 @@
 import { sum, sub, gt, eq } from '@xrplkit/xfl'
+import { insertOrdered } from '../../../lib/utils.js'
 import { write as writeBalance } from '../../../lib/meta/generic/balances.js'
 import { read as readTokenMetrics, write as writeTokenMetrics } from '../../../lib/meta/token/metrics.js'
 import { read as readTokenWhales, write as writeTokenWhales } from '../../../lib/meta/token/whales.js'
@@ -63,7 +64,7 @@ export function Token({ ctx, token, deltas }){
 	for(let { previous, final } of deltas){
 		writeBalance({
 			ctx,
-			account,
+			account: final.account || previous.account,
 			token,
 			ledgerSequence: ctx.ledgerSequence,
 			balance: final
@@ -103,26 +104,16 @@ export function Token({ ctx, token, deltas }){
 		)
 
 		if(final && gt(final.balance, 0)){
-			let whale = { 
-				account: final.account, 
-				balance: final.balance,
-				sequenceStart: final.previousSequence
-			}
-
-			let greaterWhaleIndex = whales
-				.findIndex(whale => gt(whale.balance, final.balance))
-
-			if(greaterWhaleIndex === -1){
-				whales.push(whale)
-			}else if(greaterWhaleIndex === 0){
-				if(whales.length < maxWhales)
-					whales.unshift(whale)
-			}else{
-				whales.splice(greaterWhaleIndex, 0, whale)
-			}
-
-			if(whales.length > maxWhales)
-				whales.shift()
+			insertOrdered({
+				list: whales,
+				item: { 
+					account: final.account, 
+					balance: final.balance,
+					sequenceStart: final.previousSequence
+				},
+				greaterThan: item => gt(item.balance, final.balance),
+				maxSize: maxWhales
+			})
 		}
 	}
 	
@@ -166,12 +157,16 @@ export function Book({ ctx, book, deltas }){
 				stack.offersCount++
 				stack.sequenceStart = Math.max(stack.sequenceStart, final.previousSequence)
 			}else{
-				stacks.push({
-					...book,
-					quality: final.quality,
-					size: final.size,
-					offersCount: 1,
-					sequenceStart: final.previousSequence
+				insertOrdered({
+					list: stacks,
+					item: {
+						...book,
+						quality: final.quality,
+						size: final.size,
+						offersCount: 1,
+						sequenceStart: final.previousSequence
+					},
+					greaterThan: item => gt(item.quality, final.quality)
 				})
 			}
 		}else{

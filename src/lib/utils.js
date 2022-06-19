@@ -1,3 +1,21 @@
+export function insertOrdered({ list, item, greaterThan, maxSize }){
+	let greaterIndex = list
+		.findIndex(greaterThan)
+
+	if(greaterIndex === -1){
+		list.push(item)
+	}else if(greaterIndex === 0){
+		if(!maxSize || list.length < maxSize)
+			list.unshift(item)
+	}else{
+		list.splice(greaterIndex, 0, item)
+	}
+
+	if(maxSize && list.length > maxSize)
+	list.shift()
+}
+
+
 export function mapKey(items, key){
 	let map = {}
 

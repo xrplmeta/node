@@ -234,10 +234,6 @@
 					"type": "string",
 					"format": "xrpl/address"
 				},
-				"balance": {
-					"type": "string",
-					"format": "xrpl/xfl"
-				},
 				"domain": {
 					"type": "string",
 					"format": "hex"
