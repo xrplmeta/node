@@ -74,12 +74,6 @@
 				"$ref": "#/definitions/TokenHolders"
 			}
 		},
-		"tokenWhales": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/TokenWhale"
-			}
-		},
 		"tokenOffers": {
 			"type": "array",
 			"items": {
@@ -525,42 +519,6 @@
 				["token", "ledgerSequence"]
 			]
 		},
-		"TokenWhale": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
-				},
-				"token": {
-					"$ref": "#/definitions/Token"
-				},
-				"account": {
-					"$ref": "#/definitions/Account"
-				},
-				"sequenceStart": {
-					"type": "integer"
-				},
-				"sequenceEnd": {
-					"type": "integer"
-				},
-				"rank": {
-					"type": "integer"
-				}
-			},
-			"required": [
-				"token",
-				"account",
-				"sequenceStart",
-				"rank"
-			],
-			"unique": [
-				["token", "account", "sequenceStart"]
-			],
-			"index": [
-				"rank"
-			]
-		},
 		"TokenOffer": {
 			"type": "object",
 			"properties": {
@@ -568,14 +526,17 @@
 					"type": "integer",
 					"id": true
 				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"sequence": {
+					"type": "integer"
+				},
 				"takerGets": {
 					"$ref": "#/definitions/Token"
 				},
 				"takerPays": {
 					"$ref": "#/definitions/Token"
-				},
-				"account": {
-					"$ref": "#/definitions/Account"
 				},
 				"quality": {
 					"type": "string",
@@ -585,34 +546,32 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"offersCount": {
-					"type": "integer"
+				"sizeFunded": {
+					"type": "string",
+					"format": "xrpl/xfl"
 				},
 				"sequenceStart": {
 					"type": "integer"
 				},
 				"sequenceEnd": {
 					"type": "integer"
-				},
-				"rank": {
-					"type": "integer"
 				}
 			},
 			"required": [
 				"account",
+				"sequence",
+				"takerPays",
+				"takerGets",
 				"quality",
 				"size",
-				"offersCount",
-				"sequenceStart",
-				"rank"
+				"sequenceStart"
 			],
 			"unique": [
-				["takerGets", "takerPays", "quality", "sequenceStart"]
+				["account", "sequence"]
 			],
 			"index": [
 				"takerPays",
-				"account",
-				"rank"
+				"takerGets"
 			]
 		}
 	}
