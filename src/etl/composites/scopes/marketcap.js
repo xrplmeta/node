@@ -1,5 +1,5 @@
 import { mul } from '@xrplkit/xfl'
-import { read as readMetrics, write as writeMetrics } from '../../lib/meta/token/metrics.js'
+import { read as readMetrics, write as writeMetrics } from '../../../lib/meta/token/metrics.js'
 import { read as readExchange } from '../../lib/meta/token/exchanges.js'
 
 

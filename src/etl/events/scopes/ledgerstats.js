@@ -1,7 +1,7 @@
 import { div, max, min, sum, floor } from "@xrplkit/xfl"
 
 
-export function extract({ ctx, ledger }){
+export function extractLedgerStats({ ctx, ledger }){
 	let baseData = {
 		sequence: ledger.sequence,
 		hash: ledger.hash,

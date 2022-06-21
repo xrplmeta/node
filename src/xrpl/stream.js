@@ -4,7 +4,7 @@ import { fetch as fetchLedger } from './ledger.js'
 
 
 
-export async function startForward({ ctx, startSequence }){
+export async function startForwardStream({ ctx, startSequence }){
 	let latestLedger = await fetchLedger({ 
 		ctx,
 		sequence: 'validated' 

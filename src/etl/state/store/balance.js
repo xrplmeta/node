@@ -1,5 +1,5 @@
 import { eq } from '@xrplkit/xfl'
-import { write as writeSimple, read as readSimple } from '../simple.js'
+import { write as writeSimple, read as readSimple } from '../../../lib/meta/simple.js'
 
 export function write({ ctx, account, token, ledgerSequence, balance }){
 	writeSimple({
@@ -10,8 +10,7 @@ export function write({ ctx, account, token, ledgerSequence, balance }){
 			token
 		},
 		ledgerSequence,
-		item: { balance },
-		compare: (a, b) => eq(a?.balance || '0', b?.balance || '0')
+		item: { balance }
 	})
 }
 

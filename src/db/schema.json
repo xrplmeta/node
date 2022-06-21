@@ -1,5 +1,5 @@
 {
-	"title": "Metadata & Marketdata Storage",
+	"title": "XRPL Meta Database Structure",
 	"type": "object",
 	"properties": {
 		"snapshots": {

@@ -1,9 +1,8 @@
 import { sum, sub, gt, eq } from '@xrplkit/xfl'
-import { insertOrdered } from '../../../lib/utils.js'
+import { insertOrdered } from '../../lib/utils.js'
 import { write as writeBalance } from '../../../lib/meta/generic/balances.js'
-import { read as readTokenMetrics, write as writeTokenMetrics } from '../../../lib/meta/token/metrics.js'
-import { read as readTokenWhales, write as writeTokenWhales } from '../../../lib/meta/token/whales.js'
-import { read as readTokenOffers, write as writeTokenOffers } from '../../../lib/meta/token/offers.js'
+import { read as readTokenMetrics, write as writeTokenMetrics } from '../../lib/meta/token/metrics.js'
+import { read as readTokenOffers, write as writeTokenOffers } from '../../lib/meta/token/offers.js'
 
 
 export function Account({ ctx, account, deltas }){
@@ -27,8 +26,6 @@ export function Account({ ctx, account, deltas }){
 }
 
 export function Token({ ctx, token, deltas }){
-	const maxWhales = ctx.config.ledger.tokens.captureWhales
-
 	token = ctx.meta.tokens.createOne({
 		data: token
 	})
@@ -54,12 +51,6 @@ export function Token({ ctx, token, deltas }){
 			}
 		})
 	}
-
-	let whales = readTokenWhales({
-		ctx,
-		ledgerSequence: ctx.ledgerSequence,
-		token
-	})
 
 	for(let { previous, final } of deltas){
 		writeBalance({
@@ -98,23 +89,6 @@ export function Token({ ctx, token, deltas }){
 				metrics.holders--
 			}
 		}
-
-		whales = whales.filter(
-			whale => whale.account.address !== (previous?.account.address || final?.account.address)
-		)
-
-		if(final && gt(final.balance, 0)){
-			insertOrdered({
-				list: whales,
-				item: { 
-					account: final.account, 
-					balance: final.balance,
-					sequenceStart: final.previousSequence
-				},
-				greaterThan: item => gt(item.balance, final.balance),
-				maxSize: maxWhales
-			})
-		}
 	}
 	
 	writeTokenMetrics({
@@ -122,13 +96,6 @@ export function Token({ ctx, token, deltas }){
 		token,
 		ledgerSequence: latestPreviousSequence,
 		metrics
-	})
-	
-	writeTokenWhales({
-		ctx,
-		token,
-		ledgerSequence: ctx.ledgerSequence,
-		whales
 	})
 }
 

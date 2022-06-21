@@ -3,7 +3,7 @@ import { extractExchanges } from '@xrplkit/txmeta'
 import { div } from '@xrplkit/xfl'
 
 
-export function extract({ ctx, ledger }){
+export function extractTokenExchanges({ ctx, ledger }){
 	let subjects = {}
 	let exchanges = []
 

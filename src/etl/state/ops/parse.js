@@ -2,7 +2,7 @@ import { div, lt, gt, neg, max } from '@xrplkit/xfl'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
 import { encodeAccountID } from 'ripple-address-codec'
-import { isBlackholed } from '../../../lib/xrpl/blackhole.js'
+import { isBlackholed } from '../../xrpl/blackhole.js'
 
 
 export function AccountRoot({ entry }){

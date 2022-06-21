@@ -1,7 +1,6 @@
 import log from '@mwni/log'
 import { unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
-import { open as openMetaStore } from '../../store/meta.js'
 import { diff as diffLedgerObjects } from '../../core/diff/index.js'
 import { fetch as fetchLedger } from '../../lib/xrpl/ledger.js'
 import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
@@ -10,12 +9,11 @@ import { updateAll as updateAllMarketcaps } from '../../core/postdiff/marketcap.
 import { updateAll as updateAllOfferFunds } from '../../core/postdiff/offerfunds.js'
 
 
-export async function run({ ctx }){
-	if(ctx.log)
-		log.pipe(ctx.log)
-
-	ctx.meta = openMetaStore({ ctx })
-	ctx.snapshotState = ctx.meta.snapshots.readOne({ last: true })
+export async function createSnapshot({ ctx }){
+	ctx = {
+		...ctx,
+		snapshotState: ctx.db.snapshots.readLast()
+	}
 
 	if(!ctx.snapshotState){
 		await createSnapshotEntry({ ctx })
@@ -25,8 +23,8 @@ export async function run({ ctx }){
 		log.info(`resuming snapshot of ledger #${ctx.snapshotState.ledgerSequence}`)
 	}
 
-	ctx.ledgerSequence = ctx.snapshotState.ledgerSequence
 	ctx.inSnapshot = true
+	ctx.ledgerSequence = ctx.snapshotState.ledgerSequence
 
 	if(ctx.snapshotState.entriesCount === 0 || ctx.snapshotState.marker){
 		try{
@@ -47,9 +45,9 @@ export async function run({ ctx }){
 	}
 
 	if(!ctx.snapshotState.completionTime){
-		applyPostDiffs({ ctx })
+		applyPost({ ctx })
 
-		ctx.meta.snapshots.updateOne({
+		ctx.db.snapshots.updateOne({
 			data: {
 				completionTime: unixNow(),
 				marker: null
@@ -83,7 +81,7 @@ async function createSnapshotEntry({ ctx }){
 
 async function createFeed({ ctx }){
 	return await spawn(
-		'../../lib/xrpl/snapshot.js:start', 
+		'../xrpl/snapshot.js:start', 
 		{ 
 			ctx, 
 			ledgerSequence: ctx.snapshotState.ledgerSequence 
@@ -136,7 +134,7 @@ async function copyFromFeed({ ctx, feed }){
 }
 
 
-function applyPostDiffs({ ctx }){
+function applyPost({ ctx }){
 	log.info(`applying postdiff operations ...`)
 
 	log.time.info(`marketcaps`, `calculating marketcaps ...`)
