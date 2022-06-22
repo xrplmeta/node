@@ -1,4 +1,4 @@
-import { XFL, toBigInt } from '@xrplkit/xfl'
+import { XFL, toSortSafeBigInt } from '@xrplkit/xfl'
 
 export default {
 	acceptsFormat: 'xrpl/xfl',
@@ -8,13 +8,13 @@ export default {
 	
 	encode(data){
 		return data !== null && data !== undefined 
-			? toBigInt(data) 
+			? toSortSafeBigInt(data) 
 			: data
 	},
 
 	decode(data){
 		return data !== null && data !== undefined  
-			? XFL(BigInt(data)) 
+			? XFL.fromSortSafeBigInt(BigInt(data)) 
 			: data
 	}
 }
