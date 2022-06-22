@@ -3,7 +3,7 @@ import { run as runLedgerApp } from './ledger.js'
 
 
 export default async function({ config }){
-	runLedgerApp({ config, xrpl })
+	runLedgerApp({ config })
 		.catch(error => {
 			log.error(`ledger app crashed due to fatal error:`)
 			log.error(error)
