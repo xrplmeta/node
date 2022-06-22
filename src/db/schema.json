@@ -74,6 +74,12 @@
 				"$ref": "#/definitions/TokenHolders"
 			}
 		},
+		"tokenBooks": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenBook"
+			}
+		},
 		"tokenOffers": {
 			"type": "array",
 			"items": {
@@ -111,8 +117,7 @@
 			},
 			"required": [
 				"creationTime",
-				"ledgerSequence",
-				"originNode"
+				"ledgerSequence"
 			],
 			"unique": [
 				"ledgerSequence"
@@ -297,14 +302,14 @@
 				},
 				"balance": {
 					"type": "string",
-					"format": "xrpl/xfl"
+					"format": "xrpl/xfl",
+					"default": 0
 				}
 			},
 			"required": [
 				"account",
 				"token",
-				"ledgerSequence",
-				"balance"
+				"ledgerSequence"
 			],
 			"unique": [
 				["account", "token", "ledgerSequence"]
@@ -428,13 +433,13 @@
 				},
 				"value": {
 					"type": "string",
-					"format": "xrpl/xfl"
+					"format": "xrpl/xfl",
+					"default": 0
 				}
 			},
 			"required": [
 				"token",
-				"ledgerSequence",
-				"value"
+				"ledgerSequence"
 			],
 			"unique": [
 				["token", "ledgerSequence"]
@@ -454,13 +459,13 @@
 					"type": "integer"
 				},
 				"value": {
-					"type": "integer"
+					"type": "integer",
+					"default": 0
 				}
 			},
 			"required": [
 				"token",
-				"ledgerSequence",
-				"value"
+				"ledgerSequence"
 			],
 			"unique": [
 				["token", "ledgerSequence"]
@@ -480,13 +485,13 @@
 					"type": "integer"
 				},
 				"value": {
-					"type": "integer"
+					"type": "integer",
+					"default": 0
 				}
 			},
 			"required": [
 				"token",
-				"ledgerSequence",
-				"value"
+				"ledgerSequence"
 			],
 			"unique": [
 				["token", "ledgerSequence"]
@@ -507,16 +512,38 @@
 				},
 				"value": {
 					"type": "string",
-					"format": "xrpl/xfl"
+					"format": "xrpl/xfl",
+					"default": 0
 				}
 			},
 			"required": [
 				"token",
-				"ledgerSequence",
-				"value"
+				"ledgerSequence"
 			],
 			"unique": [
 				["token", "ledgerSequence"]
+			]
+		},
+		"TokenBook": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"takerPays": {
+					"$ref": "#/definitions/Token"
+				},
+				"takerGets": {
+					"$ref": "#/definitions/Token"
+				}
+			},
+			"required": [
+				"takerPays",
+				"takerGets"
+			],
+			"unique": [
+				["takerPays", "takerGets"]
 			]
 		},
 		"TokenOffer": {
@@ -529,14 +556,14 @@
 				"account": {
 					"$ref": "#/definitions/Account"
 				},
-				"sequence": {
+				"accountSequence": {
 					"type": "integer"
 				},
-				"takerGets": {
-					"$ref": "#/definitions/Token"
+				"book": {
+					"$ref": "#/definitions/TokenBook"
 				},
-				"takerPays": {
-					"$ref": "#/definitions/Token"
+				"ledgerSequence": {
+					"type": "integer"
 				},
 				"quality": {
 					"type": "string",
@@ -550,28 +577,27 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"sequenceStart": {
+				"expirationTime": {
 					"type": "integer"
 				},
-				"sequenceEnd": {
+				"expirationLedgerSequence": {
 					"type": "integer"
 				}
 			},
 			"required": [
 				"account",
-				"sequence",
-				"takerPays",
-				"takerGets",
+				"accountSequence",
+				"book",
 				"quality",
 				"size",
-				"sequenceStart"
+				"ledgerSequence"
 			],
 			"unique": [
-				["account", "sequence"]
+				["account", "accountSequence", "ledgerSequence"]
 			],
 			"index": [
-				"takerPays",
-				"takerGets"
+				"book",
+				"quality"
 			]
 		}
 	}
