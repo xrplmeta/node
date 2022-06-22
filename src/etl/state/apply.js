@@ -1,6 +1,12 @@
-import * as parsers from './ops/parse.js'
-import * as groupers from './ops/group.js'
-import * as differs from './ops/diff.js'
+import * as accounts from './scopes/accounts.js'
+import * as tokens from './scopes/tokens.js'
+import * as tokenOffers from './scopes/tokenoffers.js'
+
+const ledgerEntryModules = {
+	AccountRoot: accounts,
+	RippleState: tokens,
+	Offer: tokenOffers
+}
 
 
 export function applyObjects({ ctx, objects }){
@@ -62,52 +68,58 @@ export function applyTransactions({ ctx, ledger }){
 
 function applyDeltas({ ctx, deltas }){
 	let groups = {}
+	let solos = []
 
 	for(let { type, previous, final } of deltas){
-		let parse = parsers[type]
+		let module = ledgerEntryModules[type]
 
-		if(!parse)
+		if(!module)
 			continue
 
 		let parsedPrevious = previous 
-			? parse({ entry: previous }) 
+			? module.parse({ entry: previous }) 
 			: undefined
 
 		let parsedFinal = final
-			? parse({ entry: final }) 
+			? module.parse({ entry: final }) 
 			: undefined
 
 		if(!parsedPrevious && !parsedFinal)
 			continue
 
-		let grouped = groupers[type]({ 
-			previous: parsedPrevious, 
-			final: parsedFinal 
-		})
+		if(module.group){
+			let grouped = module.group({ 
+				previous: parsedPrevious, 
+				final: parsedFinal 
+			})
 
-		for(let { group, previous, final } of grouped){
-			if(!groups[group.key])
-				groups[group.key] = {
-					...group,
-					deltas: []
-				}
-
-			groups[group.key].deltas.push({
-				previous,
-				final
+			for(let { group, previous, final } of grouped){
+				if(!groups[group.key])
+					groups[group.key] = {
+						...group,
+						type,
+						deltas: []
+					}
+	
+				groups[group.key].deltas.push({
+					previous,
+					final
+				})
+			}
+		}else{
+			solos.push({
+				type,
+				previous: parsedPrevious, 
+				final: parsedFinal 
 			})
 		}
 	}
 
 	for(let { type, key, ...group } of Object.values(groups)){
-		differs[type]({ ctx, ...group })
+		ledgerEntryModules[type].diff({ ctx, ...group })
 	}
 
-	return Object.values(groups).reduce(
-		(subjects, { key, deltas, ...group }) => {
-			subjects[key] = group
-			return subjects
-		},
-		{}
-	)
+	for(let { type, ...delta } of solos){
+		ledgerEntryModules[type].diff({ ctx, ...delta })
+	}
 }

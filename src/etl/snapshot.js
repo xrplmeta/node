@@ -1,12 +1,11 @@
 import log from '@mwni/log'
 import { unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
-import { diff as diffLedgerObjects } from '../../core/diff/index.js'
-import { fetch as fetchLedger } from '../../lib/xrpl/ledger.js'
-import { extract as extractLedgerMeta } from '../../lib/meta/generic/ledgers.js'
-import { extract as extractTokenExchanges } from '../../lib/meta/token/exchanges.js'
-import { updateAll as updateAllMarketcaps } from '../../core/postdiff/marketcap.js'
-import { updateAll as updateAllOfferFunds } from '../../core/postdiff/offerfunds.js'
+import { fetch as fetchLedger } from '../xrpl/ledger.js'
+import { applyObjects } from './state/apply.js'
+import { extractEvents } from './events/extract.js'
+import { deriveAllComposites } from './composites/derive.js'
+import { buildAllAggregates } from './aggregates/build.js'
 
 
 export async function createSnapshot({ ctx }){
@@ -17,20 +16,21 @@ export async function createSnapshot({ ctx }){
 
 	if(!ctx.snapshotState){
 		await createSnapshotEntry({ ctx })
-		
+
 		log.info(`creating snapshot of ledger #${ctx.snapshotState.ledgerSequence} - this may take a long time`)
 	}else{
 		log.info(`resuming snapshot of ledger #${ctx.snapshotState.ledgerSequence}`)
 	}
 
 	ctx.inSnapshot = true
-	ctx.ledgerSequence = ctx.snapshotState.ledgerSequence
+	ctx.ledgerSequence = 0
+	ctx.affectedScope = () => null
 
 	if(ctx.snapshotState.entriesCount === 0 || ctx.snapshotState.marker){
 		try{
-			await copyFromFeed({ 
-				ctx, 
-				feed: await createFeed({ 
+			await copyFromFeed({
+				ctx,
+				feed: await createFeed({
 					ctx,
 					marker: ctx.snapshotState.marker,
 					node: ctx.snapshotState.originNode
@@ -45,7 +45,13 @@ export async function createSnapshot({ ctx }){
 	}
 
 	if(!ctx.snapshotState.completionTime){
-		applyPost({ ctx })
+		log.time.info(`snapshot.composites`, `deriving composites (1/2) ...`)
+		deriveAllComposites({ ctx })
+		log.time.info(`snapshot.composites`, `derived composites in %`)
+
+		log.time.info(`snapshot.aggregates`, `building aggregates (2/2) ...`)
+		buildAllAggregates({ ctx })
+		log.time.info(`snapshot.aggregates`, `built aggregates in %`)
 
 		ctx.db.snapshots.updateOne({
 			data: {
@@ -53,7 +59,7 @@ export async function createSnapshot({ ctx }){
 				marker: null
 			},
 			where: {
-				ledgerSequence: ctx.snapshotState.ledgerSequence
+				id: ctx.snapshotState.id
 			}
 		})
 
@@ -67,14 +73,12 @@ async function createSnapshotEntry({ ctx }){
 		sequence: 'validated'
 	})
 
-	extractLedgerMeta({ ctx, ledger })
-	extractTokenExchanges({ ctx, ledger })
+	extractEvents({ ctx, ledger })
 
-	ctx.snapshotState = ctx.meta.snapshots.createOne({
+	ctx.snapshotState = ctx.db.snapshots.createOne({
 		data: {
-			ledgerSequence: feed.ledgerSequence,
-			creationTime: unixNow(),
-			originNode: feed.node
+			ledgerSequence: ledger.sequence,
+			creationTime: unixNow()
 		}
 	})
 }
@@ -97,22 +101,20 @@ async function copyFromFeed({ ctx, feed }){
 		if(!chunk)
 			break
 		
-		ctx.meta.tx(async () => {
-			diffLedgerObjects({
+		ctx.db.tx(() => {
+			applyObjects({
 				ctx,
-				deltas: chunk.objects.map(entry => ({ 
-					type: entry.LedgerEntryType,
-					final: entry 
-				}))
+				objects: chunk.objects
 			})
 			
-			ctx.snapshotState = ctx.meta.snapshots.updateOne({
+			ctx.snapshotState = ctx.db.snapshots.updateOne({
 				data: {
+					originNode: feed.node,
 					marker: chunk.marker,
 					entriesCount: ctx.snapshotState.entriesCount + chunk.objects.length
 				},
 				where: {
-					ledgerSequence: ctx.ledgerSequence
+					id: ctx.snapshotState.id
 				}
 			})
 		})
@@ -131,17 +133,4 @@ async function copyFromFeed({ ctx, feed }){
 
 	log.flush()
 	log.info(`reached end of ledger data`)
-}
-
-
-function applyPost({ ctx }){
-	log.info(`applying postdiff operations ...`)
-
-	log.time.info(`marketcaps`, `calculating marketcaps ...`)
-	updateAllMarketcaps({ ctx })
-	log.time.info(`marketcaps`, `calculated marketcaps in %`)
-
-	log.time.info(`offerfunds`, `constraining offer funds ...`)
-	updateAllOfferFunds({ ctx })
-	log.time.info(`offerfunds`, `constrained offer funds in %`)
 }

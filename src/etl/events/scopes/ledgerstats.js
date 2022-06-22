@@ -10,7 +10,7 @@ export function extractLedgerStats({ ctx, ledger }){
 	}
 
 	if(ledger.transactions.length === 0){
-		ctx.meta.ledgers.createOne({
+		ctx.db.ledgers.createOne({
 			data: baseData
 		})
 	}else{
@@ -22,30 +22,20 @@ export function extractLedgerStats({ ctx, ledger }){
 				types[transaction.TransactionType] = 0
 			
 			types[transaction.TransactionType]++
-			fees.push(transaction.Fee)
+			fees.push(parseInt(transaction.Fee))
 		}
 
-		ctx.meta.ledgers.createOne({
+		ctx.db.ledgers.createOne({
 			data: {
 				...baseData,
 				txTypeCounts: Object.entries(types)
 					.map(([type, count]) => ({ type, count })),
-				minFee: min(...fees),
-				maxFee: max(...fees),
-				avgFee: floor(
-					div(
-						fees.reduce((total, fee) => sum(total, fee), '0'),
-						fees.length
-					)
+				minFee: Math.min(...fees),
+				maxFee: Math.max(...fees),
+				avgFee: Math.floor(
+					fees.reduce((total, fee) => total + fee, 0) / fees.length
 				)
 			}
 		})
-	}
-
-	return {
-		[ledger.sequence]: {
-			type: 'Ledger',
-			sequence: ledger.sequence
-		}
 	}
 }

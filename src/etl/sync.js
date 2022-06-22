@@ -4,6 +4,7 @@ import { extractEvents } from './events/extract.js'
 import { applyTransactions } from './state/apply.js'
 import { deriveComposites } from './composites/derive.js'
 import { buildAggregates } from './aggregates/build.js'
+import { createScopeRegistry } from '../lib/scopereg.js'
 
 
 export async function startSync({ ctx }){
@@ -28,13 +29,13 @@ export async function startSync({ ctx }){
 			ctx = { 
 				...ctx, 
 				ledgerSequence: ledger.sequence,
-				affectedScopes: {}
+				...createScopeRegistry()
 			}
 
-			extractTransactionEvents({ ctx, ledger })
-			applyLedgerTransactions({ ctx, ledger })
-			deriveComposites({ ctx, ledger })
-			buildAggregates({ ctx, ledger })
+			extractEvents({ ctx, ledger })
+			applyTransactions({ ctx, ledger })
+			deriveComposites({ ctx, ledger, scopes: ctx.affectedScopes() })
+			buildAggregates({ ctx, ledger, scopes: ctx.affectedScopes() })
 		})
 
 

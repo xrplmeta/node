@@ -1,10 +1,7 @@
-import log from '@mwni/log'
 import { extractExchanges } from '@xrplkit/txmeta'
-import { div } from '@xrplkit/xfl'
 
 
 export function extractTokenExchanges({ ctx, ledger }){
-	let subjects = {}
 	let exchanges = []
 
 	for(let transaction of ledger.transactions){
@@ -32,16 +29,13 @@ export function extractTokenExchanges({ ctx, ledger }){
 		
 		for(let token of [takerPaidToken, takerGotToken]){
 			if(token.issuer)
-				subjects = {
-					...subjects,
-					[`${token.currency}:${token.issuer.address}`]: {
-						type: 'Token',
-						token
-					}
-				}
+				ctx.affectedScope({
+					token,
+					change: 'exchanges'
+				})
 		}
 
-		ctx.meta.tokenExchanges.createOne({
+		ctx.db.tokenExchanges.createOne({
 			data: {
 				txHash: hash,
 				ledgerSequence: ledger.sequence,
@@ -58,66 +52,5 @@ export function extractTokenExchanges({ ctx, ledger }){
 				takerGotValue: takerGot.value,
 			}
 		})
-	}
-
-	log.accumulate.info({
-		text: [
-			`recorded %tokenExchanges exchanges in %time`
-		],
-		data: {
-			tokenExchanges: exchanges.length
-		}
-	})
-
-	return subjects
-}
-
-
-export function read({ ctx, base, quote, takerGot, ledgerSequence }){
-	let exchange = ctx.meta.tokenExchanges.readOne({
-		where: {
-			OR: [
-				{
-					takerPaidToken: base,
-					takerGotToken: quote
-				},
-				{
-					takerPaidToken: quote,
-					takerGotToken: base
-				}
-			],
-			ledgerSequence: {
-				lessOrEqual: ledgerSequence
-			}
-		},
-		orderBy: {
-			ledgerSequence: 'desc'
-		}
-	})
-
-	if(!exchange)
-		return
-
-	return align({ base, quote, exchange })
-}
-
-export function align({ base, quote, exchange }){
-	let { takerPaidToken, takerGotToken, takerPaidValue, takerGotValue, ...props } = exchange
-
-	if(
-		takerPaidToken.currency === base.currency && 
-		takerPaidToken.issuer?.address === base.issuer?.address
-	){
-		return {
-			...props,
-			price: div(takerGotValue, takerPaidValue),
-			volume: takerPaidValue
-		}
-	}else{
-		return {
-			...props,
-			price: div(takerPaidValue, takerGotValue),
-			volume: takerGotValue
-		}
 	}
 }

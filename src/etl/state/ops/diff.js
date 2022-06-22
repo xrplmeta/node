@@ -1,14 +1,13 @@
 import { sum, sub, gt, eq } from '@xrplkit/xfl'
-import { insertOrdered } from '../../lib/utils.js'
-import { write as writeBalance } from '../../../lib/meta/generic/balances.js'
-import { read as readTokenMetrics, write as writeTokenMetrics } from '../../lib/meta/token/metrics.js'
-import { read as readTokenOffers, write as writeTokenOffers } from '../../lib/meta/token/offers.js'
+import { writeBalance } from '../../../data/balances.js'
+import { expireTokenOffer, writeTokenOffer } from '../../../data/token/offers.js'
+import { writeTokenMetrics, readTokenMetrics } from '../../../data/token/metrics.js'
 
 
 export function Account({ ctx, account, deltas }){
-	for(let { previous, final } of deltas){
+	for(let { final } of deltas){
 		if(!ctx.inBackfill){
-			ctx.meta.accounts.createOne({ 
+			ctx.db.accounts.createOne({ 
 				data: final 
 			})
 		}
@@ -16,7 +15,10 @@ export function Account({ ctx, account, deltas }){
 		writeBalance({
 			ctx,
 			account,
-			token: { currency: 'XRP' },
+			token: { 
+				currency: 'XRP',
+				issuer: null
+			},
 			ledgerSequence: ctx.ledgerSequence,
 			balance: final
 				? final.balance
@@ -26,13 +28,15 @@ export function Account({ ctx, account, deltas }){
 }
 
 export function Token({ ctx, token, deltas }){
-	token = ctx.meta.tokens.createOne({
+	token = ctx.db.tokens.createOne({
 		data: token
 	})
 
 	let latestPreviousSequence = Math.min(
 		...deltas.map(
-			({ previous, final }) => final?.previousSequence || previous?.previousSequence
+			({ previous, final }) => {
+				return final?.previousSequence || previous?.previousSequence
+			}
 		)
 	)
 
@@ -100,67 +104,29 @@ export function Token({ ctx, token, deltas }){
 }
 
 export function Book({ ctx, book, deltas }){
-	let ledgerSequence = ctx.ledgerSequence
-	let stacks = readTokenOffers({ ctx, book, ledgerSequence })
-
 	for(let { previous, final } of deltas){
-		let stack = stacks.find(
-			stack => eq(stack.quality, previous?.quality || final?.quality)
-		)
+		if(previous){
+			expireTokenOffer({
+				ctx,
+				book,
+				account: previous.account,
+				accountSequence: previous.accountSequence,
+				ledgerSequence: ctx.ledgerSequence
+			})
+		}
 
-		if(previous && final){
-			if(!stack){
-				throw new Error(`missing meta entry`)
-			}
-
-			stack.sequenceStart = ledgerSequence
-			stack.size = sum(
-				stack.size, 
-				sub(final.size, previous.size)
-			)
-		}else if(final){
-			if(stack){
-				stack.size = sum(stack.size, final.size)
-				stack.offersCount++
-				stack.sequenceStart = Math.max(stack.sequenceStart, final.previousSequence)
-			}else{
-				insertOrdered({
-					list: stacks,
-					item: {
-						...book,
-						quality: final.quality,
-						size: final.size,
-						offersCount: 1,
-						sequenceStart: final.previousSequence
-					},
-					greaterThan: item => gt(item.quality, final.quality)
-				})
-			}
-		}else{
-			if(!stack){
-				console.log(stacks)
-				console.log(previous)
-				throw new Error(`missing meta entry`)
-			}
-			
-			stack.sequenceStart = ledgerSequence
-			stack.size = sub(stack.size, previous.size)
-			stack.offersCount--
-
-			if(stack.offersCount <= 0){
-				stacks = stacks.filter(
-					s => s !== stack
-				)
-			}
+		if(final){
+			writeTokenOffer({
+				ctx,
+				book,
+				account: final.account,
+				accountSequence: final.accountSequence,
+				ledgerSequence: final.previousSequence,
+				quality: final.quality,
+				size: final.size
+			})
 		}
 	}
-
-	writeTokenOffers({
-		ctx,
-		book,
-		ledgerSequence,
-		offers: stacks
-	})
 }
 
 export function NFTPage({ ctx, account, deltas }){
