@@ -2,7 +2,7 @@ import { writePoint, clearPoint } from '../../lib/datapoints.js'
 
 
 export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence, book, quality, size, sizeFunded }){
-	writePoint({
+	return writePoint({
 		table: ctx.db.tokenOffers,
 		selector: {
 			account,
@@ -14,18 +14,19 @@ export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence,
 			quality,
 			size,
 			sizeFunded
-		}
+		},
+		expirable: true
 	})
 }
 
 export function expireTokenOffer({ ctx, account, accountSequence, ledgerSequence }){
-	clearPoint({
+	return clearPoint({
 		table: ctx.db.tokenOffers,
 		selector: {
 			account,
-			accountSequence,
-			book
+			accountSequence
 		},
-		ledgerSequence
+		ledgerSequence,
+		expirable: true
 	})
 }
