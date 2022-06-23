@@ -10,10 +10,10 @@ export function readPoint({ table, selector, ledgerSequence, expirable }){
 					? {
 						OR: [
 							{
-								sequenceEnd: null
+								expirationLedgerSequence: null
 							},
 							{
-								sequenceEnd: {
+								expirationLedgerSequence: {
 									greaterThan: ledgerSequence
 								}
 							}
@@ -37,8 +37,8 @@ export function writePoint({ table, selector, ledgerSequence, data, expirable })
 		let changes = {}
 
 		for(let [key, value] of Object.entries(data)){
-			let a = value ? value.toString() : value
-			let b = point[key] ? point[key].toString() : point[key]
+			let a = value != null ? value.toString() : value
+			let b = point[key] != null ? point[key].toString() : point[key]
 
 			if(a != b){
 				changes[key] = value
@@ -87,7 +87,7 @@ export function clearPoint({ table, selector, ledgerSequence, expirable }){
 	})
 
 	if(point){
-		if(point.ledgerSequence === ledgerSequence || override){
+		if(point.ledgerSequence === ledgerSequence){
 			return table.deleteOne({
 				where: {
 					id: point.id
@@ -113,8 +113,4 @@ export function clearPoint({ table, selector, ledgerSequence, expirable }){
 			})
 		}
 	}
-
-	
-
-	
 }

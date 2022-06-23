@@ -17,15 +17,30 @@ export function parse({ entry }){
 }
 
 export function diff({ ctx, previous, final }){
-	if(!ctx.inBackfill){
-		ctx.db.accounts.createOne({ 
-			data: final 
+	let address = final?.address || previous?.address
+
+	if(final){
+		let { balance, ...meta } = final
+		var { id } = ctx.db.accounts.createOne({ 
+			data: ctx.inBackfill
+				? { address }
+				: meta
+		})
+	}else{
+		var { id } = ctx.db.accounts.createOne({ 
+			data: {
+				address
+			}
 		})
 	}
 
+	
+
 	writeBalance({
 		ctx,
-		account: final,
+		account: {
+			id
+		},
 		token: {
 			currency: 'XRP',
 			issuer: null
@@ -37,7 +52,7 @@ export function diff({ ctx, previous, final }){
 	})
 
 	ctx.affectedScope({
-		account: final,
+		account: { id },
 		change: 'balances'
 	})
 }

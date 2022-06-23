@@ -19,10 +19,17 @@ export function deriveOfferConstraintsByOffer({ ctx, offer }){
 		}
 	})
 
+	/*console.log({
+		account: offer.account,
+		token: offer.book.takerGets,
+		ledgerSequence: ctx.ledgerSequence
+	})
+	console.log(balance, min(offer.size, balance || '0'))*/
+
 	constrainedOffer.sizeFunded = min(offer.size, balance || '0')
 
 	if(ledger && offer.expirationTime && ledger.closeTime > offer.expirationTime){
-		constrainedOffer.sequenceEnd = ctx.ledgerSequence
+		constrainedOffer.expirationLedgerSequence = ctx.ledgerSequence
 	}
 
 	writeTokenOffer({
@@ -36,6 +43,9 @@ export function deriveOfferConstraintsByAccount({ ctx, account }){
 	let offers = ctx.db.tokenOffers.iter({
 		where: {
 			account
+		},
+		include: {
+			book: true
 		}
 	})
 

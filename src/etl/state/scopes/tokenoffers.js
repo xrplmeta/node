@@ -27,18 +27,19 @@ export function parse({ entry }){
 	return {
 		account: { address: entry.Account },
 		accountSequence: entry.Sequence,
-		directory: entry.BookDirectory,
-		takerPays: {
-			currency: takerPays.currency,
-			issuer: takerPays.issuer
-				? { address: takerPays.issuer }
-				: undefined
-		},
-		takerGets: {
-			currency: takerGets.currency,
-			issuer: takerGets.issuer
-				? { address: takerGets.issuer }
-				: undefined
+		book: {
+			takerPays: {
+				currency: takerPays.currency,
+				issuer: takerPays.issuer
+					? { address: takerPays.issuer }
+					: undefined
+			},
+			takerGets: {
+				currency: takerGets.currency,
+				issuer: takerGets.issuer
+					? { address: takerGets.issuer }
+					: undefined
+			},
 		},
 		quality,
 		size,
@@ -56,10 +57,7 @@ export function diff({ ctx, previous, final }){
 			account: previous.account,
 			accountSequence: previous.accountSequence,
 			ledgerSequence: ctx.ledgerSequence,
-			book: {
-				takerPays: previous.takerPays,
-				takerGets: previous.takerGets,
-			}
+			book: previous.book
 		})
 
 		ctx.affectedScope({
@@ -74,10 +72,7 @@ export function diff({ ctx, previous, final }){
 			account: final.account,
 			accountSequence: final.accountSequence,
 			ledgerSequence: ctx.ledgerSequence,
-			book: {
-				takerPays: final.takerPays,
-				takerGets: final.takerGets,
-			},
+			book: final.book,
 			quality: final.quality,
 			size: final.size,
 			expirationTime: final.expirationTime
