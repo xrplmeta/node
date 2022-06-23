@@ -26,16 +26,23 @@ export async function startSync({ ctx }){
 		let ledgersBehind = stream.targetSequence - stream.currentSequence
 
 		ctx.db.tx(() => {
-			ctx = { 
-				...ctx, 
+			ctx = {
+				...ctx,
 				ledgerSequence: ledger.sequence,
 				...createScopeRegistry()
 			}
 
-			extractEvents({ ctx, ledger })
-			applyTransactions({ ctx, ledger })
-			deriveComposites({ ctx, ledger, scopes: ctx.affectedScopes() })
-			buildAggregates({ ctx, ledger, scopes: ctx.affectedScopes() })
+			try{
+				extractEvents({ ctx, ledger })
+				applyTransactions({ ctx, ledger })
+				deriveComposites({ ctx, ledger })
+				buildAggregates({ ctx, ledger })
+			}catch(error){
+				log.error(`fatal error while syncing ledger #${ledger.sequence}:`)
+				log.error(error.stack)
+
+				throw error
+			}
 		})
 
 
