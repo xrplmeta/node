@@ -2,8 +2,8 @@ import { deriveOfferConstraintsByOffer, deriveOfferConstraintsByAccount } from '
 import { deriveMarketcap } from './scopes/marketcaps.js'
 
 
-export function deriveComposites({ ctx, scopes }){
-	for(let { token, offer, account, changes } of scopes){
+export function deriveComposites({ ctx }){
+	for(let { token, offer, account, changes } of ctx.affectedScopes()){
 		if(token){
 			deriveMarketcap({ ctx, token })
 		}else if(offer){
