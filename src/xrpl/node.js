@@ -86,7 +86,7 @@ export default class Node extends EventEmitter{
 	async do(payload){
 		if(payload.command){
 			this.busy = true
-			
+
 			let result = await this.socket.request(payload)
 
 			this.busy = false
