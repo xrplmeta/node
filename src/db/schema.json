@@ -543,7 +543,10 @@
 				"takerGets"
 			],
 			"unique": [
-				["takerPays", "takerGets"]
+				["takerGets", "takerPays"]
+			],
+			"index": [
+				"takerPays"
 			]
 		},
 		"TokenOffer": {
