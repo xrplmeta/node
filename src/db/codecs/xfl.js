@@ -15,6 +15,7 @@ export default {
 		}catch(error){
 			log.error(`failed to encode XFL: ${data}`)
 			log.error(error)
+			throw error
 		}
 	},
 
