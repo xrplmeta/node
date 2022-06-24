@@ -1,3 +1,4 @@
+import { XFL } from '@xrplkit/xfl'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
 import { writeTokenOffer, expireTokenOffer } from '../../../db/helpers/tokenoffers.js'
@@ -19,7 +20,7 @@ export function parse({ entry }){
 			+ (takerPays.currency === 'XRP' ? -6 : 0) 
 			- (takerGets.currency === 'XRP' ? -6 : 0)
 
-		var quality = `${qualityMantissa}e${qualityExponent}`
+		var quality = XFL(`${qualityMantissa}e${qualityExponent}`)
 	}catch{
 		return
 	}
@@ -52,22 +53,17 @@ export function parse({ entry }){
 
 export function diff({ ctx, previous, final }){
 	if(previous){
-		let offer = expireTokenOffer({
+		expireTokenOffer({
 			ctx,
 			account: previous.account,
 			accountSequence: previous.accountSequence,
 			ledgerSequence: ctx.ledgerSequence,
 			book: previous.book
 		})
-
-		ctx.affectedScope({
-			offer,
-			change: 'deleted'
-		})
 	}
 
 	if(final){
-		let offer = writeTokenOffer({
+		writeTokenOffer({
 			ctx,
 			account: final.account,
 			accountSequence: final.accountSequence,
@@ -76,11 +72,6 @@ export function diff({ ctx, previous, final }){
 			quality: final.quality,
 			size: final.size,
 			expirationTime: final.expirationTime
-		})
-
-		ctx.affectedScope({
-			offer,
-			change: 'created'
 		})
 	}
 }
