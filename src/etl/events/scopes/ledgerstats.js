@@ -1,5 +1,11 @@
 import { div, max, min, sum, floor } from "@xrplkit/xfl"
 
+const pseudoTransactionTypes = [
+	'EnableAmendment',
+	'SetFee',
+	'UNLModify'
+]
+
 
 export function extractLedgerStats({ ctx, ledger }){
 	let baseData = {
@@ -18,6 +24,9 @@ export function extractLedgerStats({ ctx, ledger }){
 		let fees = []
 
 		for(let transaction of ledger.transactions){
+			if(pseudoTransactionTypes.includes(transaction.TransactionType))
+				continue
+
 			if(!types[transaction.TransactionType])
 				types[transaction.TransactionType] = 0
 			
