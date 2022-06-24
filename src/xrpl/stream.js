@@ -1,25 +1,22 @@
-import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 import { fetch as fetchLedger } from './ledger.js'
 
 
 
-export async function startForwardStream({ ctx, startSequence }){
+export async function createForwardStream({ ctx, startSequence }){
 	let latestLedger = await fetchLedger({ 
 		ctx,
 		sequence: 'validated' 
 	})
 
-	let stream = createStream({
+	let stream = createRegistry({
 		startSequence,
-		targetSequence: latestLedger.sequence
+		targetSequence: latestLedger.sequence,
+		maxSize: ctx.config.ledger.streamQueueSize || 100
 	})
 
 	ctx.xrpl.on('ledger', ledger => {
-		stream.targetSequence = ledger.sequence
-		stream.ledgers[ledger.sequence] = ledger
-
-		stream.resolveNext()
+		stream.put(ledger)
 	})
 
 	createFiller({ ctx, stream, stride: 1 })
@@ -27,10 +24,11 @@ export async function startForwardStream({ ctx, startSequence }){
 	return stream
 }
 
-function createStream({ startSequence, targetSequence }){
+
+function createRegistry({ startSequence, targetSequence, maxSize }){
 	let currentSequence = startSequence
-	let resolveNext = () => 0
 	let ledgers = {}
+	let resolveNext = () => 0
 
 	return {
 		get currentSequence(){
@@ -41,16 +39,21 @@ function createStream({ startSequence, targetSequence }){
 			return targetSequence
 		},
 
-		set targetSequence(sequence){
-			targetSequence = sequence
+		get isFull(){
+			return Object.keys(ledgers).length > maxSize
 		},
 
-		get ledgers(){
-			return ledgers
+		put(ledger){
+			if(ledger.sequence - currentSequence > maxSize)
+				return
+
+			targetSequence = Math.max(targetSequence, ledger.sequence)
+			ledgers[ledger.sequence] = ledger
+			resolveNext()
 		},
 
-		get resolveNext(){
-			return resolveNext
+		has(sequence){
+			return !!ledgers[sequence]
 		},
 
 		async next(){
@@ -61,19 +64,21 @@ function createStream({ startSequence, targetSequence }){
 			let ledger = ledgers[currentSequence]
 
 			delete ledgers[currentSequence]
+
 			currentSequence += targetSequence >= currentSequence ? 1 : -1
 
-			return ledger
+			return {
+				ledger,
+				ledgersBehind: targetSequence - currentSequence
+			}
 		}
 	}
 }
 
-
 function createFiller({ ctx, stream, stride }){
-	const concurrency = ctx.xrpl.connectionsCount
-	const maxQueueSize = ctx.config.ledger.streamQueueSize
+	let reservations = {}
 
-	for(let n=0; n<concurrency; n++){
+	for(let n=0; n<ctx.xrpl.connectionsCount; n++){
 		(async () => {
 			let sequence = stream.currentSequence
 
@@ -85,30 +90,30 @@ function createFiller({ ctx, stream, stride }){
 					continue
 				}
 
-				if(Object.keys(stream.ledgers).length > maxQueueSize){
+				if(stream.isFull){
 					await wait(1000)
 					continue
 				}
 
-				if(stream.ledgers.hasOwnProperty(sequence)){
+				if(reservations[sequence] || stream.has(sequence)){
 					sequence += stride
 					continue
 				}
 
-				stream.ledgers[sequence] = undefined
+				reservations[sequence] = true
 
 				try{
-					stream.ledgers[sequence] = await fetchLedger({ 
-						ctx, 
-						sequence 
-					})
-
-					stream.resolveNext()
-						
+					stream.put(
+						await fetchLedger({ 
+							ctx, 
+							sequence 
+						})
+					)	
 				}catch(error){
 					console.warn(`failed to fetch ledger #${index}:`)
 					console.warn(error)
-					delete stream.ledgers[sequence]
+				}finally{
+					delete reservations[sequence]
 				}
 			}
 		})()
