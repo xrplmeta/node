@@ -26,15 +26,6 @@ export function extractTokenExchanges({ ctx, ledger }){
 				: undefined
 		}
 
-		
-		for(let token of [takerPaidToken, takerGotToken]){
-			if(token.issuer)
-				ctx.affectedScope({
-					token,
-					change: 'exchanges'
-				})
-		}
-
 		ctx.db.tokenExchanges.createOne({
 			data: {
 				txHash: hash,

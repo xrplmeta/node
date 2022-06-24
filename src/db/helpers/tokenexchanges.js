@@ -26,13 +26,14 @@ export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 	if(!exchange)
 		return
 
-	return alignTokenExchange({ base, quote, exchange })
+	return alignTokenExchange({ exchange, base, quote  })
 }
 
-export function alignTokenExchange({ base, quote, exchange }){
+export function alignTokenExchange({ exchange, base, quote }){
 	let { takerPaidToken, takerGotToken, takerPaidValue, takerGotValue, ...props } = exchange
 
 	if(
+		base &&
 		takerPaidToken.currency === base.currency && 
 		takerPaidToken.issuer?.address === base.issuer?.address
 	){
@@ -41,11 +42,21 @@ export function alignTokenExchange({ base, quote, exchange }){
 			price: div(takerGotValue, takerPaidValue),
 			volume: takerPaidValue
 		}
-	}else{
+	}
+	else if(
+		quote &&
+		takerPaidToken.currency === quote.currency && 
+		takerPaidToken.issuer?.address === quote.issuer?.address
+	)
+	{
 		return {
 			...props,
 			price: div(takerPaidValue, takerGotValue),
 			volume: takerGotValue
 		}
+	}
+	else
+	{
+		throw new Error(`cannot align exchange: base/quote does not match`)
 	}
 }

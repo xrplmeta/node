@@ -34,8 +34,6 @@ export function diff({ ctx, previous, final }){
 		})
 	}
 
-	
-
 	writeBalance({
 		ctx,
 		account: {
@@ -49,10 +47,5 @@ export function diff({ ctx, previous, final }){
 		balance: final
 			? final.balance
 			: '0'
-	})
-
-	ctx.affectedScope({
-		account: { id },
-		change: 'balances'
 	})
 }

@@ -120,17 +120,12 @@ export function diff({ ctx, token, deltas }){
 
 		writeBalance({
 			ctx,
-			account: final.account || previous.account,
+			account: final?.account || previous?.account,
 			token,
 			ledgerSequence: ctx.ledgerSequence,
 			balance: final
 				? final.balance
 				: '0'
-		})
-
-		ctx.affectedScope({
-			account: final.account || previous.account,
-			change: 'balances'
 		})
 	}
 	
@@ -139,10 +134,5 @@ export function diff({ ctx, token, deltas }){
 		token,
 		ledgerSequence: ctx.ledgerSequence,
 		metrics
-	})
-
-	ctx.affectedScope({
-		token,
-		change: 'metrics'
 	})
 }

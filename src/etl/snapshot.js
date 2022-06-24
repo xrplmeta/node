@@ -4,8 +4,7 @@ import { spawn } from 'nanotasks'
 import { fetch as fetchLedger } from '../xrpl/ledger.js'
 import { applyObjects } from './state/apply.js'
 import { extractEvents } from './events/extract.js'
-import { deriveAllComposites } from './composites/derive.js'
-import { buildAllAggregates } from './aggregates/build.js'
+import { createAllDerivatives } from './derivatives/create.js'
 
 
 export async function createSnapshot({ ctx }){
@@ -45,13 +44,9 @@ export async function createSnapshot({ ctx }){
 	}
 
 	if(!ctx.snapshotState.completionTime){
-		log.time.info(`snapshot.composites`, `deriving composites (1/2) ...`)
-		deriveAllComposites({ ctx })
-		log.time.info(`snapshot.composites`, `derived composites in %`)
-
-		log.time.info(`snapshot.aggregates`, `building aggregates (2/2) ...`)
-		buildAllAggregates({ ctx })
-		log.time.info(`snapshot.aggregates`, `built aggregates in %`)
+		log.time.info(`snapshot.derivatives`, `creating derivative data ...`)
+		createAllDerivatives({ ctx })
+		log.time.info(`snapshot.derivatives`, `created derivative data in %`)
 
 		ctx.db.snapshots.updateOne({
 			data: {
