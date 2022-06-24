@@ -597,7 +597,8 @@
 			],
 			"index": [
 				"book",
-				"quality"
+				"quality",
+				"expirationLedgerSequence"
 			]
 		}
 	}
