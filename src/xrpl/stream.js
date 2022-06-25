@@ -44,10 +44,11 @@ function createRegistry({ startSequence, targetSequence, maxSize }){
 		},
 
 		put(ledger){
+			targetSequence = Math.max(targetSequence, ledger.sequence)
+
 			if(ledger.sequence - currentSequence > maxSize)
 				return
 
-			targetSequence = Math.max(targetSequence, ledger.sequence)
 			ledgers[ledger.sequence] = ledger
 			resolveNext()
 		},
