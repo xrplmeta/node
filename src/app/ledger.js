@@ -14,11 +14,11 @@ export async function run({ config }){
 	}
 	
 	await spawn(':runSnapshot', { ctx })
-	
-	await Promise.all([
-		spawn(':runSync', { ctx }),
-		spawn(':runBackfill', { ctx })
-	])
+
+	await (await spawn(':runSync', { ctx }))
+		.onceInSync()
+
+	await spawn(':runBackfill', { ctx })
 }
 
 
@@ -26,7 +26,7 @@ export async function runSnapshot({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	await createSnapshot({
+	return await createSnapshot({
 		ctx: {
 			...ctx,
 			db: openDB({ ctx })
@@ -40,7 +40,7 @@ export async function runSync({ ctx }){
 
 	log.info('starting sync')
 
-	await startSync({
+	return await startSync({
 		ctx: {
 			...ctx,
 			db: openDB({ ctx })
@@ -52,5 +52,5 @@ export async function runBackfill({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	
+		log.info('starting backfill')
 }
