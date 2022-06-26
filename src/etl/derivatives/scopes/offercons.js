@@ -1,6 +1,6 @@
 import { min } from '@xrplkit/xfl'
 import { readBalance } from '../../../db/helpers/balances.js'
-import { writeTokenOffer } from '../../../db/helpers/tokenoffers.js'
+import { readOffersBy, writeTokenOffer } from '../../../db/helpers/tokenoffers.js'
 
 
 export function applyOfferConstraintsByOffer({ ctx, offer }){
@@ -15,29 +15,13 @@ export function applyOfferConstraintsByOffer({ ctx, offer }){
 }
 
 export function applyOfferConstraintsByBalance({ ctx, balance }){
-	let offers = ctx.db.tokenOffers.readMany({
-		where: {
-			account: balance.account,
-			book: {
-				takerGets: balance.token
-			},
-			ledgerSequence: {
-				lessOrEqual: ctx.ledgerSequence
-			},
-			OR: [
-				{
-					expirationLedgerSequence: null
-				},
-				{
-					expirationLedgerSequence: {
-						greaterThan: ctx.ledgerSequence
-					}
-				}
-			]
+	let offers = readOffersBy({
+		ctx,
+		account: balance.account,
+		book: {
+			takerGets: balance.token
 		},
-		include: {
-			book: true
-		}
+		ledgerSequence: ctx.ledgerSequence
 	})
 
 	for(let offer of offers){
@@ -60,7 +44,7 @@ function applyCommon({ ctx, offer, balance }){
 	)
 
 	if(ledger && offer.expirationTime && ledger.closeTime > offer.expirationTime){
-		constrainedOffer.expirationLedgerSequence = ctx.ledgerSequence
+		constrainedOffer.lastLedgerSequence = ctx.ledgerSequence - 1
 	}
 
 	writeTokenOffer({

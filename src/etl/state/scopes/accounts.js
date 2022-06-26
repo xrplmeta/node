@@ -22,7 +22,7 @@ export function diff({ ctx, previous, final }){
 	if(final){
 		let { balance, ...meta } = final
 		var { id } = ctx.db.accounts.createOne({ 
-			data: ctx.inBackfill
+			data: ctx.backwards
 				? { address }
 				: meta
 		})

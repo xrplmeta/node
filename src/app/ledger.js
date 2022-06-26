@@ -4,6 +4,7 @@ import { create as createPool } from '../xrpl/nodepool.js'
 import { open as openDB } from '../db/index.js'
 import { createSnapshot } from '../etl/snapshot.js'
 import { startSync } from '../etl/sync.js'
+import { startBackfill } from '../etl/backfill.js'
 
 
 export async function run({ config }){
@@ -52,5 +53,12 @@ export async function runBackfill({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-		log.info('starting backfill')
+	log.info('starting backfill')
+
+	return await startBackfill({
+		ctx: {
+			...ctx,
+			db: openDB({ ctx })
+		}
+	})
 }

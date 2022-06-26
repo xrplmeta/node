@@ -10,7 +10,8 @@ import { createAllDerivatives } from './derivatives/create.js'
 export async function createSnapshot({ ctx }){
 	ctx = {
 		...ctx,
-		snapshotState: ctx.db.snapshots.readLast()
+		snapshotState: ctx.db.snapshots.readLast(),
+		ledgerSequence: 0
 	}
 
 	if(!ctx.snapshotState){
@@ -20,10 +21,6 @@ export async function createSnapshot({ ctx }){
 	}else{
 		log.info(`resuming snapshot of ledger #${ctx.snapshotState.ledgerSequence}`)
 	}
-
-	ctx.inSnapshot = true
-	ctx.ledgerSequence = 0
-	ctx.affectedScope = () => null
 
 	if(ctx.snapshotState.entriesCount === 0 || ctx.snapshotState.marker){
 		try{

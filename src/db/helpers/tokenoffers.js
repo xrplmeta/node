@@ -1,4 +1,4 @@
-import { writePoint, clearPoint } from '../../lib/datapoints.js'
+import { writePoint } from './common.js'
 
 
 export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence, book, quality, size, sizeFunded }){
@@ -20,13 +20,33 @@ export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence,
 }
 
 export function expireTokenOffer({ ctx, account, accountSequence, ledgerSequence }){
-	return clearPoint({
+	return writePoint({
 		table: ctx.db.tokenOffers,
 		selector: {
 			account,
 			accountSequence
 		},
 		ledgerSequence,
+		backwards: ctx.backwards,
+		data: null,
 		expirable: true
+	})
+}
+
+export function readOffersBy({ ctx, account, book, ledgerSequence }){
+	return ctx.db.tokenOffers.readMany({
+		where: {
+			account,
+			book,
+			ledgerSequence: {
+				lessOrEqual: ledgerSequence
+			},
+			lastLedgerSequence: {
+				greaterOrEqual: ledgerSequence
+			}
+		},
+		include: {
+			book: true
+		}
 	})
 }

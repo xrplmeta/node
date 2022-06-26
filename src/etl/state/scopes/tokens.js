@@ -81,12 +81,12 @@ export function diff({ ctx, token, deltas }){
 		...readTokenMetrics({ 
 			ctx, 
 			token, 
-			ledgerSequence: ctx.ledgerSequence,
 			metrics: {
 				trustlines: true,
 				holders: true,
 				supply: true
-			}
+			},
+			ledgerSequence: ctx.ledgerSequence
 		})
 	}
 
@@ -122,17 +122,17 @@ export function diff({ ctx, token, deltas }){
 			ctx,
 			account: final?.account || previous?.account,
 			token,
-			ledgerSequence: ctx.ledgerSequence,
 			balance: final
-				? final.balance
-				: '0'
+			? final.balance
+			: '0',
+			ledgerSequence: ctx.ledgerSequence
 		})
 	}
 	
 	writeTokenMetrics({
 		ctx,
 		token,
-		ledgerSequence: ctx.ledgerSequence,
-		metrics
+		metrics,
+		ledgerSequence: ctx.ledgerSequence
 	})
 }

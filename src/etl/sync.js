@@ -74,7 +74,7 @@ export async function startSync({ ctx }){
 					log.info(`in sync now`)
 				}
 	
-				log.info(`synced with ledger #${ledger.sequence}`)
+				log.info(`in sync with ledger #${ledger.sequence}`)
 			}
 		}
 	})()

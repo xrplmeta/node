@@ -568,6 +568,9 @@
 				"ledgerSequence": {
 					"type": "integer"
 				},
+				"lastLedgerSequence": {
+					"type": "integer"
+				},
 				"quality": {
 					"type": "string",
 					"format": "xrpl/xfl"
@@ -582,9 +585,6 @@
 				},
 				"expirationTime": {
 					"type": "integer"
-				},
-				"expirationLedgerSequence": {
-					"type": "integer"
 				}
 			},
 			"required": [
@@ -593,7 +593,8 @@
 				"book",
 				"quality",
 				"size",
-				"ledgerSequence"
+				"ledgerSequence",
+				"lastLedgerSequence"
 			],
 			"unique": [
 				["account", "accountSequence", "ledgerSequence"]
@@ -601,7 +602,7 @@
 			"index": [
 				"book",
 				"quality",
-				"expirationLedgerSequence"
+				"lastLedgerSequence"
 			]
 		}
 	}

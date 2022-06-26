@@ -19,7 +19,7 @@ export function applyObjects({ ctx, objects }){
 	})
 }
 
-export function applyTransactions({ ctx, ledger }){
+export function applyTransactions({ ctx, ledger, backwards }){
 	let deltas = []
 
 	for(let transaction of ledger.transactions){
@@ -60,10 +60,28 @@ export function applyTransactions({ ctx, ledger }){
 		}
 	}
 
-	return applyDeltas({
-		ctx: { ...ctx, ledgerSequence: ledger.sequence },
-		deltas
-	})
+	if(backwards){
+		return applyDeltas({
+			ctx: {
+				...ctx,
+				ledgerSequence: ledger.sequence - 1,
+				backwards: true,
+			},
+			deltas: deltas
+				.map(({ type, previous, final }) => ({ type, previous: final, final: previous }))
+				.reverse(),
+		})
+	}else{
+		return applyDeltas({
+			ctx: {
+				...ctx,
+				ledgerSequence: ledger.sequence,
+			},
+			deltas
+		})
+	}
+
+	
 }
 
 function applyDeltas({ ctx, deltas }){

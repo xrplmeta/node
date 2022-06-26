@@ -1,5 +1,5 @@
 import { eq } from '@xrplkit/xfl'
-import { readPoint, writePoint, clearPoint } from '../../lib/datapoints.js'
+import { readPoint, writePoint } from './common.js'
 
 
 export function readBalance({ ctx, account, token, ledgerSequence }){
@@ -15,26 +15,16 @@ export function readBalance({ ctx, account, token, ledgerSequence }){
 }
 
 export function writeBalance({ ctx, account, token, ledgerSequence, balance }){
-	if(eq(balance, 0)){
-		return clearPoint({
-			table: ctx.db.accountBalances,
-			selector: {
-				account,
-				token
-			},
-			ledgerSequence,
-		})
-	}else{
-		return writePoint({
-			table: ctx.db.accountBalances,
-			selector: {
-				account,
-				token
-			},
-			ledgerSequence,
-			data: {
-				balance 
-			}
-		})
-	}
+	return writePoint({
+		table: ctx.db.accountBalances,
+		selector: {
+			account,
+			token
+		},
+		ledgerSequence,
+		backwards: ctx.backwards,
+		data: !eq(balance, 0)
+			? { balance }
+			: null
+	})
 }

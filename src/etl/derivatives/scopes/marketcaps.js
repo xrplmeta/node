@@ -45,6 +45,8 @@ export function updateMarketcapBySupply({ ctx, supply }){
 		ledgerSequence: ctx.ledgerSequence
 	})
 
+	if(ctx.backwards && !exchange)
+		return
 
 	writeTokenMetrics({
 		ctx,
