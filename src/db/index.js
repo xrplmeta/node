@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename)
 
 export function open({ ctx }){
 	let db = openStructDB({
-		file: `${ctx.config.data.dir}/meta.db`,
+		file: `${ctx.config.data.dir}/data.db`,
 		schema: JSON.parse(
 			fs.readFileSync(
 				path.join(__dirname, 'schema.json')
