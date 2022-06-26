@@ -16,10 +16,22 @@ export async function createForwardStream({ ctx, startSequence }){
 	})
 
 	ctx.xrpl.on('ledger', ledger => {
-		stream.put(ledger)
+		stream.extend(ledger)
 	})
 
 	createFiller({ ctx, stream, stride: 1 })
+	
+	return stream
+}
+
+export async function createBackwardStream({ ctx, startSequence }){
+	let stream = createRegistry({
+		startSequence,
+		targetSequence: 0,
+		maxSize: ctx.config.ledger.streamQueueSize || 100
+	})
+
+	createFiller({ ctx, stream, stride: -1 })
 	
 	return stream
 }
@@ -43,9 +55,12 @@ function createRegistry({ startSequence, targetSequence, maxSize }){
 			return Object.keys(ledgers).length > maxSize
 		},
 
-		put(ledger){
+		extend(ledger){
 			targetSequence = Math.max(targetSequence, ledger.sequence)
+			this.put(ledger)
+		},
 
+		put(ledger){
 			if(ledger.sequence - currentSequence > maxSize)
 				return
 
