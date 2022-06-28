@@ -25,15 +25,18 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 	let headSequenceKey
 	let tailSequenceKey
 	let expirySequence
+	let offboundSequence
 
 	if(backwards){
 		headSequenceKey = 'lastLedgerSequence'
 		tailSequenceKey = 'ledgerSequence'
 		expirySequence = ledgerSequence + 1
+		offboundSequence = 0
 	}else{
 		headSequenceKey = 'ledgerSequence'
 		tailSequenceKey = 'lastLedgerSequence'
 		expirySequence = ledgerSequence - 1
+		offboundSequence = maxLedgerSequence
 	}
 
 	let point = readPoint({
@@ -89,23 +92,24 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 				}
 			})
 		}
-	}else if(!expirable && !data)
-		return
-
-	if(backwards){
-		var sequences = expirable
-			? { ledgerSequence: 0, lastLedgerSequence: ledgerSequence }
-			: { ledgerSequence: 0 }
-	}else{
-		var sequences = expirable
-			? { ledgerSequence, lastLedgerSequence: maxLedgerSequence }
-			: { ledgerSequence }
 	}
+
+	if(!data && expirable)
+		return
 
 	return table.createOne({
 		data: {
 			...selector,
-			...sequences,
+			...(
+				expirable
+					? { 
+						[headSequenceKey]: ledgerSequence, 
+						[tailSequenceKey]: point
+							? point[tailSequenceKey]
+							: offboundSequence 
+					}
+					: { [headSequenceKey]: ledgerSequence }
+			),
 			...data
 		}
 	})

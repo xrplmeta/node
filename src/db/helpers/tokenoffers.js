@@ -10,6 +10,7 @@ export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence,
 			book,
 		},
 		ledgerSequence,
+		backwards: ctx.backwards,
 		data: {
 			quality,
 			size,
