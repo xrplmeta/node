@@ -16,10 +16,7 @@ export async function createSnapshot({ ctx }){
 
 	if(!ctx.snapshotState){
 		await createSnapshotEntry({ ctx })
-
 		log.info(`creating snapshot of ledger #${ctx.snapshotState.ledgerSequence} - this may take a long time`)
-	}else{
-		log.info(`resuming snapshot of ledger #${ctx.snapshotState.ledgerSequence}`)
 	}
 
 	if(ctx.snapshotState.entriesCount === 0 || ctx.snapshotState.marker){
@@ -67,6 +64,7 @@ async function createSnapshotEntry({ ctx }){
 
 	extractEvents({ ctx, ledger })
 
+	ctx.currentLedger = ledger
 	ctx.snapshotState = ctx.db.snapshots.createOne({
 		data: {
 			ledgerSequence: ledger.sequence,
