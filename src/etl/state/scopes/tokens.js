@@ -74,20 +74,21 @@ export function diff({ ctx, token, deltas }){
 		data: token
 	})
 
+	let { trustlines, holders, supply } = readTokenMetrics({ 
+		ctx, 
+		token, 
+		metrics: {
+			trustlines: true,
+			holders: true,
+			supply: true
+		},
+		ledgerSequence: ctx.ledgerSequence
+	})
+
 	let metrics = {
-		trustlines: 0,
-		holders: 0,
-		supply: 0,
-		...readTokenMetrics({ 
-			ctx, 
-			token, 
-			metrics: {
-				trustlines: true,
-				holders: true,
-				supply: true
-			},
-			ledgerSequence: ctx.ledgerSequence
-		})
+		trustlines: trustlines || 0,
+		holders: holders || 0,
+		supply: supply || 0,
 	}
 
 	for(let { previous, final } of deltas){
