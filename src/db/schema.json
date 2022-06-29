@@ -579,10 +579,6 @@
 					"type": "string",
 					"format": "xrpl/xfl"
 				},
-				"sizeFunded": {
-					"type": "string",
-					"format": "xrpl/xfl"
-				},
 				"expirationTime": {
 					"type": "integer"
 				}
@@ -600,7 +596,7 @@
 				["account", "accountSequence", "ledgerSequence"]
 			],
 			"index": [
-				["account", "ledgerSequence", "lastLedgerSequence", "book"]
+				["book", "ledgerSequence", "lastLedgerSequence", "quality"]
 			]
 		}
 	}

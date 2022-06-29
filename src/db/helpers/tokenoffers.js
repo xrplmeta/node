@@ -1,7 +1,7 @@
 import { writePoint } from './common.js'
 
 
-export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence, book, quality, size, sizeFunded }){
+export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence, book, quality, size }){
 	return writePoint({
 		table: ctx.db.tokenOffers,
 		selector: {
@@ -13,8 +13,7 @@ export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence,
 		backwards: ctx.backwards,
 		data: {
 			quality,
-			size,
-			sizeFunded
+			size
 		},
 		expirable: true
 	})
