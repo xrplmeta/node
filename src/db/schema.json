@@ -315,7 +315,7 @@
 				["account", "token", "ledgerSequence"]
 			],
 			"index": [
-				"token"
+				["token", "ledgerSequence"]
 			]
 		},
 		"Token": {
@@ -600,10 +600,7 @@
 				["account", "accountSequence", "ledgerSequence"]
 			],
 			"index": [
-				"book",
-				"quality",
-				"ledgerSequence",
-				"lastLedgerSequence"
+				["account", "ledgerSequence", "lastLedgerSequence", "book"]
 			]
 		}
 	}
