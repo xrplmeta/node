@@ -1,26 +1,37 @@
-export function server_info({ ctx }){
-	let firstLedger = ctx.db.ledgers.readOne({
-		orderBy: {
-			sequence: 'asc'
-		}
-	})
+import { getAvailableRange, deriveRange } from './utils.js'
 
-	let lastLedger = ctx.db.ledgers.readOne({
-		orderBy: {
-			sequence: 'desc'
-		}
-	})
+
+export function server_info({ ctx }){
+	let { newest, oldest } = getAvailableRange({ ctx })
 
 	return {
 		available_ledgers: {
 			newest: {
-				sequence: lastLedger.sequence,
-				time: lastLedger.closeTime,
+				sequence: newest.sequence,
+				time: newest.closeTime,
 			},
 			oldest: {
-				sequence: firstLedger.sequence,
-				time: firstLedger.closeTime,
+				sequence: oldest.sequence,
+				time: oldest.closeTime,
 			}
+		}
+	}
+}
+
+export function token_series({ ctx, ...opts }){
+	let { sequence, time, partial } = deriveRange({ 
+		ctx,
+		...opts
+	})
+
+
+
+	return {
+
+		result_range: {
+			sequence,
+			time,
+			partial
 		}
 	}
 }

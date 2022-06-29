@@ -17,6 +17,22 @@ export function createRouter({ ctx }){
 		}
 	)
 
+	router.get(
+		'/token/:token/series/:series',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_series',
+				args: {
+					token: parseTokenURI(svc.params.token),
+					series: svc.params.series,
+					...parseRange(svc.query)
+				}
+			})
+		}
+	)
+
 	/*router.get(
 		'/tokens', 
 		this.wrappedProcedure('tokens')
@@ -83,4 +99,26 @@ function parseTokenURI(uri){
 		currency,
 		issuer
 	}
+}
+
+function parseRange({ sequence_start, sequence_end, time_start, time_end }){
+	let range = {}
+
+	if(sequence_start){
+		range.sequence = {
+			start: parseInt(sequence_start),
+			end: sequence_end
+				? parseInt(sequence_end)
+				: undefined
+		}
+	}else if(time_start){
+		range.time = {
+			start: parseInt(time_start),
+			end: time_end
+				? parseInt(time_end)
+				: undefined
+		}
+	}
+
+	return range
 }
