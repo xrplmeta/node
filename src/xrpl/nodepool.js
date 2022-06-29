@@ -46,6 +46,13 @@ export function create(sources){
 			seenHashes.shift()
 	}
 
+	function warnAllLost(){
+		if(nodes.some(node => node.status.connected))
+			return
+
+		log.warn(`lost connection to all nodes`)
+	}
+
 
 	log.info(`using nodes:`)
 
@@ -54,7 +61,26 @@ export function create(sources){
 
 		for(let i=0; i<connections; i++){
 			let node = new Node(spec)
+			let firstConnect = true
 			
+			node.on('connected', () => {
+				log.info(
+					firstConnect
+						? `connected to ${spec.url}`
+						: `reconnected to ${spec.url}`
+				)
+
+				firstConnect = false
+			})
+
+			node.on('disconnected', () => {
+				log.info(`lost connection to ${spec.url}:`, node.error)
+				warnAllLost()
+			})
+
+			node.on('error', () => {
+				log.debug(`failed to connect to ${spec.url}:`, node.error)
+			})
 
 			node.on('event', ({ hash, tx, ledger }) => {
 				if(sawHash(hash))
@@ -88,7 +114,7 @@ export function create(sources){
 		{
 			request(payload){
 				return new Promise((resolve, reject) => {
-					let timeout = setTimeout(() => reject('unfulfillable'), 30000)
+					let timeout = setTimeout(() => reject('noNodeAcceptedRequest'), 30000)
 					let accepted = () => clearTimeout(timeout)
 		
 					queue.push({

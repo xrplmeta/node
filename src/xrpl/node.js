@@ -1,5 +1,5 @@
 import EventEmitter from 'events'
-import Socket from '@xrplkit/socket'
+import createSocket from '@xrplkit/socket'
 import log from '@mwni/log'
 
 
@@ -12,7 +12,7 @@ export default class Node extends EventEmitter{
 			.replace(/:[0-9]+/, '')
 
 		this.tasks = []
-		this.socket = new Socket(config.url)
+		this.socket = createSocket({ url: config.url })
 
 		this.socket.on('transaction', tx => {
 			this.emit('event', {hash: tx.transaction.hash, tx})
@@ -31,7 +31,9 @@ export default class Node extends EventEmitter{
 			}*/
 		})
 
-		this.socket.on('connected', async () => {
+		this.socket.on('open', async () => {
+			this.emit('connected')
+
 			try{
 				await this.socket.request({
 					command: 'subscribe',
@@ -43,21 +45,25 @@ export default class Node extends EventEmitter{
 			}
 		})
 
-		this.socket.on('disconnected', async event => {
+		this.socket.on('close', async event => {
 			this.error = event.reason 
 				? event.reason
 				: `code ${event.code}`
+
+			this.emit('disconnected')
 		})
 
 		this.socket.on('error', error => {
-			this.error = error.reason 
+			this.error = error.message 
 				? error.message
 				: `unknown connection failure`
+
+			this.emit('error')
 		})
 	}
 
-	get connected(){
-		return this.socket.connected
+	get status(){
+		return this.socket.status()
 	}
 
 	bid(payload){
@@ -84,27 +90,29 @@ export default class Node extends EventEmitter{
 	}
 
 	async do(payload){
-		if(payload.command){
-			this.busy = true
+		this.busy = true
 
-			let result = await this.socket.request(payload)
-
+		try{
+			if(payload.command){
+				return await this.socket.request(payload)
+			}else if(payload.type === 'reserveTicket'){
+				let ticket = Math.random()
+					.toString(16)
+					.toUpperCase()
+					.slice(2, 10)
+	
+				this.tasks.push({
+					type: payload.task,
+					ticket,
+					node: this.name
+				})
+	
+				return {ticket}
+			}
+		}catch(error){
+			throw error
+		}finally{
 			this.busy = false
-
-			return result
-		}else if(payload.type === 'reserveTicket'){
-			let ticket = Math.random()
-				.toString(16)
-				.toUpperCase()
-				.slice(2, 10)
-
-			this.tasks.push({
-				type: payload.task,
-				ticket,
-				node: this.name
-			})
-
-			return {ticket}
 		}
 	}
 }

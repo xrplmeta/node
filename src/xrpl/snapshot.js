@@ -48,7 +48,7 @@ export async function start({ ctx, ledgerSequence, marker, node }){
 					break
 				}
 
-				log.info(`could not fetch ledger chunk:`, e)
+				log.info(`could not fetch ledger chunk:`, e.error ? e.error : e)
 				await wait(2500)
 				continue
 			}
