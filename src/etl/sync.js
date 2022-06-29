@@ -71,7 +71,7 @@ export async function startSync({ ctx }){
 				if(onceInSyncTrigger){
 					onceInSyncTrigger()
 					onceInSyncTrigger = undefined
-					log.info(`in sync now`)
+					log.info(`catched up with live`)
 				}
 	
 				log.info(`in sync with ledger #${ledger.sequence}`)
