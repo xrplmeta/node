@@ -602,6 +602,7 @@
 			"index": [
 				"book",
 				"quality",
+				"ledgerSequence",
 				"lastLedgerSequence"
 			]
 		}
