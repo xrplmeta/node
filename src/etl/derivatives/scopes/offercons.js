@@ -24,6 +24,9 @@ export function applyOfferConstraintsByBalance({ ctx, balance }){
 		ledgerSequence: ctx.ledgerSequence
 	})
 
+	if(offers.length === 0)
+		return
+
 	for(let offer of offers){
 		applyCommon({ ctx, offer, balance: balance.balance })
 	}
@@ -32,19 +35,13 @@ export function applyOfferConstraintsByBalance({ ctx, balance }){
 function applyCommon({ ctx, offer, balance }){
 	let constrainedOffer = { ...offer }
 
-	let ledger = ctx.db.ledgers.readOne({
-		where: {
-			sequence: ctx.ledgerSequence
-		}
-	})
-
 	constrainedOffer.sizeFunded = min(
 		offer.size, 
 		balance || '0'
 	)
 
-	if(ledger && offer.expirationTime && ledger.closeTime > offer.expirationTime){
-		constrainedOffer.lastLedgerSequence = ctx.ledgerSequence - 1
+	if(ctx.currentLedger && offer.expirationTime && ctx.currentLedger.closeTime > offer.expirationTime){
+		constrainedOffer.lastLedgerSequence = ctx.currentLedger.sequence - 1
 	}
 
 	writeTokenOffer({

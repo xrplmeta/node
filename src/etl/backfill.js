@@ -29,6 +29,7 @@ export async function startBackfill({ ctx }){
 		ctx.db.tx(() => {
 			ctx = {
 				...ctx,
+				currentLedger: ledger,
 				ledgerSequence: ledger.sequence,
 				backwards: true
 			}

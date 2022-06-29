@@ -23,15 +23,20 @@ export async function startSync({ ctx }){
 			startSequence: lastSequence + 1 
 		}
 	)
+
+	log.info(`catching up from #${lastSequence} -> #${(await stream.status()).targetSequence}`)
 	
 	;(async () => {
 		while(true){
+			log.time.debug(`sync.cycle`)
+
 			let { ledger, ledgersBehind } = await stream.next()
 	
 			ctx.db.tx(() => {
 				ctx = {
 					...ctx,
-					ledgerSequence: ledger.sequence
+					currentLedger: ledger,
+					ledgerSequence: ledger.sequence,
 				}
 	
 				try{
@@ -76,6 +81,8 @@ export async function startSync({ ctx }){
 	
 				log.info(`in sync with ledger #${ledger.sequence}`)
 			}
+
+			log.time.debug(`sync.cycle`, `sync cycle took % for`, ledger.transactions.length, `tx`)
 		}
 	})()
 

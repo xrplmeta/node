@@ -72,6 +72,13 @@ function createRegistry({ startSequence, targetSequence, maxSize }){
 			return !!ledgers[sequence]
 		},
 
+		status(){
+			return {
+				currentSequence,
+				targetSequence
+			}
+		},
+
 		async next(){
 			while(!ledgers[currentSequence]){
 				await new Promise(resolve => resolveNext = resolve)
@@ -126,7 +133,7 @@ function createFiller({ ctx, stream, stride }){
 						})
 					)	
 				}catch(error){
-					console.warn(`failed to fetch ledger #${index}:`)
+					console.warn(`failed to fetch ledger #${sequence}:`)
 					console.warn(error)
 				}finally{
 					delete reservations[sequence]
