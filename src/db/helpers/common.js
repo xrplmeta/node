@@ -97,6 +97,9 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 	if(!data && expirable)
 		return
 
+	if(!data && !expirable && !point)
+		return
+
 	return table.createOne({
 		data: {
 			...selector,
@@ -108,7 +111,7 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 							? point[tailSequenceKey]
 							: offboundSequence 
 					}
-					: { [headSequenceKey]: ledgerSequence }
+					: { ledgerSequence }
 			),
 			...data
 		}
