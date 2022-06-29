@@ -4,6 +4,7 @@ import { extractEvents } from './events/extract.js'
 import { applyTransactions } from './state/apply.js'
 import { createDerivatives } from './derivatives/create.js'
 import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
+import { wait } from '@xrplkit/time'
 
 
 export async function startBackfill({ ctx }){
@@ -28,21 +29,21 @@ export async function startBackfill({ ctx }){
 		ctx.db.tx(() => {
 			ctx = {
 				...ctx,
-				ledgerSequence: ledger.sequence
+				ledgerSequence: ledger.sequence,
+				backwards: true
 			}
 
 			try{
 				let heads = readTableHeads({ ctx })
 
 				extractEvents({ ctx, ledger })
-				applyTransactions({ ctx, ledger, backwards: true })
+				applyTransactions({ ctx, ledger })
 				createDerivatives({ 
 					ctx,
 					newItems: pullNewItems({ 
 						ctx, 
 						previousHeads: heads 
-					}),
-					backwards: true
+					})
 				})
 			}catch(error){
 				log.error(`fatal error while backfilling ledger #${ledger.sequence}:`)
@@ -65,5 +66,7 @@ export async function startBackfill({ ctx }){
 				backfilledLedgers: 1
 			}
 		})
+
+		await wait(10)
 	}
 }
