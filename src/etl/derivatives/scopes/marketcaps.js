@@ -13,25 +13,62 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 		return
 	}
 
-	let { supply } = readTokenMetrics({
-		ctx,
-		token,
-		ledgerSequence: ctx.ledgerSequence,
-		metrics: {
-			supply: true
-		}
-	})
+	if(ctx.backwards){
+		let firstMarketcap = ctx.db.tokenMarketcap.readOne({
+			where: {
+				token,
+				ledgerSequence: {
+					greaterOrEqual: ctx.ledgerSequence
+				},
+				orderBy: {
+					ledgerSequence: 'asc'
+				}
+			}
+		})
 
-	writeTokenMetrics({
-		ctx,
-		token,
-		ledgerSequence: ctx.ledgerSequence,
-		metrics: {
-			marketcap: supply
-				? mul(supply, exchange.price)
-				: '0'
+		let series = readTokenMetricSeries({
+			ctx,
+			token,
+			metric: 'supply',
+			sequenceStart: ctx.ledgerSequence,
+			sequenceEnd: firstMarketcap?.ledgerSequence
+		})
+
+		for(let { ledgerSequence: sequence, value: supply } of series){
+			writeTokenMetrics({
+				ctx,
+				token,
+				ledgerSequence: sequence,
+				metrics: {
+					marketcap: supply
+						? mul(supply, exchange.price)
+						: '0'
+				}
+			})
 		}
-	})
+	}else{
+		let { supply } = readTokenMetrics({
+			ctx,
+			token,
+			ledgerSequence: ctx.ledgerSequence,
+			metrics: {
+				supply: true
+			}
+		})
+	
+		writeTokenMetrics({
+			ctx,
+			token,
+			ledgerSequence: ctx.ledgerSequence,
+			metrics: {
+				marketcap: supply
+					? mul(supply, exchange.price)
+					: '0'
+			}
+		})
+	}
+
+	
 }
 
 export function updateMarketcapBySupply({ ctx, supply }){

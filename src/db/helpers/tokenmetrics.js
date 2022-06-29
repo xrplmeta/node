@@ -9,6 +9,27 @@ const tokenTables = {
 }
 
 
+export function readTokenMetricSeries({ ctx, token, metric, sequenceStart, sequenceEnd }){
+	return ctx.db[tokenTables[metric]].readMany({
+		where: {
+			token,
+			sequenceStart: {
+				greaterOrEqual: sequenceStart
+			},
+			...(
+				sequenceEnd
+					? {
+						sequenceEnd: {
+							lessOrEqual: sequenceEnd
+						}
+					}
+					: {}
+			)
+		}
+	})
+}
+
+
 export function readTokenMetrics({ ctx, token, ledgerSequence, metrics }){
 	let point = {}
 
