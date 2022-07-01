@@ -1,15 +1,20 @@
+import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 import { fetch as fetchLedger } from './ledger.js'
 
 
 
 export async function createForwardStream({ ctx, startSequence }){
+	if(ctx.log)
+		log.pipe(ctx.log)
+
 	let latestLedger = await fetchLedger({ 
 		ctx,
 		sequence: 'validated' 
 	})
 
 	let stream = createRegistry({
+		name: 'live',
 		startSequence,
 		targetSequence: latestLedger.sequence,
 		maxSize: ctx.config.ledger.streamQueueSize || 100
@@ -25,7 +30,11 @@ export async function createForwardStream({ ctx, startSequence }){
 }
 
 export async function createBackwardStream({ ctx, startSequence }){
+	if(ctx.log)
+		log.pipe(ctx.log)
+
 	let stream = createRegistry({
+		name: 'backfill',
 		startSequence,
 		targetSequence: 0,
 		maxSize: ctx.config.ledger.streamQueueSize || 100
@@ -37,7 +46,7 @@ export async function createBackwardStream({ ctx, startSequence }){
 }
 
 
-function createRegistry({ startSequence, targetSequence, maxSize }){
+function createRegistry({ name, startSequence, targetSequence, maxSize }){
 	let currentSequence = startSequence
 	let ledgers = {}
 	let resolveNext = () => 0
@@ -51,8 +60,12 @@ function createRegistry({ startSequence, targetSequence, maxSize }){
 			return targetSequence
 		},
 
+		get queueSize(){
+			return Object.keys(ledgers).length
+		},
+
 		get isFull(){
-			return Object.keys(ledgers).length > maxSize
+			return this.queueSize > maxSize
 		},
 
 		extend(ledger){
@@ -66,6 +79,18 @@ function createRegistry({ startSequence, targetSequence, maxSize }){
 
 			ledgers[ledger.sequence] = ledger
 			resolveNext()
+
+			log.accumulate.info({
+				text: [
+					`${name} queue has`,
+					this.queueSize,
+					`ledgers`,
+					`(+%${name}QueueAdd in %time)`
+				],
+				data: {
+					[`${name}QueueAdd`]: 1
+				}
+			})
 		},
 
 		has(sequence){

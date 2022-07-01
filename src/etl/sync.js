@@ -79,7 +79,12 @@ export async function startSync({ ctx }){
 					log.info(`catched up with live`)
 				}
 	
-				log.info(`in sync with ledger #${ledger.sequence}`)
+				log.info(`in sync with ledger #${ledger.sequence} ${
+					new Date(ledger.closeTime * 1000)
+						.toISOString()
+						.slice(0, -5)
+						.replace('T', ' ')
+				}`)
 			}
 
 			log.time.debug(`sync.cycle`, `sync cycle took % for`, ledger.transactions.length, `tx`)
