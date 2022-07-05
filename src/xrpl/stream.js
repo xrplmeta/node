@@ -64,8 +64,12 @@ function createRegistry({ name, startSequence, targetSequence, maxSize }){
 			return Object.keys(ledgers).length
 		},
 
-		get isFull(){
-			return this.queueSize > maxSize
+		has(sequence){
+			return !!ledgers[sequence]
+		},
+
+		accepts(sequence){
+			return sequence - currentSequence <= maxSize
 		},
 
 		extend(ledger){
@@ -74,7 +78,7 @@ function createRegistry({ name, startSequence, targetSequence, maxSize }){
 		},
 
 		put(ledger){
-			if(ledger.sequence - currentSequence > maxSize)
+			if(!this.accepts(ledger.sequence))
 				return
 
 			ledgers[ledger.sequence] = ledger
@@ -91,10 +95,6 @@ function createRegistry({ name, startSequence, targetSequence, maxSize }){
 					[`${name}QueueAdd`]: 1
 				}
 			})
-		},
-
-		has(sequence){
-			return !!ledgers[sequence]
 		},
 
 		status(){
@@ -138,7 +138,7 @@ function createFiller({ ctx, stream, stride }){
 					continue
 				}
 
-				if(stream.isFull){
+				if(!stream.accepts(sequence)){
 					await wait(1000)
 					continue
 				}
