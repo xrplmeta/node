@@ -1,43 +1,52 @@
 export function getAvailableRange({ ctx }){
-	let newest = ctx.db.ledgers.readOne({
+	let start = ctx.db.ledgers.readOne({
 		orderBy: {
 			sequence: 'asc'
 		}
 	})
 
-	let oldest = ctx.db.ledgers.readOne({
+	let end = ctx.db.ledgers.readOne({
 		orderBy: {
 			sequence: 'desc'
 		}
 	})
 
-	return { newest, oldest }
+	return {
+		sequence: {
+			start: start.sequence,
+			end: end.sequence
+		},
+		time: {
+			start: start.closeTime,
+			end: end.closeTime
+		}
+	}
 }
 
 export function deriveRange({ ctx, sequence, time }){
-	let { newest, oldest } = getAvailableRange({ ctx })
+	let available = getAvailableRange({ ctx })
 
 	sequence = sequence || {}
 	time = time || {}
 
 	if(sequence.start !== undefined){
-		sequence.start = Math.max(sequence.start, oldest.sequence)
+		sequence.start = Math.max(sequence.start, available.sequence.start)
 
 		if(sequence.end < 0)
-			sequence.end = Math.max(sequence.start, newest.sequence - sequence.end)
+			sequence.end = Math.max(sequence.start, available.sequence.start - sequence.end)
 		else if(sequence.end > 0)
-			sequence.end = Math.min(sequence.end, newest.sequence)
+			sequence.end = Math.min(sequence.end, available.sequence.end)
 		else
-			sequence.end = newest.sequence
+			sequence.end = available.sequence.end
 	}else if(time.start !== undefined){
-		time.start = Math.max(time.start, oldest.time)
+		time.start = Math.max(time.start, available.time.start)
 
 		if(time.end < 0)
-			time.end = Math.max(time.start, newest.time - time.end)
+			time.end = Math.max(time.start, available.time.start - time.end)
 		else if(time.end > 0)
-			time.end = Math.min(time.end, newest.time)
+			time.end = Math.min(time.end, available.time.end)
 		else
-			time.end = newest.time
+			time.end = available.time.end
 	}else{
 		throw {
 			type: `missingRange`,
@@ -51,6 +60,69 @@ export function deriveRange({ ctx, sequence, time }){
 		time,
 		partial: false
 	}
+}
+
+export function readToken({ ctx, currency, issuer }){
+	let token = ctx.db.tokens.readOne({
+		where: {
+			currency,
+			issuer: {
+				address: issuer
+			}
+		}
+	})
+
+	if(!token){
+		throw {
+			type: `entryNotFound`,
+			message: `The token '${currency}' issued by '${issuer}' does not exist.`,
+			expose: true
+		}
+	}
+
+	return token
+}
+
+export function readTokenMetricSeries({ ctx, table, token, range, interval }){
+	return ctx.db[table].readMany({
+		where: {
+			RAW: {
+				text: `token = ? AND (
+					ledgerSequence IN (
+						SELECT MAX(ledgerSequence)
+						FROM ${table}
+						WHERE token = ?
+						AND ledgerSequence >= ?
+						AND ledgerSequence <= ?
+						GROUP BY ledgerSequence / CAST(? as INTEGER)
+					)
+					OR 
+					ledgerSequence = (
+						SELECT MAX(ledgerSequence)
+						FROM ${table}
+						WHERE token = ?
+						AND ledgerSequence < ?
+					)
+				)`,
+				values: [
+					token.id,
+					token.id,
+					range.start,
+					range.end,
+					interval,
+					token.id,
+					range.start
+				]
+			}
+		},
+		orderBy: {
+			ledgerSequence: 'asc'
+		}
+	})
+		.map(row => ({
+			sequence: Number(row.ledgerSequence), 
+			value: row.value.toString() 
+		}))
 }
 
 export function collapseMetas(metas, sourcePriority){

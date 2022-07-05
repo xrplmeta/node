@@ -18,7 +18,7 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
-		'/token/:token/series/:series',
+		'/token/:token/series/:metric',
 		async svc => {
 			await handle({
 				ctx,
@@ -26,7 +26,8 @@ export function createRouter({ ctx }){
 				procedure: 'token_series',
 				args: {
 					token: parseTokenURI(svc.params.token),
-					series: svc.params.series,
+					metric: svc.params.metric,
+					interval: svc.query.interval,
 					...parseRange(svc.query)
 				}
 			})
