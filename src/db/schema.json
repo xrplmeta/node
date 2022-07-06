@@ -168,6 +168,9 @@
 			],
 			"unique": [
 				"sequence"
+			],
+			"index": [
+				"closeTime"
 			]
 		},
 		"LedgerTxTypeCount": {
