@@ -1,24 +1,32 @@
 const maxLedgerSequence = 1_000_000_000_000
 
 
-export function readPoint({ table, selector, ledgerSequence, expirable }){	
-	return table.readOne({
-		where: {
-			...selector,
-			ledgerSequence: {
-				lessOrEqual: ledgerSequence
+export function readPoint({ table, selector, ledgerSequence, expirable }){
+	if(expirable){
+		return table.readOne({
+			where: {
+				...selector,
+				ledgerSequence: {
+					lessOrEqual: ledgerSequence
+				},
+				lastLedgerSequence: {
+					greaterOrEqual: ledgerSequence
+				}
+			}
+		})
+	}else{
+		return table.readOne({
+			where: {
+				...selector,
+				ledgerSequence: {
+					lessOrEqual: ledgerSequence
+				}
 			},
-			...(
-				expirable
-					? {
-						lastLedgerSequence: {
-							greaterOrEqual: ledgerSequence
-						}
-					}
-					: {}
-			)
-		}
-	})
+			orderBy: {
+				ledgerSequence: 'desc'
+			}
+		})
+	}
 }
 
 export function writePoint({ table, selector, ledgerSequence, backwards, data, expirable }){
