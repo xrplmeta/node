@@ -1,78 +1,22 @@
-import { getAvailableRange, deriveRange, readToken, readTokenMetricSeries } from './utils.js'
+import version from '../../lib/version.js'
+import { compose, getAvailableRange } from './utils.js'
+import { sanitizeToken, sanitizeRange } from './sanitizers.js'
+import { serveTokenSeries } from './series.js'
 
 
 export function server_info({ ctx }){
-	let range = getAvailableRange({ ctx })
-
 	return {
-		available_range: range
+		server_version: version,
+		available_range: getAvailableRange({ ctx })
 	}
 }
 
-export function token_series({ ctx, metric, ...opts }){
-	let token = readToken({ ctx, ...opts.token })
-	let range = deriveRange({ 
-		ctx,
-		...opts
-	})
-	let interval = parseInt(opts.interval)
+export const token_series = compose([
+	sanitizeToken({ key: 'token' }),
+	sanitizeRange(),
+	serveTokenSeries()
+])
 
-	if(!interval || interval <= 0)
-		throw {
-			type: `invalidParam`,
-			message: `The 'interval' argument has to be greater than zero.`,
-			expose: true
-		}
-
-	switch(metric){
-		case 'price': {
-			
-		}
-
-		case 'trustlines': {
-			return readTokenMetricSeries({
-				ctx,
-				table: 'tokenTrustlines',
-				token,
-				range: range.sequence,
-				interval
-			})
-		}
-
-		case 'holders': {
-			return readTokenMetricSeries({
-				ctx,
-				table: 'tokenHolders',
-				token,
-				range: range.sequence,
-				interval
-			})
-		}
-
-		case 'supply': {
-			return readTokenMetricSeries({
-				ctx,
-				table: 'tokenSupply',
-				token,
-				range: range.sequence,
-				interval
-			})
-		}
-
-		default: {
-			throw {
-				type: `invalidParam`,
-				message: `Invalid metric. Allowed values are: price, volume, trustlines, holders, supply, marketcap`,
-				expose: true
-			}
-		}
-	}
-
-	return {
-
-		resultRange: range
-	}
-}
 
 
 /*import { collapseMetas } from './utils.js'

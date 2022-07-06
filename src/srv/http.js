@@ -1,6 +1,6 @@
 import Router from '@koa/router'
 import log from '@mwni/log'
-import * as procedures from './procedures.js'
+import * as procedures from './rpc/procedures.js'
 
 
 export function createRouter({ ctx }){

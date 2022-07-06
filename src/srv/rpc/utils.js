@@ -1,3 +1,10 @@
+export function compose(functions){
+	return args => functions.reduce(
+		(v, f) => f(v),
+		args	
+	)
+}
+
 export function getAvailableRange({ ctx }){
 	let start = ctx.db.ledgers.readOne({
 		orderBy: {
@@ -23,65 +30,6 @@ export function getAvailableRange({ ctx }){
 	}
 }
 
-export function deriveRange({ ctx, sequence, time }){
-	let available = getAvailableRange({ ctx })
-
-	sequence = sequence || {}
-	time = time || {}
-
-	if(sequence.start !== undefined){
-		sequence.start = Math.max(sequence.start, available.sequence.start)
-
-		if(sequence.end < 0)
-			sequence.end = Math.max(sequence.start, available.sequence.start - sequence.end)
-		else if(sequence.end > 0)
-			sequence.end = Math.min(sequence.end, available.sequence.end)
-		else
-			sequence.end = available.sequence.end
-	}else if(time.start !== undefined){
-		time.start = Math.max(time.start, available.time.start)
-
-		if(time.end < 0)
-			time.end = Math.max(time.start, available.time.start - time.end)
-		else if(time.end > 0)
-			time.end = Math.min(time.end, available.time.end)
-		else
-			time.end = available.time.end
-	}else{
-		throw {
-			type: `missingRange`,
-			message: `This request is missing a sequence or time range.`,
-			expose: true
-		}
-	}
-
-	return {
-		sequence,
-		time,
-		partial: false
-	}
-}
-
-export function readToken({ ctx, currency, issuer }){
-	let token = ctx.db.tokens.readOne({
-		where: {
-			currency,
-			issuer: {
-				address: issuer
-			}
-		}
-	})
-
-	if(!token){
-		throw {
-			type: `entryNotFound`,
-			message: `The token '${currency}' issued by '${issuer}' does not exist.`,
-			expose: true
-		}
-	}
-
-	return token
-}
 
 export function readTokenMetricSeries({ ctx, table, token, range, interval }){
 	return ctx.db[table].readMany({
@@ -119,10 +67,19 @@ export function readTokenMetricSeries({ ctx, table, token, range, interval }){
 			ledgerSequence: 'asc'
 		}
 	})
-		.map(row => ({
-			sequence: Number(row.ledgerSequence), 
-			value: row.value.toString() 
-		}))
+}
+
+export function findLedgerAt({ ctx, time }){
+	return ctx.db.ledgers.readOne({
+		where: {
+			closeTime: {
+				lessOrEqual: time
+			}
+		},
+		orderBy: {
+			sequence: 'desc'
+		}
+	})
 }
 
 export function collapseMetas(metas, sourcePriority){
