@@ -69,7 +69,7 @@ function createRegistry({ name, startSequence, targetSequence, maxSize }){
 		},
 
 		accepts(sequence){
-			return sequence - currentSequence <= maxSize
+			return Math.abs(sequence - currentSequence) <= maxSize
 		},
 
 		extend(ledger){
