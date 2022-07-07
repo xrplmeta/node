@@ -1,5 +1,6 @@
 import log from '@mwni/log'
 import { run as runLedgerApp } from './ledger.js'
+import { run as runThirdPartyApp } from './thirdparty.js'
 import { run as runServerApp } from './server.js'
 
 
@@ -11,11 +12,18 @@ export default async function({ config }){
 			process.exit(1)
 		})
 
+	runThirdPartyApp({ config })
+		.catch(error => {
+			log.error(`third party app crashed due to fatal error:`)
+			log.error(error)
+			log.warn(`attempting to continue without`)
+		})
+
 	runServerApp({ config })
 		.catch(error => {
 			log.error(`server app crashed:`)
 			log.error(error)
-			log.warn(`attempting to continue without server app`)
+			log.warn(`attempting to continue without`)
 		})
 
 

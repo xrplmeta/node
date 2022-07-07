@@ -1,4 +1,4 @@
-import { readTokenMetricSeries } from './utils.js'
+import { readTokenMetricSeries, readTokenPriceSeries } from './utils.js'
 
 
 export function serveTokenSeries(){
@@ -14,10 +14,32 @@ export function serveTokenSeries(){
 			}
 		}
 
-		if(metric === 'trustlines'){
+		if(metric === 'price'){
+			series = readTokenPriceSeries({
+				ctx,
+				base: token,
+				quote: {
+					id: 1 // XRP
+				},
+				range: sequence,
+				interval
+			})
+				.map(point => ({
+					ledgerSequence: point.ledgerSequence,
+					value: point.price
+				}))
+		}else if(metric === 'trustlines'){
 			series = readTokenMetricSeries({
 				ctx,
 				table: 'tokenTrustlines',
+				token,
+				range: sequence,
+				interval
+			})
+		}else if(metric === 'holders'){
+			series = readTokenMetricSeries({
+				ctx,
+				table: 'tokenHolders',
 				token,
 				range: sequence,
 				interval
@@ -26,6 +48,14 @@ export function serveTokenSeries(){
 			series = readTokenMetricSeries({
 				ctx,
 				table: 'tokenSupply',
+				token,
+				range: sequence,
+				interval
+			})
+		}else if(metric === 'marketcap'){
+			series = readTokenMetricSeries({
+				ctx,
+				table: 'tokenMarketcap',
 				token,
 				range: sequence,
 				interval

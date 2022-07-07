@@ -1,3 +1,6 @@
+import { alignTokenExchange } from '../../db/helpers/tokenexchanges.js'
+
+
 export function compose(functions){
 	return args => functions.reduce(
 		(v, f) => f(v),
@@ -68,6 +71,70 @@ export function readTokenMetricSeries({ ctx, table, token, range, interval }){
 		}
 	})
 }
+
+
+export function readTokenPriceSeries({ ctx, base, quote, range, interval }){
+	return ctx.db.tokenExchanges.readMany({
+		where: {
+			RAW: {
+				text: `(
+					(takerPaidToken = ? AND takerGotToken = ?)
+					OR
+					(takerGotToken = ? AND takerPaidToken = ?)
+				) 
+				AND (
+					ledgerSequence IN (
+						SELECT MAX(ledgerSequence)
+						FROM TokenExchange
+						WHERE (
+							(takerPaidToken = ? AND takerGotToken = ?)
+							OR
+							(takerGotToken = ? AND takerPaidToken = ?)
+						)
+						AND ledgerSequence >= ?
+						AND ledgerSequence <= ?
+						GROUP BY ledgerSequence / CAST(? as INTEGER)
+					)
+					OR 
+					ledgerSequence = (
+						SELECT MAX(ledgerSequence)
+						FROM TokenExchange
+						WHERE (
+							(takerPaidToken = ? AND takerGotToken = ?)
+							OR
+							(takerGotToken = ? AND takerPaidToken = ?)
+						)
+						AND ledgerSequence < ?
+					)
+				)`,
+				values: [
+					base.id,
+					quote.id,
+					quote.id,
+					base.id,
+					base.id,
+					quote.id,
+					quote.id,
+					base.id,
+					range.start,
+					range.end,
+					interval,
+					base.id,
+					quote.id,
+					quote.id,
+					base.id,
+					range.start
+				]
+			}
+		},
+		orderBy: {
+			ledgerSequence: 'asc'
+		}
+	})
+		.map(exchange => alignTokenExchange({ exchange, base, quote }))
+}
+
+
 
 export function findLedgerAt({ ctx, time }){
 	return ctx.db.ledgers.readOne({

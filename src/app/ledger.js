@@ -2,9 +2,9 @@ import log from '@mwni/log'
 import { spawn } from 'nanotasks'
 import { create as createPool } from '../xrpl/nodepool.js'
 import { open as openDB } from '../db/index.js'
-import { createSnapshot } from '../etl/snapshot.js'
-import { startSync } from '../etl/sync.js'
-import { startBackfill } from '../etl/backfill.js'
+import { createSnapshot } from '../etl/ledger/snapshot.js'
+import { startSync } from '../etl/ledger/sync.js'
+import { startBackfill } from '../etl/ledger/backfill.js'
 
 
 export async function run({ config }){

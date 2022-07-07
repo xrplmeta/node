@@ -131,6 +131,7 @@ function createFiller({ ctx, stream, stride }){
 
 			while(true){
 				let stepsToTarget = (stream.targetSequence - sequence) * stride
+				let stepsBehindCurrent = (stream.currentSequence - sequence) * stride
 	
 				if(stepsToTarget < 0){
 					await wait(100)
@@ -142,7 +143,7 @@ function createFiller({ ctx, stream, stride }){
 					continue
 				}
 
-				if(reservations[sequence] || stream.has(sequence)){
+				if(stepsBehindCurrent > 0 || reservations[sequence] || stream.has(sequence)){
 					sequence += stride
 					continue
 				}

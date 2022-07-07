@@ -1,7 +1,7 @@
 import log from '@mwni/log'
 import { unixNow } from '@xrplkit/time'
 import { spawn } from 'nanotasks'
-import { fetch as fetchLedger } from '../xrpl/ledger.js'
+import { fetch as fetchLedger } from '../../xrpl/ledger.js'
 import { applyObjects } from './state/apply.js'
 import { extractEvents } from './events/extract.js'
 import { createAllDerivatives } from './derivatives/create.js'
@@ -75,7 +75,7 @@ async function createSnapshotEntry({ ctx }){
 
 async function createFeed({ ctx }){
 	return await spawn(
-		'../xrpl/snapshot.js:start', 
+		'../../xrpl/snapshot.js:start', 
 		{ 
 			ctx, 
 			ledgerSequence: ctx.snapshotState.ledgerSequence 
