@@ -1,6 +1,6 @@
 import { sum, sub, eq, lt, gt, neg, max } from '@xrplkit/xfl'
-import { writeBalance } from '../../../../db/helpers/balances.js'
-import { writeTokenMetrics, readTokenMetrics } from '../../../../db/helpers/tokenmetrics.js'
+import { writeBalance } from '../../../db/helpers/balances.js'
+import { writeTokenMetrics, readTokenMetrics } from '../../../db/helpers/tokenmetrics.js'
 
 
 export function parse({ entry }){

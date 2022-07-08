@@ -1,6 +1,6 @@
 import { div } from '@xrplkit/xfl'
-import { isBlackholed } from '../../../../xrpl/blackhole.js'
-import { writeBalance } from '../../../../db/helpers/balances.js'
+import { isBlackholed } from '../../../xrpl/blackhole.js'
+import { writeBalance } from '../../../db/helpers/balances.js'
 
 
 export function parse({ entry }){

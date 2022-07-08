@@ -1,7 +1,7 @@
 import { XFL } from '@xrplkit/xfl'
 import { fromRippled as fromRippledAmount } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
-import { writeTokenOffer, expireTokenOffer } from '../../../../db/helpers/tokenoffers.js'
+import { writeTokenOffer, expireTokenOffer } from '../../../db/helpers/tokenoffers.js'
 
 
 export function parse({ entry }){

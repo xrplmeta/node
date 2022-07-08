@@ -1,6 +1,6 @@
 import { mul } from '@xrplkit/xfl'
-import { readTokenMetrics, writeTokenMetrics } from '../../../../db/helpers/tokenmetrics.js'
-import { readTokenExchangeAligned, alignTokenExchange } from '../../../../db/helpers/tokenexchanges.js'
+import { readTokenMetrics, writeTokenMetrics } from '../../../db/helpers/tokenmetrics.js'
+import { readTokenExchangeAligned, alignTokenExchange } from '../../../db/helpers/tokenexchanges.js'
 
 
 export function updateMarketcapByExchange({ ctx, exchange }){

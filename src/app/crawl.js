@@ -1,11 +1,11 @@
 import log from '@mwni/log'
 import { spawn } from 'nanotasks'
 import { open as openDB } from '../db/index.js'
-import { startCrawlers } from '../etl/thirdparty/index.js'
+import { startCrawlers } from '../crawl/crawl.js'
 
 
 export async function run({ config }){
-	await spawn(':runThirdPartyCrawlers', {
+	await spawn(':runCrawl', {
 		ctx: { 
 			config, 
 			log,
@@ -14,7 +14,7 @@ export async function run({ config }){
 }
 
 
-export async function runThirdPartyCrawlers({ ctx }){
+export async function runCrawl({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 

@@ -3,7 +3,7 @@ import { spawn } from 'nanotasks'
 import { extractEvents } from './events/extract.js'
 import { applyTransactions } from './state/apply.js'
 import { createDerivatives } from './derivatives/create.js'
-import { pullNewItems, readTableHeads } from '../../db/helpers/heads.js'
+import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
 
 
 export async function startSync({ ctx }){
@@ -17,7 +17,7 @@ export async function startSync({ ctx }){
 	})
 	
 	let stream = await spawn(
-		'../../xrpl/stream.js:createForwardStream',
+		'../xrpl/stream.js:createForwardStream',
 		{
 			ctx,
 			startSequence: lastSequence + 1 

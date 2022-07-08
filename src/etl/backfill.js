@@ -3,7 +3,7 @@ import { spawn } from 'nanotasks'
 import { extractEvents } from './events/extract.js'
 import { applyTransactions } from './state/apply.js'
 import { createDerivatives } from './derivatives/create.js'
-import { pullNewItems, readTableHeads } from '../../db/helpers/heads.js'
+import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
 import { wait } from '@xrplkit/time'
 
 
@@ -16,7 +16,7 @@ export async function startBackfill({ ctx }){
 	})
 	
 	let stream = await spawn(
-		'../../xrpl/stream.js:createBackwardStream',
+		'../xrpl/stream.js:createBackwardStream',
 		{
 			ctx,
 			startSequence: firstSequence - 1 
