@@ -93,12 +93,10 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 		}
 
 		if(expirable || backwards){
-			table.updateOne({
+			table.createOne({
 				data: {
+					...point,
 					[tailSequenceKey]: expirySequence
-				},
-				where: {
-					id: point.id
 				}
 			})
 		}
