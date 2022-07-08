@@ -1,3 +1,4 @@
+const minLedgerSequence = 0
 const maxLedgerSequence = 1_000_000_000_000
 
 
@@ -30,21 +31,22 @@ export function readPoint({ table, selector, ledgerSequence, expirable }){
 }
 
 export function writePoint({ table, selector, ledgerSequence, backwards, data, expirable }){
-	let headSequenceKey
-	let tailSequenceKey
-	let expirySequence
-	let offboundSequence
+	let headSequenceKey = 'ledgerSequence'
+	let tailSequenceKey = 'ledgerSequence'
 
-	if(backwards){
-		headSequenceKey = 'lastLedgerSequence'
-		tailSequenceKey = 'ledgerSequence'
-		expirySequence = ledgerSequence + 1
-		offboundSequence = 0
-	}else{
-		headSequenceKey = 'ledgerSequence'
-		tailSequenceKey = 'lastLedgerSequence'
-		expirySequence = ledgerSequence - 1
-		offboundSequence = maxLedgerSequence
+	let expirySequence = backwards
+		? ledgerSequence + 1
+		: ledgerSequence - 1
+
+	let offboundSequence = backwards
+		? minLedgerSequence
+		: maxLedgerSequence
+
+	if(expirable){
+		if(backwards)
+			headSequenceKey = 'lastLedgerSequence'
+		else
+			tailSequenceKey = 'lastLedgerSequence'
 	}
 
 	let point = readPoint({
@@ -90,7 +92,7 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 			}
 		}
 
-		if(expirable){
+		if(expirable || backwards){
 			table.updateOne({
 				data: {
 					[tailSequenceKey]: expirySequence
@@ -110,16 +112,18 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 
 	return table.createOne({
 		data: {
-			...selector,
+			...selector, 
 			...(
-				expirable
-					? { 
-						[headSequenceKey]: ledgerSequence, 
-						[tailSequenceKey]: point
-							? point[tailSequenceKey]
-							: offboundSequence 
-					}
-					: { ledgerSequence }
+				expirable || backwards
+				? {
+					[headSequenceKey]: ledgerSequence,
+					[tailSequenceKey]: point
+						? point[tailSequenceKey]
+						: offboundSequence
+				}
+				: {
+					[headSequenceKey]: ledgerSequence
+				}
 			),
 			...data
 		}
