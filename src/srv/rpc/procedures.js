@@ -13,7 +13,7 @@ export function server_info({ ctx }){
 
 export const token_series = compose([
 	sanitizeToken({ key: 'token' }),
-	sanitizeRange(),
+	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
 ])
 

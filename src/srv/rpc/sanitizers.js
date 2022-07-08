@@ -36,11 +36,12 @@ export function sanitizeToken({ key }){
 	}
 }
 
-export function sanitizeRange(){
+export function sanitizeRange({ withInterval = false }){
 	return ({ ctx, ...args }) => {
 		let available = getAvailableRange({ ctx })
 		let sequence
 		let time
+		let interval
 
 		if(args.hasOwnProperty('sequence')){
 			sequence = minMaxRange({ 
@@ -65,11 +66,32 @@ export function sanitizeRange(){
 			}
 		}
 
+		if(withInterval){
+			if(!args.hasOwnProperty('interval')){
+				throw {
+					type: `missingParam`,
+					message: `This request is missing a interval specification.`,
+					expose: true
+				}
+			}
+
+			interval = parseInt(args.interval)
+
+			if(!interval || interval <= 0){
+				throw {
+					type: `invalidParam`,
+					message: `The interval has to be greater than zero.`,
+					expose: true
+				}
+			}
+		}
+
 		return {
 			...args,
 			ctx,
 			sequence,
 			time,
+			interval
 		}
 	}
 }
