@@ -2,6 +2,12 @@
 	"title": "XRPL Meta Database Structure",
 	"type": "object",
 	"properties": {
+		"operations": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Operation"
+			}
+		},
 		"snapshots": {
 			"type": "array",
 			"items": {
@@ -88,6 +94,41 @@
 		}
 	},
 	"definitions": {
+		"Operation": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"subjectType": {
+					"type": "string",
+					"enum": [
+						"global",
+						"issuer",
+						"token"
+					]
+				},
+				"subjectId": {
+					"type": "integer"
+				},
+				"task": {
+					"type": "string"
+				},
+				"time": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"subjectType",
+				"subjectId",
+				"task",
+				"time"
+			],
+			"unique": [
+				["subjectType", "subjectId", "task"]
+			]
+		},
 		"Snapshot": {
 			"type": "object",
 			"properties": {
@@ -265,7 +306,7 @@
 					"type": "integer",
 					"id": true
 				},
-				"issuer": {
+				"account": {
 					"$ref": "#/definitions/Account"
 				},
 				"key": {
@@ -275,16 +316,25 @@
 					"type": "any"
 				},
 				"source": {
-					"type": "string"
+					"type": "string",
+					"enum": [
+						"domain",
+						"xumm",
+						"xrplf",
+						"bithomp",
+						"xrpscan",
+						"twitter",
+						"gravatar"
+					]
 				}
 			},
 			"required": [
-				"issuer",
+				"account",
 				"key",
 				"source"
 			],
 			"unique": [
-				["issuer", "key", "source"]
+				["account", "key", "source"]
 			]
 		},
 		"AccountBalance": {
@@ -360,7 +410,16 @@
 					"type": "any"
 				},
 				"source": {
-					"type": "string"
+					"type": "string",
+					"enum": [
+						"domain",
+						"xumm",
+						"xrplf",
+						"bithomp",
+						"xrpscan",
+						"twitter",
+						"gravatar"
+					]
 				}
 			},
 			"required": [
