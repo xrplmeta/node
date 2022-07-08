@@ -12,7 +12,7 @@ export default async function({ config }){
 			process.exit(1)
 		})
 
-		runCrawlApp({ config })
+	runCrawlApp({ config })
 		.catch(error => {
 			log.error(`crawl app crashed due to fatal error:`)
 			log.error(error)
