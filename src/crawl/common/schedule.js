@@ -21,16 +21,16 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 
 	}catch(error){
 		log.warn(`scheduled task "${task}" failed:`, error.message)
-	}finally{
-		ctx.db.operations.createOne({
-			data: {
-				subjectType: 'global',
-				subjectId: 0,
-				task,
-				time: unixNow()
-			}
-		})
 	}
+
+	ctx.db.operations.createOne({
+		data: {
+			subjectType: 'global',
+			subjectId: 0,
+			task,
+			time: unixNow()
+		}
+	})
 }
 
 export async function scheduleIterator({ ctx, iterator, subjectType, task, interval, routine }){
@@ -55,17 +55,16 @@ export async function scheduleIterator({ ctx, iterator, subjectType, task, inter
 			await routine(item)
 
 		}catch(error){
-			console.log(error)
 			log.warn(`scheduled task "${task}" failed for item:`, error.message)
-		}finally{
-			ctx.db.operations.createOne({
-				data: {
-					subjectType,
-					subjectId: item.id,
-					task,
-					time: unixNow()
-				}
-			})
 		}
+
+		ctx.db.operations.createOne({
+			data: {
+				subjectType,
+				subjectId: item.id,
+				task,
+				time: unixNow()
+			}
+		})
 	}
 }
