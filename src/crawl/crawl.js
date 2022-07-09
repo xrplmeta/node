@@ -8,8 +8,8 @@ export async function startCrawlers({ ctx }){
 			({ name, start }) => start({ ctx })
 				.catch(
 					error => log.warn(
-						`crawler "${name}" crashed:`, 
-						error.message
+						`crawler "${name}" encountered fatal error:\n`, 
+						error.stack
 					)
 				)
 		)

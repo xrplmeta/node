@@ -25,12 +25,17 @@ export default async function({ ctx }){
 		crawlAssets({
 			ctx,
 			fetch: fetchApi,
-			interval: config.refreshIntervalAssets
+			interval: config.crawlIntervalAssets
 		}),
 		crawlKyc({
 			ctx,
 			fetch: fetchApi,
-			interval: config.refreshIntervalKyc
+			interval: config.crawlIntervalKyc
+		}),
+		crawlAvatar({
+			ctx,
+			fetch: fetchAvatar,
+			interval: config.crawlIntervalAvatar
 		})
 	])
 }
@@ -124,6 +129,52 @@ async function crawlKyc({ ctx, fetch, interval }){
 					text: [`%kycChecked KYC checked in %time`],
 					data: {
 						kycChecked: 1
+					}
+				})
+			}
+		})
+	}
+}
+
+async function crawlAvatar({ ctx, fetch, interval }){
+	while(true){
+		await scheduleIterator({
+			ctx,
+			task: 'xumm.avatar',
+			interval,
+			subjectType: 'issuer',
+			iterator: ctx.db.tokens.iter({
+				groupBy: ['issuer'],
+				include: {
+					issuer: true
+				}
+			}),
+			routine: async token => {
+				if(!token.issuer)
+					return
+
+				let { headers } = await fetch(
+					`${token.issuer.address}.png`, 
+					{
+						redirect: 'manual'
+					}
+				)
+	
+				writeAccountProps({
+					ctx,
+					account: token.issuer,
+					props: {
+						icon: headers.get('location')
+							? headers.get('location').split('?')[0]
+							: undefined
+					},
+					source: 'xumm'
+				})
+				
+				log.accumulate.info({
+					text: [`%avatarsChecked avatars checked in %time`],
+					data: {
+						avatarsChecked: 1
 					}
 				})
 			}
