@@ -5,13 +5,13 @@ import { run as runServerApp } from './server.js'
 
 
 export default async function({ config }){
-	runLedgerApp({ config })
+	await runLedgerApp({ config })
 		.catch(error => {
 			log.error(`ledger app crashed due to fatal error:`)
 			log.error(error)
 			process.exit(1)
 		})
-
+	
 	runCrawlApp({ config })
 		.catch(error => {
 			log.error(`crawl app crashed due to fatal error:`)
@@ -26,8 +26,6 @@ export default async function({ config }){
 			log.warn(`attempting to continue without it`)
 		})
 
-
-	log.info(`has started`)
 
 	return {
 		async terminate(){

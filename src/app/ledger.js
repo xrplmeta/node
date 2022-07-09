@@ -13,13 +13,12 @@ export async function run({ config }){
 		config, 
 		log,
 	}
-	
+
 	await spawn(':runSnapshot', { ctx })
 
-	await (await spawn(':runSync', { ctx }))
-		.onceInSync()
-
-	await spawn(':runBackfill', { ctx })
+	spawn(':runSync', { ctx })
+		.then(task => task.onceInSync())
+		.then(() => spawn(':runBackfill', { ctx }))
 }
 
 
