@@ -35,7 +35,7 @@ export default async function({ ctx }){
 					let { status } = await fetch(`avatar/${emailHash.toLowerCase()}?d=404`)
 	
 					if(status === 200){
-						meta.icon = `https://www.gravatar.com/avatar/${emailHash.toLowerCase()}`
+						icon = `https://www.gravatar.com/avatar/${emailHash.toLowerCase()}`
 					}else if(status !== 404){
 						throw `HTTP ${status}`
 					}
