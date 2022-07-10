@@ -83,17 +83,19 @@ function createRegistry({ name, startSequence, targetSequence, maxSize }){
 			ledgers[ledger.sequence] = ledger
 			resolveNext()
 
-			log.accumulate.info({
-				text: [
-					`${name} queue has`,
-					this.queueSize,
-					`ledgers`,
-					`(+%${name}QueueAdd in %time)`
-				],
-				data: {
-					[`${name}QueueAdd`]: 1
-				}
-			})
+			if(this.queueSize > 1){
+				log.accumulate.info({
+					text: [
+						`${name} queue has`,
+						this.queueSize,
+						`ledgers`,
+						`(+%${name}QueueAdd in %time)`
+					],
+					data: {
+						[`${name}QueueAdd`]: 1
+					}
+				})
+			}
 		},
 
 		status(){

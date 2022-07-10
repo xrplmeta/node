@@ -11,6 +11,8 @@ export default async function({ config }){
 			log.error(error)
 			process.exit(1)
 		})
+
+	log.info(`bootstrap complete`)
 	
 	runCrawlApp({ config })
 		.catch(error => {

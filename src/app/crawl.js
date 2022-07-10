@@ -18,6 +18,7 @@ export async function runCrawl({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
+	log.info('starting crawlers')
 
 	return await startCrawlers({
 		ctx: {
