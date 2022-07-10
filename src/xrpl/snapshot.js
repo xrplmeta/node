@@ -17,6 +17,8 @@ export async function start({ ctx, ledgerSequence, marker, node }){
 	let failures = 0
 	let resolveNext
 
+	log.info(`reserved snapshot ticket with node`, assignedNode)
+
 	let promise = (async() => {
 		while(true){
 			while(queue.length >= 10)
