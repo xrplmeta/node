@@ -290,6 +290,12 @@
 				},
 				"blackholed": {
 					"type": "boolean"
+				},
+				"props": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/AccountProp"
+					}
 				}
 			},
 			"required": [
