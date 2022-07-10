@@ -96,6 +96,7 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 			table.createOne({
 				data: {
 					...point,
+					id: undefined,
 					[tailSequenceKey]: expirySequence
 				}
 			})
