@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { spawn } from 'nanotasks'
+import { spawn } from 'multitasked'
 import { extractEvents } from './events/extract.js'
 import { applyTransactions } from './state/apply.js'
 import { createDerivatives } from './derivatives/create.js'

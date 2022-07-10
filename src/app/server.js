@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { spawn } from 'nanotasks'
+import { spawn } from 'multitasked'
 import { open as openDB } from '../db/index.js'
 import { startServer } from '../srv/server.js'
 

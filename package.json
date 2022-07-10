@@ -16,12 +16,12 @@
 		"@xrplkit/toml": "file:../../xrplkit/toml",
 		"@xrplkit/txmeta": "file:../../xrplkit/txmeta",
 		"@xrplkit/xfl": "file:../../xrplkit/xfl",
+		"multitasked": "file:../../multitasked",
 		"koa": "^2.13.4",
 		"koa-easy-ws": "^2.1.0",
 		"koa-json": "^2.0.2",
 		"limiter": "2.0.1",
 		"minimist": "^1.2.6",
-		"nanotasks": "file:../../nanotasks",
 		"node-fetch": "^3.0.0",
 		"ripple-address-codec": "^4.2.3",
 		"ws": "^8.5.0"
