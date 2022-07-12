@@ -22,7 +22,8 @@ export default async function({ ctx }){
 			interval: config.crawlInterval,
 			subjectType: 'issuer',
 			batchSize: 100,
-			iterator: ctx.db.tokens.iter({
+			iterator: {
+				table: 'tokens',
 				groupBy: ['issuer'],
 				include: {
 					issuer: true
@@ -34,7 +35,7 @@ export default async function({ ctx }){
 						}
 					}
 				}
-			}),
+			},
 			routine: async tokens => {
 				let targets = {}
 

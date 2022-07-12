@@ -109,12 +109,13 @@ async function crawlKyc({ ctx, fetch, interval }){
 			task: 'xumm.kyc',
 			interval,
 			subjectType: 'issuer',
-			iterator: ctx.db.tokens.iter({
+			iterator: {
+				table: 'tokens',
 				groupBy: ['issuer'],
 				include: {
 					issuer: true
 				}
-			}),
+			},
 			routine: async token => {
 				if(!token.issuer)
 					return
@@ -148,12 +149,13 @@ async function crawlAvatar({ ctx, fetch, interval }){
 			task: 'xumm.avatar',
 			interval,
 			subjectType: 'issuer',
-			iterator: ctx.db.tokens.iter({
+			iterator: {
+				table: 'tokens',
 				groupBy: ['issuer'],
 				include: {
 					issuer: true
 				}
-			}),
+			},
 			routine: async token => {
 				if(!token.issuer)
 					return

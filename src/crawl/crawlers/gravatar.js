@@ -18,12 +18,13 @@ export default async function({ ctx }){
 			task: 'gravatar',
 			interval: config.crawlInterval,
 			subjectType: 'issuer',
-			iterator: ctx.db.tokens.iter({
+			iterator: {
+				table: 'tokens',
 				groupBy: ['issuer'],
 				include: {
 					issuer: true
 				}
-			}),
+			},
 			routine: async token => {
 				if(!token.issuer)
 					return
