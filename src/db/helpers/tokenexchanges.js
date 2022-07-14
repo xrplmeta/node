@@ -20,6 +20,10 @@ export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 		},
 		orderBy: {
 			ledgerSequence: 'desc'
+		},
+		include: {
+			takerPaidToken: true,
+			takerGotToken: true
 		}
 	})
 
@@ -34,8 +38,9 @@ export function alignTokenExchange({ exchange, base, quote }){
 
 	if(
 		base &&
-		takerPaidToken.currency === base.currency && 
-		takerPaidToken.issuer?.address === base.issuer?.address
+		takerPaidToken.id === base.id ||
+		(takerPaidToken.currency === base.currency && 
+		takerPaidToken.issuer?.address === base.issuer?.address)
 	){
 		return {
 			...props,
@@ -45,8 +50,9 @@ export function alignTokenExchange({ exchange, base, quote }){
 	}
 	else if(
 		quote &&
-		takerPaidToken.currency === quote.currency && 
-		takerPaidToken.issuer?.address === quote.issuer?.address
+		takerPaidToken.id === quote.id ||
+		(takerPaidToken.currency === quote.currency && 
+		takerPaidToken.issuer?.address === quote.issuer?.address)
 	)
 	{
 		return {

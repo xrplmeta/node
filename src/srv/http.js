@@ -18,6 +18,21 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
+		'/token/:token',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token',
+				args: {
+					token: parseTokenURI(svc.params.token),
+					sources: svc.query.sources !== undefined
+				}
+			})
+		}
+	)
+
+	router.get(
 		'/token/:token/series/:metric',
 		async svc => {
 			await handle({
@@ -27,7 +42,6 @@ export function createRouter({ ctx }){
 				args: {
 					token: parseTokenURI(svc.params.token),
 					metric: svc.params.metric,
-					interval: svc.query.interval,
 					...parseRange(svc.query)
 				}
 			})
@@ -102,7 +116,7 @@ function parseTokenURI(uri){
 	}
 }
 
-function parseRange({ sequence_start, sequence_end, time_start, time_end }){
+function parseRange({ sequence_start, sequence_end, sequence_interval, time_start, time_end, time_interval }){
 	let range = {}
 
 	if(sequence_start){
@@ -112,6 +126,9 @@ function parseRange({ sequence_start, sequence_end, time_start, time_end }){
 				? parseInt(sequence_end)
 				: undefined
 		}
+
+		if(sequence_interval)
+			range.sequence.interval = parseInt(sequence_interval)
 	}else if(time_start){
 		range.time = {
 			start: parseInt(time_start),
@@ -119,6 +136,9 @@ function parseRange({ sequence_start, sequence_end, time_start, time_end }){
 				? parseInt(time_end)
 				: undefined
 		}
+
+		if(time_interval)
+			range.time.interval = parseInt(time_interval)
 	}
 
 	return range

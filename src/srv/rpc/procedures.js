@@ -1,7 +1,7 @@
 import version from '../../lib/version.js'
 import { compose, getAvailableRange } from './utils.js'
-import { sanitizeToken, sanitizeRange } from './sanitizers.js'
-import { serveTokenSeries } from './series.js'
+import { sanitizeToken, sanitizeRange, sanitizePoint } from './sanitizers.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenPoint } from './token.js'
 
 
 export function server_info({ ctx }){
@@ -10,6 +10,17 @@ export function server_info({ ctx }){
 		available_range: getAvailableRange({ ctx })
 	}
 }
+
+export const token = compose([
+	sanitizeToken({ key: 'token' }),
+	serveTokenSummary()
+])
+
+export const token_metric = compose([
+	sanitizeToken({ key: 'token' }),
+	sanitizePoint(),
+	serveTokenPoint()
+])
 
 export const token_series = compose([
 	sanitizeToken({ key: 'token' }),

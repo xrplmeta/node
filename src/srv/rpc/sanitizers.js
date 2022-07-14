@@ -17,6 +17,9 @@ export function sanitizeToken({ key }){
 				issuer: {
 					address: issuer
 				}
+			},
+			include: {
+				issuer: true
 			}
 		})
 	
@@ -36,6 +39,47 @@ export function sanitizeToken({ key }){
 	}
 }
 
+export function sanitizePoint(){
+	return ({ ctx, ...args }) => {
+		let available = getAvailableRange({ ctx })
+		let sequence
+		let time
+
+		if(args.hasOwnProperty('sequence')){
+			sequence = Math.min(
+				Math.max(
+					args.sequence, 
+					available.sequence.start
+				), 
+				available.sequence.end
+			)
+		}else if(args.hasOwnProperty('time')){
+			time = Math.min(
+				Math.max(
+					args.time, 
+					available.time.start
+				), 
+				available.time.end
+			)
+
+			sequence = findLedgerAt({ ctx, time }).sequence
+		}else{
+			throw {
+				type: `missingParam`,
+				message: `This request is missing a ledger sequence or a timestamp.`,
+				expose: true
+			}
+		}
+
+		return {
+			...args,
+			ctx,
+			sequence,
+			time
+		}
+	}
+}
+
 export function sanitizeRange({ withInterval = false }){
 	return ({ ctx, ...args }) => {
 		let available = getAvailableRange({ ctx })
@@ -48,11 +92,35 @@ export function sanitizeRange({ withInterval = false }){
 				requested: args.sequence, 
 				available: available.sequence 
 			})
+
+			if(withInterval){
+				if(args.sequence.hasOwnProperty('interval')){
+					sequence.interval = parseInt(args.sequence.interval)
+				}else{
+					throw {
+						type: `missingParam`,
+						message: `This request is missing sequence interval specification.`,
+						expose: true
+					}
+				}
+			}
 		}else if(args.hasOwnProperty('time')){
 			time = minMaxRange({ 
 				requested: args.time, 
 				available: available.time 
 			})
+
+			if(withInterval){
+				if(args.time.hasOwnProperty('interval')){
+					time.interval = parseInt(args.time.interval)
+				}else{
+					throw {
+						type: `missingParam`,
+						message: `This request is missing time interval specification.`,
+						expose: true
+					}
+				}
+			}
 
 			sequence = {
 				start: findLedgerAt({ ctx, time: time.start }).sequence,
@@ -67,17 +135,7 @@ export function sanitizeRange({ withInterval = false }){
 		}
 
 		if(withInterval){
-			if(!args.hasOwnProperty('interval')){
-				throw {
-					type: `missingParam`,
-					message: `This request is missing a interval specification.`,
-					expose: true
-				}
-			}
-
-			interval = parseInt(args.interval)
-
-			if(!interval || interval <= 0){
+			if((sequence?.interval || time?.interval) <= 0){
 				throw {
 					type: `invalidParam`,
 					message: `The interval has to be greater than zero.`,
