@@ -1,3 +1,5 @@
+import { updateCacheForAccountProps, updateCacheForTokenProps } from './cache.js'
+
 export function readTokenPropsReduced({ ctx, token, sourceRanking, includeSources }){
 	return reduce({
 		props: ctx.db.tokenProps.readMany({
@@ -33,6 +35,8 @@ export function writeTokenProps({ ctx, token, props, source }){
 			}
 		}
 	})
+
+	updateCacheForTokenProps({ ctx, token })
 }
 
 
@@ -71,6 +75,8 @@ export function writeAccountProps({ ctx, account, props, source }){
 			}
 		}
 	})
+
+	updateCacheForAccountProps({ ctx, account })
 }
 
 

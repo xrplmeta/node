@@ -1,3 +1,4 @@
+import { updateCacheForTokenMetrics } from './cache.js'
 import { readPoint, writePoint } from './common.js'
 
 
@@ -64,4 +65,6 @@ export function writeTokenMetrics({ ctx, token, ledgerSequence, metrics }){
 				: null
 		})
 	}
+
+	updateCacheForTokenMetrics({ ctx, token, metrics })
 }

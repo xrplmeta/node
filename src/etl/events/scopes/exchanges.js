@@ -1,4 +1,5 @@
 import { extractExchanges } from '@xrplkit/txmeta'
+import { updateCacheForTokenExchanges } from '../../../db/helpers/cache.js'
 
 
 export function extractTokenExchanges({ ctx, ledger }){
@@ -43,5 +44,8 @@ export function extractTokenExchanges({ ctx, ledger }){
 				takerGotValue: takerGot.value,
 			}
 		})
+		
+		updateCacheForTokenExchanges({ ctx, token: takerPaidToken })
+		updateCacheForTokenExchanges({ ctx, token: takerGotToken })
 	}
 }
