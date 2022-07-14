@@ -415,11 +415,15 @@
 				"token": {
 					"$ref": "#/definitions/Token"
 				},
-				"issuerMeta": {
+				"issuerProps": {
 					"type": "any"
 				},
-				"tokenMeta": {
+				"tokenProps": {
 					"type": "any"
+				},
+				"trusted": {
+					"type": "boolean",
+					"default": false
 				},
 				"trustlines": {
 					"type": "integer",
@@ -536,6 +540,34 @@
 			],
 			"unique": [
 				"token"
+			],
+			"index": [
+				"trusted",
+				"trustlines",
+				"trustlinesDelta24H",
+				"trustlinesPercent24H",
+				"trustlinesDelta7D",
+				"trustlinesPercent7D",
+				"holders",
+				"holdersDelta24H",
+				"holdersPercent24H",
+				"holdersDelta7D",
+				"holdersPercent7D",
+				"supply",
+				"supplyDelta24H",
+				"supplyPercent24H",
+				"supplyDelta7D",
+				"supplyPercent7D",
+				"marketcap",
+				"marketcapDelta24H",
+				"marketcapPercent24H",
+				"marketcapDelta7D",
+				"marketcapPercent7D",
+				"price",
+				"pricePercent24H",
+				"pricePercent7D",
+				"volume24H",
+				"volume7D"
 			]
 		},
 		"TokenProp": {
