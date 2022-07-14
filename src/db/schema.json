@@ -44,6 +44,12 @@
 				"$ref": "#/definitions/Token"
 			}
 		},
+		"tokenCache": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenCache"
+			}
+		},
 		"tokenProps": {
 			"type": "array",
 			"items": {
@@ -397,6 +403,139 @@
 			],
 			"unique": [
 				["issuer", "currency"]
+			]
+		},
+		"TokenCache": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"issuerMeta": {
+					"type": "any"
+				},
+				"tokenMeta": {
+					"type": "any"
+				},
+				"trustlines": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlinesDelta24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlinesPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"trustlinesDelta7D": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlinesPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"holders": {
+					"type": "integer",
+					"default": 0
+				},
+				"holdersDelta24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"holdersPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"holdersDelta7D": {
+					"type": "integer",
+					"default": 0
+				},
+				"holdersPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"supply": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"supplyDelta24H": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"supplyPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"supplyDelta7D": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"supplyPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"marketcap": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"marketcapDelta24H": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"marketcapPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"marketcapDelta7D": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"marketcapPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"price": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"pricePercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"pricePercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"volume24H": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"volume7D": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				}
+			},
+			"required": [
+				"token"
+			],
+			"unique": [
+				"token"
 			]
 		},
 		"TokenProp": {
