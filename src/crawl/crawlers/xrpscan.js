@@ -5,7 +5,11 @@ import { writeAccountProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl.xrpscan
+	let config = ctx.config.crawl?.xrpscan
+
+	if(!config){
+		throw new Error(`disabled by config`)
+	}
 	
 	let fetch = createFetch({
 		baseUrl: 'https://api.xrpscan.com/api/v1'

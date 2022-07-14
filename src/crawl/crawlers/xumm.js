@@ -5,7 +5,11 @@ import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl.xumm
+	let config = ctx.config.crawl?.xumm
+
+	if(!config){
+		throw new Error(`disabled by config`)
+	}
 	
 	let fetchApi = createFetch({
 		baseUrl: 'https://xumm.app/api/v1/platform/',

@@ -3,15 +3,21 @@ import crawlers from './crawlers/index.js'
 
 
 export async function startCrawlers({ ctx }){
-	await Promise.all(
-		crawlers.map(
-			({ name, start }) => start({ ctx })
-				.catch(
-					error => log.warn(
-						`crawler "${name}" encountered fatal error:\n`, 
-						error.stack
-					)
-				)
-		)
-	)
+	let active = {}
+
+	for(let { name, start } of crawlers){
+		active[name] = start({ ctx })
+			.catch(error => {
+				log.warn(`skipping crawler [${name}]:`, error.message)
+				delete active[name]
+			})
+	}
+
+	await Promise.resolve()
+	await Promise.all(Object.entries(active).map(
+		([name, promise]) => {
+			log.info(`started crawler [${name}]`)
+			return promise
+		}
+	))
 }

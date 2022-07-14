@@ -5,7 +5,11 @@ import { writeAccountProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl.gravatar
+	let config = ctx.config.crawl?.gravatar
+
+	if(!config){
+		throw new Error(`disabled by config`)
+	}
 	
 	let fetch = new createFetch({
 		baseUrl: 'https://www.gravatar.com',
