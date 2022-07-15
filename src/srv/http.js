@@ -26,7 +26,8 @@ export function createRouter({ ctx }){
 				procedure: 'tokens',
 				args: {
 					...svc.query,
-					decode_currency: svc.query.decode_currency !== undefined
+					sources: svc.query.sources !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
 				}
 			})
 		}
@@ -41,7 +42,8 @@ export function createRouter({ ctx }){
 				procedure: 'token',
 				args: {
 					token: parseTokenURI(svc.params.token),
-					sources: svc.query.sources !== undefined
+					sources: svc.query.sources !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
 				}
 			})
 		}

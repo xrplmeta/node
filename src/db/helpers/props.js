@@ -80,7 +80,7 @@ export function writeAccountProps({ ctx, account, props, source }){
 }
 
 
-function reduce({ props, sourceRanking, includeSources }){
+export function reduceProps({ props, sourceRanking, includeSources }){
 	let data = {}
 	let sources = {}
 	let sourceRanks = {}
