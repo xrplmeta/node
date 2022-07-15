@@ -25,6 +25,7 @@ export async function createSnapshot({ ctx }){
 				ctx,
 				feed: await createFeed({
 					ctx,
+					ledgerSequence: ctx.snapshotState.ledgerSequence,
 					marker: ctx.snapshotState.marker,
 					node: ctx.snapshotState.originNode
 				})
@@ -73,12 +74,14 @@ async function createSnapshotEntry({ ctx }){
 	})
 }
 
-async function createFeed({ ctx }){
+async function createFeed({ ctx, ledgerSequence, marker, node }){
 	return await spawn(
 		'../xrpl/snapshot.js:start', 
 		{ 
 			ctx, 
-			ledgerSequence: ctx.snapshotState.ledgerSequence 
+			ledgerSequence,
+			marker,
+			node
 		}
 	)
 }
