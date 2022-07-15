@@ -1,10 +1,7 @@
 import { decodeCurrencyCode } from '@xrplkit/amount'
-import { readTokenPropsReduced, readAccountPropsReduced, reduceProps } from '../../db/helpers/props.js'
-import { readTokenExchangeAligned, readTokenExchangeIntervalSeries } from '../../db/helpers/tokenexchanges.js'
-import { readTokenMetricIntervalSeries, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
-
-const defaultTokensPerPage = 100
-const maxTokensPerPage = 1000
+import { reduceProps } from '../../db/helpers/props.js'
+import { readTokenExchangeIntervalSeries } from '../../db/helpers/tokenexchanges.js'
+import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
 export function serveTokenList(){

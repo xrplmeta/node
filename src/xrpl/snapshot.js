@@ -2,7 +2,7 @@ import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 
 export async function start({ ctx, ledgerSequence, marker, node }){
-	let chunkSize = ctx.config.ledger.snapshotChunkSize || 10000
+	let chunkSize = ctx.config.etl.snapshotChunkSize || 10000
 	let queue = []
 	
 	let { result, node: assignedNode } = await ctx.xrpl.request({

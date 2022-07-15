@@ -9,7 +9,7 @@ import { startBackfill } from '../etl/backfill.js'
 
 export async function run({ config }){
 	let ctx = { 
-		xrpl: createPool(config.ledger.sources),
+		xrpl: createPool(config.etl.source),
 		config, 
 		log,
 	}
