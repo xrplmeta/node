@@ -8,10 +8,10 @@ export function parse({ entry }){
 		address: entry.Account,
 		emailHash: entry.EmailHash,
 		balance: div(entry.Balance, '1000000'),
-		transferRate: entry.transferRate,
+		transferRate: entry.TransferRate,
 		blackholed: isBlackholed(entry),
-		domain: entry.domain
-			? Buffer.from(entry.domain, 'hex').toString()
+		domain: entry.Domain
+			? Buffer.from(entry.Domain, 'hex').toString()
 			: undefined,
 	}
 }
