@@ -284,8 +284,7 @@
 					"format": "xrpl/address"
 				},
 				"domain": {
-					"type": "string",
-					"format": "hex"
+					"type": "string"
 				},
 				"emailHash": {
 					"type": "string",

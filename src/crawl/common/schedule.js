@@ -34,8 +34,9 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 	}
 }
 
-export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, routine }){
+export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, concurrency = 1, routine }){
 	let ids = []
+	let promises = []
 
 	for(let item of ctx.db[table].iter(iterator)){
 		ids.push(item.id)
@@ -67,21 +68,29 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 		if(previousOperation)
 			continue
 
-		try{
-			await routine(item)
+		let promise = routine(item)
+			.then(() => {
+				promises.splice(promises.indexOf(promise), 1)
+			})
+			.catch(error => {
+				log.warn(`scheduled task "${task}" failed for item:\n`, error.stack)
+			})
+			.then(() => {
+				ctx.db.operations.createOne({
+					data: {
+						subjectType,
+						subjectId: item.id,
+						task,
+						time: unixNow()
+					}
+				})
+			})
+		
+		promises.push(promise)
 
-		}catch(error){
-			log.warn(`scheduled task "${task}" failed for item:\n`, error.stack)
+		if(promises.length >= concurrency){
+			await Promise.any(promises)
 		}
-
-		ctx.db.operations.createOne({
-			data: {
-				subjectType,
-				subjectId: item.id,
-				task,
-				time: unixNow()
-			}
-		})
 	}
 
 	await wait(1)

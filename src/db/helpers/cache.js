@@ -10,6 +10,9 @@ const metricInts = ['trustlines', 'holders']
 
 
 export function updateCacheForTokenProps({ ctx, token }){
+	if(ctx.backwards)
+		return
+
 	let props = ctx.db.tokenProps.readMany({
 		where: {
 			token
@@ -29,6 +32,9 @@ export function updateCacheForTokenProps({ ctx, token }){
 }
 
 export function updateCacheForAccountProps({ ctx, account }){
+	if(ctx.backwards)
+		return
+	
 	let tokens = ctx.db.tokens.readMany({
 		where: {
 			issuer: account
@@ -51,6 +57,9 @@ export function updateCacheForAccountProps({ ctx, account }){
 }
 
 export function updateCacheForTokenMetrics({ ctx, token, metrics }){
+	if(ctx.backwards)
+		return
+
 	let cache = {}
 	let sequences = getCommonLedgerSequences({ ctx })
 
@@ -111,6 +120,9 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 }
 
 export function updateCacheForTokenExchanges({ ctx, token }){
+	if(ctx.backwards)
+		return
+
 	if(token.currency === 'XRP')
 		return
 
