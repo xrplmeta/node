@@ -15,7 +15,7 @@ export function updateCacheForTokenProps({ ctx, token }){
 			token
 		}
 	})
-		.map(({ key, value, source }) => { key, value, source })
+		.map(({ key, value, source }) => ({ key, value, source }))
 
 	ctx.db.tokenCache.createOne({
 		data: {
@@ -44,7 +44,7 @@ export function updateCacheForAccountProps({ ctx, account }){
 						account
 					}
 				})
-					.map(({ key, value, source }) => { key, value, source })
+					.map(({ key, value, source }) => ({ key, value, source }))
 			}
 		})
 	}
