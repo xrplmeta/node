@@ -1,3 +1,4 @@
+import { decodeCurrencyCode } from '@xrplkit/amount'
 import { readTokenPropsReduced, readAccountPropsReduced } from '../../db/helpers/props.js'
 import { readTokenExchangeAligned, readTokenExchangeIntervalSeries } from '../../db/helpers/tokenexchanges.js'
 import { readTokenMetricIntervalSeries, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
@@ -7,7 +8,7 @@ const maxTokensPerPage = 1000
 
 
 export function serveTokenList(){
-	return ({ ctx, sort, limit, offset }) => {
+	return ({ ctx, sort, decode_currency, limit, offset }) => {
 		let tokens = []
 		let caches = ctx.db.tokenCache.readMany({
 			include: {
@@ -24,7 +25,9 @@ export function serveTokenList(){
 
 		for(let cache of caches){
 			let token = {
-				currency: cache.token.currency,
+				currency: decode_currency
+					? decodeCurrencyCode(cache.token.currency)
+					: cache.token.currency,
 				issuer: cache.token.issuer.address,
 				meta: {
 					

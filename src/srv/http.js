@@ -25,7 +25,8 @@ export function createRouter({ ctx }){
 				svc,
 				procedure: 'tokens',
 				args: {
-					...svc.query
+					...svc.query,
+					decode_currency: svc.query.decode_currency !== undefined
 				}
 			})
 		}
