@@ -1,7 +1,51 @@
 import { readTokenPropsReduced, readAccountPropsReduced } from '../../db/helpers/props.js'
-import { readTokenExchangeAligned } from '../../db/helpers/tokenexchanges.js'
-import { readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
-import { readTokenMetricSeries, readTokenExchangeSeries } from './utils.js'
+import { readTokenExchangeAligned, readTokenExchangeIntervalSeries } from '../../db/helpers/tokenexchanges.js'
+import { readTokenMetricIntervalSeries, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
+
+const defaultTokensPerPage = 100
+const maxTokensPerPage = 1000
+
+
+export function serveTokenList(){
+	return ({ ctx, sort, limit, offset }) => {
+		let tokens = []
+		let caches = ctx.db.tokenCache.readMany({
+			include: {
+				token: {
+					issuer: true
+				}
+			},
+			orderBy: {
+				[sort || 'trustlines']: 'desc'
+			},
+			take: limit,
+			skip: offset
+		})
+
+		for(let cache of caches){
+			let token = {
+				currency: cache.token.currency,
+				issuer: cache.token.issuer.address,
+				meta: {
+					
+				},
+				metrics: {
+					trustlines: cache.trustlines,
+					holders: cache.holders,
+					supply: cache.supply.toString(),
+					marketcap: cache.marketcap.toString(),
+					price: cache.price.toString(),
+					volume_24h: cache.volume24H.toString(),
+					volume_7d: cache.volume7D.toString(),
+				}
+			}
+
+			tokens.push(token)
+		}
+
+		return tokens
+	}
+}
 
 
 export function serveTokenSummary(){
@@ -72,7 +116,7 @@ export function serveTokenSeries(){
 		let series
 
 		if(metric === 'price'){
-			series = readTokenExchangeSeries({
+			series = readTokenExchangeIntervalSeries({
 				ctx,
 				base: token,
 				quote: {
@@ -85,34 +129,10 @@ export function serveTokenSeries(){
 					...point,
 					value: point.price
 				}))
-		}else if(metric === 'trustlines'){
-			series = readTokenMetricSeries({
+		}else if(['trustlines', 'holders', 'supply', 'marketcap'].includes(metric)){
+			series = readTokenMetricIntervalSeries({
 				ctx,
-				table: 'tokenTrustlines',
-				token,
-				sequence,
-				time
-			})
-		}else if(metric === 'holders'){
-			series = readTokenMetricSeries({
-				ctx,
-				table: 'tokenHolders',
-				token,
-				sequence,
-				time
-			})
-		}else if(metric === 'supply'){
-			series = readTokenMetricSeries({
-				ctx,
-				table: 'tokenSupply',
-				token,
-				sequence,
-				time
-			})
-		}else if(metric === 'marketcap'){
-			series = readTokenMetricSeries({
-				ctx,
-				table: 'tokenMarketcap',
+				metric,
 				token,
 				sequence,
 				time
