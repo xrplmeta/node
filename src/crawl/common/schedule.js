@@ -19,18 +19,19 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 
 	try{
 		await routine()
+
+		ctx.db.operations.createOne({
+			data: {
+				subjectType: 'global',
+				subjectId: 0,
+				task,
+				time: unixNow()
+			}
+		})
 	}catch(error){
 		log.warn(`scheduled task "${task}" failed:\n`, error.stack)
+		await wait(3000)
 	}
-
-	ctx.db.operations.createOne({
-		data: {
-			subjectType: 'global',
-			subjectId: 0,
-			task,
-			time: unixNow()
-		}
-	})
 }
 
 export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, routine }){
@@ -46,7 +47,8 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 		let item = ctx.db[table].readOne({
 			where: {
 				id
-			}
+			},
+			include: iterator.include
 		})
 
 		let previousOperation = ctx.db.operations.readOne({
@@ -125,7 +127,8 @@ export async function scheduleBatchedIterator({ ctx, iterator: { table, ...itera
 		let item = ctx.db[table].readOne({
 			where: {
 				id
-			}
+			},
+			include: iterator.include
 		})
 
 		let previousOperation = ctx.db.operations.readOne({
