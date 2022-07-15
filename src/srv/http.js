@@ -1,6 +1,6 @@
 import Router from '@koa/router'
 import log from '@mwni/log'
-import * as procedures from './rpc/procedures.js'
+import * as procedures from './api.js'
 
 
 export function createRouter({ ctx }){
@@ -13,6 +13,20 @@ export function createRouter({ ctx }){
 				ctx,
 				svc,
 				procedure: 'server_info'
+			})
+		}
+	)
+
+	router.get(
+		'/tokens',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'tokens',
+				args: {
+					...svc.query
+				}
 			})
 		}
 	)
@@ -47,34 +61,6 @@ export function createRouter({ ctx }){
 			})
 		}
 	)
-
-	/*router.get(
-		'/tokens', 
-		this.wrappedProcedure('tokens')
-	)
-
-	router.get(
-		'/token/:token', 
-		this.wrappedProcedure(
-			'token', 
-			parameters => ({
-				...parameters,
-				token: this.parseTokenURI(parameters.token),
-				full: parameters.hasOwnProperty('full')
-			})
-		)
-	)
-
-	router.get(
-		'/token/:token/:metric/:timeframe', 
-		this.wrappedProcedure(
-			'token_series', 
-			parameters => ({
-				...parameters,
-				token: this.parseTokenURI(parameters.token)
-			})
-		)
-	)*/
 
 	return router
 }

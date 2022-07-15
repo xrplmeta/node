@@ -1,4 +1,4 @@
-import * as procedures from './rpc/procedures.js'
+import * as procedures from './api.js'
 
 
 const keepAliveInterval = 10000

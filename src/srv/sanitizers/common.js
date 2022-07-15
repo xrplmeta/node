@@ -1,43 +1,4 @@
-import { findLedgerAt, getAvailableRange } from './utils.js'
-
-
-export function sanitizeToken({ key }){
-	return ({ ctx, ...args }) => {
-		if(!args.hasOwnProperty(key))
-			throw {
-				type: `missingParam`,
-				message: `No token specified.`,
-				expose: true
-			}
-
-		let { currency, issuer } = args[key]
-		let token = ctx.db.tokens.readOne({
-			where: {
-				currency,
-				issuer: {
-					address: issuer
-				}
-			},
-			include: {
-				issuer: true
-			}
-		})
-	
-		if(!token){
-			throw {
-				type: `entryNotFound`,
-				message: `The token '${currency}' issued by '${issuer}' does not exist.`,
-				expose: true
-			}
-		}
-	
-		return {
-			...args,
-			ctx,
-			[key]: token,
-		}
-	}
-}
+import { getAvailableRange, readLedgerAt } from '../../db/helpers/ledgers.js'
 
 export function sanitizePoint(){
 	return ({ ctx, ...args }) => {
@@ -62,7 +23,7 @@ export function sanitizePoint(){
 				available.time.end
 			)
 
-			sequence = findLedgerAt({ ctx, time }).sequence
+			sequence = readLedgerAt({ ctx, time }).sequence
 		}else{
 			throw {
 				type: `missingParam`,
@@ -123,8 +84,8 @@ export function sanitizeRange({ withInterval = false }){
 			}
 
 			sequence = {
-				start: findLedgerAt({ ctx, time: time.start }).sequence,
-				end: findLedgerAt({ ctx, time: time.end }).sequence,
+				start: readLedgerAt({ ctx, time: time.start }).sequence,
+				end: readLedgerAt({ ctx, time: time.end }).sequence,
 			}
 		}else{
 			throw {
@@ -150,6 +111,21 @@ export function sanitizeRange({ withInterval = false }){
 			sequence,
 			time,
 			interval
+		}
+	}
+}
+
+export function sanitizeLimitOffset({ defaultLimit, maxLimit }){
+	return ({ ctx, limit, offset, ...args }) => {
+		return {
+			...args,
+			ctx,
+			limit: limit
+				? Math.min(parseInt(limit), maxLimit)
+				: defaultLimit,
+			offset: offset
+				? parseInt(offset)
+				: undefined
 		}
 	}
 }
