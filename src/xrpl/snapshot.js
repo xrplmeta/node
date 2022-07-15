@@ -2,6 +2,9 @@ import log from '@mwni/log'
 import { wait } from '@xrplkit/time'
 
 export async function start({ ctx, ledgerSequence, marker, node }){
+	if(ctx.log)
+		log.pipe(ctx.log)
+
 	let chunkSize = ctx.config.etl.snapshotChunkSize || 10000
 	let queue = []
 	

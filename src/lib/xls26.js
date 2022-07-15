@@ -1,5 +1,5 @@
-import { parse as parseXLS26 } from '@xrplkit/xls26'
-import { decode as decodeCurrency } from '@xrplworks/currency'
+import * as xls26 from '@xrplkit/xls26'
+import { decodeCurrencyCode } from '@xrplkit/amount'
 
 const linkmap = {
 	twitter: [
@@ -8,8 +8,8 @@ const linkmap = {
 }
 
 
-export function parse(str){
-	let { accounts, currencies } = parseXLS26(str)
+export function parseXLS26(str){
+	let { accounts, currencies } = xls26.parse(str)
 
 	return {
 		issuers: accounts
@@ -18,7 +18,7 @@ export function parse(str){
 			.map(transform)
 			.map(({code, ...token}) => ({
 				...token, 
-				currency: decodeCurrency(code)
+				currency: decodeCurrencyCode(code)
 			})),
 	}
 }

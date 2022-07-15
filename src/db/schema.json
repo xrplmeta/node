@@ -328,16 +328,7 @@
 					"type": "any"
 				},
 				"source": {
-					"type": "string",
-					"enum": [
-						"domain",
-						"xumm",
-						"xrplf",
-						"bithomp",
-						"xrpscan",
-						"twitter",
-						"gravatar"
-					]
+					"type": "string"
 				}
 			},
 			"required": [
@@ -587,16 +578,7 @@
 					"type": "any"
 				},
 				"source": {
-					"type": "string",
-					"enum": [
-						"domain",
-						"xumm",
-						"xrplf",
-						"bithomp",
-						"xrpscan",
-						"twitter",
-						"gravatar"
-					]
+					"type": "string"
 				}
 			},
 			"required": [

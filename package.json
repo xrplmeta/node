@@ -16,6 +16,7 @@
 		"@xrplkit/toml": "file:../../xrplkit/toml",
 		"@xrplkit/txmeta": "file:../../xrplkit/txmeta",
 		"@xrplkit/xfl": "file:../../xrplkit/xfl",
+		"@xrplkit/xls26": "file:../../xrplkit/xls26",
 		"multitasked": "file:../../multitasked",
 		"koa": "^2.13.4",
 		"koa-easy-ws": "^2.1.0",

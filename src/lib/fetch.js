@@ -4,7 +4,7 @@ import { RateLimiter } from 'limiter'
 import { sanitize } from './url.js'
 
 
-export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 }){
+export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
 	let limiter = ratelimit 
 		? new RateLimiter({
 			tokensPerInterval: ratelimit, 
