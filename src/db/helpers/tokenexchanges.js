@@ -1,6 +1,7 @@
 import { XFL, sum, div } from '@xrplkit/xfl'
 
 
+
 export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 	let exchange = ctx.db.tokenExchanges.readOne({
 		where: {
@@ -138,4 +139,120 @@ export function alignTokenExchange({ exchange, base, quote }){
 	{
 		throw new Error(`cannot align exchange: base/quote does not match`)
 	}
+}
+
+
+
+export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, time }){
+	if(time){
+		var exchanges = ctx.db.tokenExchanges.readManyRaw({
+			query: 
+				`SELECT MAX(Ledger.closeTime) as time, takerPaidToken, takerGotToken, takerPaidValue, takerGotValue
+				FROM TokenExchange
+				LEFT JOIN Ledger ON (Ledger.sequence = ledgerSequence)
+				WHERE (
+						(takerPaidToken = ? AND takerGotToken = ?)
+						OR
+						(takerGotToken = ? AND takerPaidToken = ?)
+					)
+					AND 
+					(
+						(Ledger.closeTime >= ? AND Ledger.closeTime <= ?)
+						OR
+						(
+							ledgerSequence = (
+								SELECT ledgerSequence
+								FROM TokenExchange
+								WHERE (
+										(takerPaidToken = ? AND takerGotToken = ?)
+										OR
+										(takerGotToken = ? AND takerPaidToken = ?)
+									)
+									AND ledgerSequence < ?
+								ORDER BY ledgerSequence DESC
+								LIMIT 1
+							)
+						)
+					)
+				GROUP BY Ledger.closeTime / CAST(? as INTEGER)
+				ORDER BY Ledger.closeTime ASC`,
+			params: [
+				base.id,
+				quote.id,
+				quote.id,
+				base.id,
+				time.start,
+				time.end,
+				base.id,
+				quote.id,
+				quote.id,
+				base.id,
+				sequence.start,
+				time.interval,
+			]
+		})
+	}else{
+		var exchanges = ctx.db.tokenExchanges.readManyRaw({
+			query: 
+				`SELECT MAX(ledgerSequence) as sequence, takerPaidToken, takerGotToken, takerPaidValue, takerGotValue
+				FROM TokenExchange
+				WHERE (
+						(takerPaidToken = ? AND takerGotToken = ?)
+						OR
+						(takerGotToken = ? AND takerPaidToken = ?)
+					)
+					AND (
+						(ledgerSequence >= ? AND ledgerSequence <= ?)
+						OR
+						(
+							ledgerSequence = (
+								SELECT ledgerSequence
+								FROM TokenExchange
+								WHERE (
+										(takerPaidToken = ? AND takerGotToken = ?)
+										OR
+										(takerGotToken = ? AND takerPaidToken = ?)
+									)
+									AND ledgerSequence < ?
+								ORDER BY ledgerSequence DESC
+								LIMIT 1
+							)
+						)
+					)
+				GROUP BY ledgerSequence / CAST(? as INTEGER)
+				ORDER BY ledgerSequence ASC`,
+			params: [
+				base.id,
+				quote.id,
+				quote.id,
+				base.id,
+				sequence.start,
+				sequence.end,
+				base.id,
+				quote.id,
+				quote.id,
+				base.id,
+				sequence.start,
+				sequence.interval,
+			]
+		})
+	}
+
+	return exchanges.map(
+		({ takerPaidToken, takerGotToken, takerPaidValue, takerGotValue, ...props }) => {
+			if(takerPaidToken === base.id){
+				return {
+					...props,
+					price: div(takerGotValue, takerPaidValue),
+					volume: takerPaidValue
+				}
+			}else{
+				return {
+					...props,
+					price: div(takerPaidValue, takerGotValue),
+					volume: takerGotValue
+				}
+			}
+		}
+	)
 }
