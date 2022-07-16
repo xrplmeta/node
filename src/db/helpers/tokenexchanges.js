@@ -1,4 +1,4 @@
-import { XFL, sum, div } from '@xrplkit/xfl'
+import { XFL, sum, div, gt } from '@xrplkit/xfl'
 
 
 
@@ -123,7 +123,9 @@ export function alignTokenExchange({ exchange, base, quote }){
 	if(takerPaidIsBase || takerGotIsQuote){
 		return {
 			...props,
-			price: div(takerGotValue, takerPaidValue),
+			price: gt(takerPaidValue, 0)
+				? div(takerGotValue, takerPaidValue)
+				: XFL(0),
 			volume: takerGotValue
 		}
 	}
@@ -131,7 +133,9 @@ export function alignTokenExchange({ exchange, base, quote }){
 	{
 		return {
 			...props,
-			price: div(takerPaidValue, takerGotValue),
+			price: gt(takerGotValue, 0)
+				? div(takerPaidValue, takerGotValue)
+				: XFL(0),
 			volume: takerPaidValue
 		}
 	}
