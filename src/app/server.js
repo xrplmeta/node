@@ -5,6 +5,11 @@ import { startServer } from '../srv/server.js'
 
 
 export async function run({ config }){
+	if(!config.server){
+		log.warn(`config is missing server stanza: disabling server`)
+		return
+	}
+
 	await spawn(':runServer', {
 		ctx: { 
 			config, 
