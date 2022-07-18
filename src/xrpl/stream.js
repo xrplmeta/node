@@ -84,7 +84,7 @@ function createRegistry({ name, startSequence, targetSequence, maxSize }){
 			resolveNext()
 
 			if(this.queueSize > 1){
-				log.accumulate.info({
+				log.accumulate.debug({
 					text: [
 						`${name} queue has`,
 						this.queueSize,
