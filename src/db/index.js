@@ -18,6 +18,7 @@ export function open({ ctx }){
 			)
 		),
 		journalMode: 'WAL',
+		timeout: 600000,
 		debug: ctx.config.debug?.queries,
 		codecs
 	})
