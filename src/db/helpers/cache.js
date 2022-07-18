@@ -1,3 +1,4 @@
+import log from '@mwni/log'
 import { sub, mul, div, min, gt } from '@xrplkit/xfl'
 import { unixNow } from '@xrplkit/time'
 import { readLedgerAt, readMostRecentLedger } from './ledgers.js'
@@ -7,6 +8,31 @@ import { readTokenExchangeAligned, readTokenVolume } from './tokenexchanges.js'
 
 const maxChangePercent = 999999999
 const metricInts = ['trustlines', 'holders']
+
+
+export function updateCacheForEverything({ ctx }){
+	log.time.info(`cache.update.all`, `updating token cache ...`)
+
+	let tokens = ctx.db.tokens.iter()
+
+	for(let token of tokens){
+		updateCacheForTokenProps({ ctx, token })
+		updateCacheForAccountProps({ ctx, account: token.issuer })
+		updateCacheForTokenExchanges({ ctx, token })
+		updateCacheForTokenMetrics({ 
+			ctx,
+			token, 
+			metrics: {
+				trustlines: true,
+				holders: true,
+				supply: true,
+				marketcap: true
+			}
+		})
+	}
+
+	log.time.info(`cache.update.all`, `updating token cache took %`)
+}
 
 
 export function updateCacheForTokenProps({ ctx, token }){
