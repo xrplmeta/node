@@ -1,8 +1,8 @@
 import log from '@mwni/log'
+import { parse as parseXLS26 } from '@xrplkit/xls26'
 import { scheduleGlobal, scheduleIterator } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
-import { parseXLS26 } from '../../lib/xls26.js'
 
 
 export default async function({ ctx }){
@@ -71,7 +71,7 @@ export default async function({ ctx }){
 						if(issuer !== address)
 							continue
 
-						delete props.trusted
+						delete props.trust_level
 
 						writeAccountProps({
 							ctx,
@@ -89,7 +89,7 @@ export default async function({ ctx }){
 						if(issuer !== address)
 							continue
 
-						delete props.trusted
+						delete props.trust_level
 
 						writeTokenProps({
 							ctx,

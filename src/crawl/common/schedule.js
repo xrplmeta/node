@@ -30,7 +30,7 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 		})
 	}catch(error){
 		log.warn(`scheduled task "${task}" failed:\n`, error.stack)
-		await wait(3000)
+		await wait(4000)
 	}
 }
 
@@ -97,30 +97,32 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 }
 
 
-export async function scheduleBatchedIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, batchSize, routine }){
+export async function scheduleBatchedIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, batchSize, accumulate, commit }){
 	let ids = []
-	let batch = []
+	let queue = []
 	let flush = async () => {
+		let batch = queue.splice(0, batchSize)
+
 		try{
-			await routine(batch)
+			await commit(batch)
 		}catch(error){
 			log.warn(`scheduled task "${task}" failed for batch:\n`, error.stack)
 		}
 
 		let time = unixNow()
 
-		for(let item of batch){
-			ctx.db.operations.createOne({
-				data: {
-					subjectType,
-					subjectId: item.id,
-					task,
-					time
-				}
-			})
+		for(let { items } of batch){
+			for(let item of items){
+				ctx.db.operations.createOne({
+					data: {
+						subjectType,
+						subjectId: item.id,
+						task,
+						time
+					}
+				})
+			}
 		}
-
-		batch = []
 	}
 
 	for(let item of ctx.db[table].iter(iterator)){
@@ -156,13 +158,13 @@ export async function scheduleBatchedIterator({ ctx, iterator: { table, ...itera
 		if(previousOperation)
 			continue
 
-		batch.push(item)
+		queue = accumulate(queue, item)
 
-		if(batch.length >= batchSize)
+		if(queue.length >= batchSize)
 			await flush()
 	}
 
-	if(batch.length > 0)
+	if(queue.length > 0)
 		await flush()
 
 	await wait(1)

@@ -74,7 +74,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 								name: issuer.name,
 								domain: issuer.domain,
 								icon: issuer.avatar,
-								trusted: true
+								trust_level: 3
 							},
 							source: 'xumm'
 						})
@@ -90,7 +90,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 							props: {
 								name: currency.name,
 								icon: currency.avatar,
-								trusted: true
+								trust_level: 3
 							},
 							source: 'xumm'
 						})

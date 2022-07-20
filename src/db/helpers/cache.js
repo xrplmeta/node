@@ -4,6 +4,7 @@ import { unixNow } from '@xrplkit/time'
 import { readLedgerAt, readMostRecentLedger } from './ledgers.js'
 import { readTokenMetrics } from './tokenmetrics.js'
 import { readTokenExchangeAligned, readTokenVolume } from './tokenexchanges.js'
+import { readAccountProps, readTokenProps } from './props.js'
 
 
 const maxChangePercent = 999999999
@@ -39,19 +40,16 @@ export function updateCacheForTokenProps({ ctx, token }){
 	if(ctx.backwards)
 		return
 
-	let props = ctx.db.tokenProps.readMany({
-		where: {
-			token
-		}
-	})
-		.map(({ key, value, source }) => ({ key, value, source }))
+	let props = readTokenProps({ ctx, token })
 
 	ctx.db.tokenCache.createOne({
 		data: {
 			token,
 			tokenProps: props,
-			trusted: props.some(
-				({ key, value }) => key === 'trusted' && value === true
+			trust_level: Math.max(
+				...props
+					.filter(({ key }) => key === 'trust_level')
+					.map(({ value }) => value)
 			)
 		}
 	})
@@ -68,15 +66,16 @@ export function updateCacheForAccountProps({ ctx, account }){
 	})
 
 	for(let token of tokens){
+		if(!token.issuer)
+			continue
+
 		ctx.db.tokenCache.createOne({
 			data: {
 				token,
-				issuerProps: ctx.db.accountProps.readMany({
-					where: {
-						account
-					}
+				issuerProps: readAccountProps({ 
+					ctx, 
+					account: token.issuer 
 				})
-					.map(({ key, value, source }) => ({ key, value, source }))
 			}
 		})
 	}

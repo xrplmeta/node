@@ -1,15 +1,12 @@
 import { updateCacheForAccountProps, updateCacheForTokenProps } from './cache.js'
 
-export function readTokenPropsReduced({ ctx, token, sourceRanking, includeSources }){
-	return reduce({
-		props: ctx.db.tokenProps.readMany({
-			where: {
-				token
-			}
-		}),
-		sourceRanking,
-		includeSources
+export function readTokenProps({ ctx, token }){
+	return ctx.db.tokenProps.readMany({
+		where: {
+			token
+		}
 	})
+		.map(({ key, value, source }) => ({ key, value, source }))
 }
 
 export function writeTokenProps({ ctx, token, props, source }){
@@ -40,16 +37,26 @@ export function writeTokenProps({ ctx, token, props, source }){
 }
 
 
-export function readAccountPropsReduced({ ctx, account, sourceRanking, includeSources }){
-	return reduce({
-		props: ctx.db.accountProps.readMany({
-			where: {
-				account
-			}
-		}),
-		sourceRanking, 
-		includeSources
+
+export function readAccountProps({ ctx, account }){
+	let props = ctx.db.accountProps.readMany({
+		where: {
+			account
+		}
 	})
+
+	account = ctx.db.accounts.readOne({
+		where: account
+	})
+	
+	if(account.domain)
+		props.push({
+			key: 'domain',
+			value: account.domain,
+			source: 'xrpl'
+		})
+
+	return props.map(({ key, value, source }) => ({ key, value, source }))
 }
 
 export function writeAccountProps({ ctx, account, props, source }){

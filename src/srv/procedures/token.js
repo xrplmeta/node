@@ -5,7 +5,7 @@ import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
 export function serveTokenList(){
-	return ({ ctx, sort, decode_currency, sources, limit, offset }) => {
+	return ({ ctx, sort, decode_currency, sources, changes, limit, offset }) => {
 		let tokens = []
 		let caches = ctx.db.tokenCache.readMany({
 			include: {
@@ -26,7 +26,8 @@ export function serveTokenList(){
 					ctx,
 					cache,
 					decodeCurrency: decode_currency,
-					includeSources: sources
+					includeSources: sources,
+					includeChanges: changes
 				})
 			)
 		}
@@ -37,7 +38,7 @@ export function serveTokenList(){
 
 
 export function serveTokenSummary(){
-	return ({ ctx, token, decode_currency, sources }) => {
+	return ({ ctx, token, decode_currency, sources, changes }) => {
 		let cache = ctx.db.tokenCache.readOne({
 			where: {
 				token
@@ -52,7 +53,8 @@ export function serveTokenSummary(){
 		return formatTokenCache({
 			cache,
 			decodeCurrency: decode_currency,
-			includeSources: sources
+			includeSources: sources,
+			includeChanges: changes,
 		})
 	}
 }
@@ -132,7 +134,7 @@ export function serveTokenSeries(){
 }
 
 
-function formatTokenCache({ cache, decodeCurrency, includeSources }){
+function formatTokenCache({ cache, decodeCurrency, includeSources, includeChanges }){
 	let token = {
 		currency: decodeCurrency
 			? decodeCurrencyCode(cache.token.currency)
@@ -157,6 +159,10 @@ function formatTokenCache({ cache, decodeCurrency, includeSources }){
 			volume_24h: cache.volume24H.toString(),
 			volume_7d: cache.volume7D.toString(),
 		}
+	}
+
+	if(includeChanges){
+
 	}
 
 	return token

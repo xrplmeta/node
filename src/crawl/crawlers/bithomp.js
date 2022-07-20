@@ -3,6 +3,17 @@ import { scheduleGlobal } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps } from '../../db/helpers/props.js'
 
+const socialMediaUrls = {
+	twitter: `https://twitter.com/%`,
+	facebook: `https://facebook.com/%`,
+	youtube: `https://youtube.com/c/%`,
+	instagram: `https://instagram.com/%`,
+	linkedin: `https://linkedin.com/%`,
+	reddit: `https://reddit.com/u/%`,
+	medium: `https://medium.com/@%`,
+	telegram: `https://t.me/%`,
+}
+
 
 export default async function({ ctx }){
 	let config = ctx.config.crawl?.bithomp
@@ -34,23 +45,26 @@ export default async function({ ctx }){
 
 				for(let service of services){
 					for(let { address } of service.addresses){
+						let weblinks = undefined
+
+						if(service.socialAccounts && service.socialAccounts.length > 0){
+							weblinks = Object.entries(service.socialAccounts).map(
+								([key, handle]) => ({
+									url: socialMediaUrls[key].replace('%', handle),
+									type: 'socialmedia'
+								})
+							)
+						}
+
 						writeAccountProps({
 							ctx,
 							account: {
 								address
 							},
 							props: {
-								...Object.entries(service.socialAccounts || {})
-									.reduce(
-										(accounts, [key, user]) => ({
-											...accounts,
-											[key]: user
-										}),
-										{}
-									),
 								name: service.name,
 								domain: service.domain,
-								...service.socialAccounts
+								weblinks,
 							},
 							source: 'bithomp'
 						})

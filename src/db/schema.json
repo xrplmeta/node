@@ -386,6 +386,12 @@
 				"currency": {
 					"type": "string",
 					"format": "xrpl/currency"
+				},
+				"props": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/TokenProp"
+					}
 				}
 			},
 			"required": [
@@ -411,9 +417,9 @@
 				"tokenProps": {
 					"type": "any"
 				},
-				"trusted": {
-					"type": "boolean",
-					"default": false
+				"trust_level": {
+					"type": "integer",
+					"default": 0
 				},
 				"trustlines": {
 					"type": "integer",
@@ -532,7 +538,7 @@
 				"token"
 			],
 			"index": [
-				"trusted",
+				"trust_level",
 				"trustlines",
 				"trustlinesDelta24H",
 				"trustlinesPercent24H",

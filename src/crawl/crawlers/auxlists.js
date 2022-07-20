@@ -1,8 +1,8 @@
 import log from '@mwni/log'
+import { parse as parseXLS26 } from '@xrplkit/xls26'
 import { scheduleGlobal } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
-import { parseXLS26 } from '../../lib/xls26.js'
 
 
 export default async function({ ctx }){
@@ -19,7 +19,7 @@ export default async function({ ctx }){
 	)
 }
 
-async function crawlList({ ctx, id, url, trusted, crawlInterval }){
+async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 	let fetch = createFetch({
 		baseUrl: url,
 		headers: {
@@ -42,13 +42,27 @@ async function crawlList({ ctx, id, url, trusted, crawlInterval }){
 					throw `${url}: HTTP ${response.status}`
 				}
 
-				let { issuers, tokens } = parseXLS26(data)
+				try{
+					var { issuers, tokens, issues } = parseXLS26(data)
+				}catch(error){
+					console.log(error)
+					throw error
+				}
+
 				let issuerUpdates = 0
 				let tokenUpdates = 0
+
+				if(issues.length > 0){
+					log.debug(`auxlist [${id}] has issues: ${
+						issues
+							.map(issue => `  - ${issue}`)
+							.join(`\n`)
+					}`)
+				}
 				
 				for(let { address, ...props } of issuers){
-					if(!trusted)
-						delete props.trusted
+					if(props.hasOwnProperty('trust_level'))
+						props.trust_level = Math.min(props.trust_level, trustLevel)
 
 					writeAccountProps({
 						ctx,
@@ -63,8 +77,8 @@ async function crawlList({ ctx, id, url, trusted, crawlInterval }){
 				}
 
 				for(let { currency, issuer, ...props } of tokens){
-					if(!trusted)
-						delete props.trusted
+					if(props.hasOwnProperty('trust_level'))
+						props.trust_level = Math.min(props.trust_level, trustLevel)
 
 					writeTokenProps({
 						ctx,

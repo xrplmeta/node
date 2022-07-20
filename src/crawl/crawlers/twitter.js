@@ -1,7 +1,7 @@
 import log from '@mwni/log'
 import { scheduleBatchedIterator } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeAccountProps } from '../../db/helpers/props.js'
+import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
@@ -28,51 +28,89 @@ export default async function({ ctx }){
 			batchSize: 100,
 			iterator: {
 				table: 'tokens',
-				groupBy: ['issuer'],
 				include: {
 					issuer: true
 				},
 				where: {
-					issuer: {
-						props: {
-							key: 'twitter'
+					OR: [
+						{
+							props: {
+								key: 'weblinks'
+							}
+						},
+						{
+							issuer: {
+								props: {
+									key: 'weblinks'
+								}
+							}
 						}
-					}
+					]
 				}
 			},
-			routine: async tokens => {
-				let targets = {}
-
-				for(let { issuer } of tokens){
-					if(!issuer)
-						continue
-
-					let { value: twitterHandle } = ctx.db.accountProps.readOne({
-						where: {
-							account: issuer,
-							key: 'twitter'
-						}
-					})
-
-					if(!/^[A-Za-z0-9_]{1,15}$/.test(twitterHandle))
-						continue
-
-					if(!targets[twitterHandle])
-						targets[twitterHandle] = []
-
-					targets[twitterHandle].push(issuer)
-				}
-
-				let batch = Object.entries(targets)
-					.map(([twitter, accounts]) => ({twitter, accounts}))
-
-				if(batch.length === 0)
+			accumulate: (tasks, token) => {
+				if(!token.issuer)
 					return
 
-				log.info(`got batch of`, batch.length, `twitter profiles to fetch`)
+				let issuerWeblinks = ctx.db.accountProps.readMany({
+					where: {
+						account: token.issuer,
+						key: 'weblinks'
+					}
+				})
 
-				let usernamesQuery = batch
-					.map(({twitter}) => twitter)
+				let tokenWeblinks = ctx.db.tokenProps.readMany({
+					where: {
+						token,
+						key: 'weblinks'
+					}
+				})
+
+				for(let prop of [...issuerWeblinks, ...tokenWeblinks]){
+					let link = prop.value
+						.filter(link => link.type === 'socialmedia')
+						.find(link => link.url.includes('twitter.com'))
+
+					if(!link)
+						continue
+
+					let handle = link.url.split('/')[3]
+
+					if(!handle)
+						continue
+
+					if(!/^[A-Za-z0-9_]{1,15}$/.test(handle))
+						continue
+
+					let task = tasks.find(task => task.handle === handle)
+
+					if(!task){
+						tasks.push(task = {
+							handle,
+							items: [],
+							issuers: [],
+							tokens: []
+						})
+					}
+
+					task.items.push(token)
+
+					if(prop.token){
+						task.tokens.push(prop.token)
+					}else{
+						task.issuers.push(prop.account)
+					}
+				}
+
+				return tasks
+			},
+			commit: async tasks => {
+				console.log('tasks:', tasks)
+
+				log.info(`got batch of`, tasks.length, `twitter profiles to fetch`)
+
+				let usernamesQuery = tasks
+					.map(({ handle }) => handle)
 					.join(',')
 
 				let { status, data: {data, errors} } = await fetch(
@@ -89,10 +127,11 @@ export default async function({ ctx }){
 
 				log.info(`fetched`, data.length, `profiles`)
 
+				let updatedTokens = 0
 				let updatedAccounts = 0
 
-				for(let { twitter, accounts } of batch){
-					let profile = data.find(entry => entry.username.toLowerCase() === twitter.toLowerCase())
+				for(let { handle, tokens, issuers } of tasks){
+					let profile = data.find(entry => entry.username.toLowerCase() === handle.toLowerCase())
 					let props = {
 						followers: undefined,
 						name: undefined,
@@ -119,14 +158,25 @@ export default async function({ ctx }){
 						if(profile.entities?.description?.urls){
 							let offset = 0
 
-							for(let {start, end, expanded_url} of profile.entities.description.urls){
+							for(let { start, end, expanded_url } of profile.entities.description.urls){
 								props.description = props.description.slice(0, start + offset) + expanded_url + props.description.slice(end + offset)
 								offset += expanded_url.length - (end - start)
 							}
 						}
 					}
 
-					for(let account of accounts){
+					for(let token of tokens){
+						writeTokenProps({
+							ctx,
+							token,
+							props,
+							source: 'twitter'
+						})
+
+						updatedTokens++
+					}
+
+					for(let account of issuers){
 						writeAccountProps({
 							ctx,
 							account,
@@ -138,7 +188,7 @@ export default async function({ ctx }){
 					}
 				}
 
-				log.info(`updated`, updatedAccounts, `issuers`)
+				log.info(`updated`, updatedAccounts, `issuers and`, updatedTokens, `tokens`)
 			}
 		})
 	}

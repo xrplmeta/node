@@ -27,7 +27,16 @@ export default async function({ ctx }){
 
 				log.info(`got`, data.length, `well known`)
 
-				for(let { account, name, domain, twitter, verified } of data){
+				for(let { account, name, domain, twitter } of data){
+					let weblinks = undefined
+
+					if(twitter){
+						weblinks = [{
+							url: `https://twitter.com/${twitter}`,
+							type: `socialmedia`
+						}]
+					}
+
 					writeAccountProps({
 						ctx,
 						account: {
@@ -36,8 +45,7 @@ export default async function({ ctx }){
 						props: {
 							name,
 							domain,
-							twitter,
-							verified,
+							weblinks
 						},
 						source: 'xrpscan'
 					})

@@ -27,6 +27,7 @@ export function createRouter({ ctx }){
 				args: {
 					...svc.query,
 					sources: svc.query.sources !== undefined,
+					changes: svc.query.changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
 				}
 			})
