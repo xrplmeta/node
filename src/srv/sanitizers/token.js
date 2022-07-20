@@ -63,6 +63,36 @@ export function sanitizeToken({ key }){
 	}
 }
 
+export function sanitizeTrustLevels(){
+	return ({ ctx, trust_levels, ...args }) => {
+		if(trust_levels){
+			if(!Array.isArray(trust_levels)){
+				throw {
+					type: `invalidParam`,
+					message: `The trust levels need to be specified as an array.`,
+					expose: true
+				}
+			}
+
+			trust_levels = trust_levels.map(level => parseInt(level))
+
+			if(trust_levels.some(level => level < 0 || level > 3)){
+				throw {
+					type: `invalidParam`,
+					message: `The trust levels need to be between 0 and 3.`,
+					expose: true
+				}
+			}
+		}
+
+		return {
+			...args,
+			ctx,
+			trust_levels
+		}
+	}
+}
+
 export function sanitizeTokenListSortBy(){
 	return ({ ctx, sort, ...args }) => {
 		if(sort){

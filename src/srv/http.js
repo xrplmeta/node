@@ -29,6 +29,9 @@ export function createRouter({ ctx }){
 					sources: svc.query.sources !== undefined,
 					changes: svc.query.changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined
 				}
 			})
 		}
@@ -44,6 +47,7 @@ export function createRouter({ ctx }){
 				args: {
 					token: parseTokenURI(svc.params.token),
 					sources: svc.query.sources !== undefined,
+					changes: svc.query.changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
 				}
 			})

@@ -1,5 +1,5 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset } from './sanitizers/common.js'
-import { sanitizeToken, sanitizeTokenListSortBy } from './sanitizers/token.js'
+import { sanitizeToken, sanitizeTokenListSortBy, sanitizeTrustLevels } from './sanitizers/token.js'
 import { serveServerInfo } from './procedures/server.js'
 import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList } from './procedures/token.js'
 
@@ -10,6 +10,7 @@ export const server_info = compose([
 
 export const tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
+	sanitizeTrustLevels(),
 	sanitizeTokenListSortBy(),
 	serveTokenList()
 ])

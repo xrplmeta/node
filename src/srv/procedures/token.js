@@ -5,9 +5,16 @@ import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
 export function serveTokenList(){
-	return ({ ctx, sort, decode_currency, sources, changes, limit, offset }) => {
+	return ({ ctx, sort, trust_levels, decode_currency, sources, changes, limit, offset }) => {
 		let tokens = []
 		let caches = ctx.db.tokenCache.readMany({
+			where: trust_levels
+				? {
+					trustLevel: {
+						in: trust_levels
+					}
+				}
+				: undefined,
 			include: {
 				token: {
 					issuer: true
@@ -51,6 +58,7 @@ export function serveTokenSummary(){
 		})
 
 		return formatTokenCache({
+			ctx,
 			cache,
 			decodeCurrency: decode_currency,
 			includeSources: sources,
@@ -134,7 +142,7 @@ export function serveTokenSeries(){
 }
 
 
-function formatTokenCache({ cache, decodeCurrency, includeSources, includeChanges }){
+function formatTokenCache({ ctx, cache, decodeCurrency, includeSources, includeChanges }){
 	let token = {
 		currency: decodeCurrency
 			? decodeCurrencyCode(cache.token.currency)
@@ -143,11 +151,13 @@ function formatTokenCache({ cache, decodeCurrency, includeSources, includeChange
 		meta: {
 			token: reduceProps({
 				props: cache.tokenProps || [],
-				includeSources
+				includeSources,
+				sourceRanking: ctx.config.server?.sourceRanking
 			}),
 			issuer: reduceProps({
 				props: cache.issuerProps || [],
-				includeSources
+				includeSources,
+				sourceRanking: ctx.config.server?.sourceRanking
 			})
 		},
 		metrics: {
@@ -162,7 +172,50 @@ function formatTokenCache({ cache, decodeCurrency, includeSources, includeChange
 	}
 
 	if(includeChanges){
-
+		token.metrics.changes = {
+			'24h': {
+				trustlines: {
+					delta: cache.trustlinesDelta24H,
+					percent: cache.trustlinesPercent24H,
+				},
+				holders: {
+					delta: cache.holdersDelta24H,
+					percent: cache.holdersPercent24H,
+				},
+				supply: {
+					delta: cache.supplyDelta24H.toString(),
+					percent: cache.supplyPercent24H,
+				},
+				marketcap: {
+					delta: cache.marketcapDelta24H.toString(),
+					percent: cache.marketcapPercent24H,
+				},
+				price: {
+					percent: cache.pricePercent24H,
+				}
+			},
+			'7d': {
+				trustlines: {
+					delta: cache.trustlinesDelta7D,
+					percent: cache.trustlinesPercent7D,
+				},
+				holders: {
+					delta: cache.holdersDelta7D,
+					percent: cache.holdersPercent7D,
+				},
+				supply: {
+					delta: cache.supplyDelta7D.toString(),
+					percent: cache.supplyPercent7D,
+				},
+				marketcap: {
+					delta: cache.marketcapDelta7D.toString(),
+					percent: cache.marketcapPercent7D,
+				},
+				price: {
+					percent: cache.pricePercent7D,
+				}
+			}
+		}
 	}
 
 	return token
