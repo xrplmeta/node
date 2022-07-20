@@ -41,11 +41,11 @@ export function load(file, createIfMissing){
 export function create(file){
 	let dir = path.dirname(file)
 	let root = path.dirname(process.argv[1])
-	let templatePath = path.join(__dirname, '../release/templates/config.toml')
+	let templatePath = path.join(__dirname, '../../config.template.toml')
 	let template = fs.readFileSync(templatePath, 'utf-8')
 	let customizedTemplate = template
 		.replace(
-			'# dir = "<path>"', 
+			'# dir = "path"', 
 			`dir = "${dir.replace(/\\/g, '\\\\')}"`
 		)
 

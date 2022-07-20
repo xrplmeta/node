@@ -1,0 +1,108 @@
+[DATA]
+# The file directory where the node can store its persistent data.
+# dir = "path"
+
+
+
+[ETL]
+# how many ledger objects per ledger_data request to fetch
+snapshot_chunk_size = 64000
+# how many ledgers to fetch in advance before writing them to the database
+stream_queue_size = 100
+
+
+[[ETL.SOURCE]]
+url = "wss://xrplcluster.com"
+connections = 2
+
+[[ETL.SOURCE]]
+url = "wss://s2.ripple.com"
+connections = 2
+
+[[ETL.SOURCE]]
+url = "wss://s1.ripple.com"
+
+
+
+[[CRAWL.AUXLIST]]
+# Auxlists are manually published lists containing token metadata according to XLS-26.
+# https://github.com/XRPLF/XRPL-Standards/discussions/71
+# You can add as many as you want.
+# The id field is used for ranking. Read below at "source_ranking".
+id = "xrplmeta"
+url = "https://xrplmeta.org/auxlist.toml"
+trust_level = 3
+crawl_interval = 30
+
+
+[CRAWL.DOMAINS]
+# All issuing accounts with the Domain field set are being automatically crawled for
+# DOMAIN/.well-known/xrp-ledger.toml. If the issuer published metadata about their token
+# according to XLS-26, the data will be copied and presented by the server.
+concurrency = 3
+timeout = 10
+crawl_interval = 600
+
+
+[CRAWL.XRPSCAN]
+# xrpscan.com provides usernames, social media links and verifications for XRPL accounts.
+# https://docs.xrpscan.com/api-doc.html#get-names
+crawl_interval = 600
+
+
+[CRAWL.GRAVATAR]
+# gravatar.com provides avatar images for XRPL accounts that have the "EmailHash" field set.
+crawl_interval = 43200
+max_requests_per_minute = 60
+
+
+# [CRAWL.XUMM]
+# xumm.app provides a list of curated assets, KYC status and avatar images.
+# It is required to obtain an API key to use this service.
+# https://apps.xumm.dev
+#
+# api_key = "paste_here"
+# api_secret = "paste_here"
+# crawl_interval_assets = 60
+# crawl_interval_kyc = 43200
+# crawl_interval_avatar = 43200
+# max_requests_per_minute = 30
+
+
+# [CRAWL.BITHOMP]
+# bithomp.com provides icons, usernames, website and social media links for XRPL accounts.
+# It is required to obtain an API key for this service.
+# https://bithomp.com/developer
+#
+# refresh_interval = 600
+# api_key = "<key>"
+
+
+# [CRAWL.TWITTER]
+# twitter.com can provide icons, display names, website links and descriptions for both XRPL accounts and tokens.
+# It is required to obtain an API key for this service.
+# https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api
+#
+# bearer_token = "paste_here"
+# crawl_interval = 3600
+# max_requests_per_minute = 60
+
+
+
+[SERVER]
+# The server listens on the specified port for incoming HTTP (REST + WebSocket) connections.
+port = 4080
+
+# Multiple sources can give conflicting data for the same field. This array defines who's data has precedence,
+# from highest to lowest. Example for the values below: 
+# if XUMM, Bithomp and Twitter all define an icon for a token, the one from XUMM will be used.
+source_ranking = [
+	'ledger',
+	'xrplmeta',
+	'xumm',
+	'domain',
+	'bithomp',
+	'xrpscan',
+	'twitter',
+	'gravatar'
+]
