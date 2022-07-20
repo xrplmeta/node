@@ -53,7 +53,7 @@ export function readAccountProps({ ctx, account }){
 		props.push({
 			key: 'domain',
 			value: account.domain,
-			source: 'xrpl'
+			source: 'ledger'
 		})
 
 	return props.map(({ key, value, source }) => ({ key, value, source }))

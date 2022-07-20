@@ -417,7 +417,7 @@
 				"tokenProps": {
 					"type": "any"
 				},
-				"trust_level": {
+				"trustLevel": {
 					"type": "integer",
 					"default": 0
 				},
@@ -538,7 +538,7 @@
 				"token"
 			],
 			"index": [
-				"trust_level",
+				"trustLevel",
 				"trustlines",
 				"trustlinesDelta24H",
 				"trustlinesPercent24H",
