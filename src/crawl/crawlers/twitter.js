@@ -105,8 +105,6 @@ export default async function({ ctx }){
 				return tasks
 			},
 			commit: async tasks => {
-				console.log('tasks:', tasks)
-
 				log.info(`got batch of`, tasks.length, `twitter profiles to fetch`)
 
 				let usernamesQuery = tasks
