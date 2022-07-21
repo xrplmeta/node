@@ -1,4 +1,5 @@
 .DS_Store
+.vs
 node_modules
 package-lock.json
-/config.toml
+config.toml
