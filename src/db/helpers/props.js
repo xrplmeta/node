@@ -108,16 +108,16 @@ export function reduceProps({ props, sourceRanking, includeSources }){
 	}
 
 	if(includeSources){
-		return Object.entries(data).reduce(
-			(composite, [key, value]) => ({
-				...composite,
-				[key]: {
-					value,
-					source: sources[key]
-				}
-			}),
-			{}
-		)
+		return {
+			...data,
+			sources: Object.keys(data).reduce(
+				(composite, key) => ({
+					...composite,
+					[key]: sources[key]
+				}),
+				{}
+			)
+		}
 	}else{
 		return data
 	}
