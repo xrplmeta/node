@@ -130,6 +130,56 @@ export function sanitizeLimitOffset({ defaultLimit, maxLimit }){
 	}
 }
 
+export function sanitizeSourcePreferences(){
+	return ({ ctx, prefer_sources, ...args }) => {
+		if(prefer_sources){
+			if(!Array.isArray(prefer_sources)){
+				throw {
+					type: `invalidParam`,
+					message: `The preferred sources need to be specified as an array.`,
+					expose: true
+				}
+			}
+
+			for(let source of prefer_sources){
+				if([
+					'ledger',
+					'xrplmeta',
+					'xumm',
+					'domain',
+					'bithomp',
+					'xrpscan',
+					'twitter',
+					'gravatar'
+				].includes(source))
+					continue
+
+				if(ctx.config.crawl?.tokenlist){
+					if(
+						ctx.config.crawl?.tokenlist.some(
+							list => list.id === source
+						)
+					)
+						continue
+				}
+
+				throw {
+					type: `invalidParam`,
+					message: `The preferred source "${source}" does not exist.`,
+					expose: true
+				}
+			}
+
+		}
+
+		return {
+			...args,
+			ctx,
+			prefer_sources
+		}
+	}
+}
+
 
 function minMaxRange({ requested, available }){
 	let start

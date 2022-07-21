@@ -5,7 +5,7 @@ import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
 export function serveTokenList(){
-	return ({ ctx, sort, trust_levels, decode_currency, sources, changes, limit, offset }) => {
+	return ({ ctx, sort_by, trust_levels, decode_currency, prefer_sources, include_sources, include_changes, limit, offset }) => {
 		let tokens = []
 		let caches = ctx.db.tokenCache.readMany({
 			where: trust_levels
@@ -21,7 +21,7 @@ export function serveTokenList(){
 				}
 			},
 			orderBy: {
-				[sort || 'trustlines']: 'desc'
+				[sort_by || 'trustlines']: 'desc'
 			},
 			take: limit,
 			skip: offset
@@ -33,8 +33,9 @@ export function serveTokenList(){
 					ctx,
 					cache,
 					decodeCurrency: decode_currency,
-					includeSources: sources,
-					includeChanges: changes
+					preferSources: prefer_sources,
+					includeSources: include_sources,
+					includeChanges: include_changes,
 				})
 			)
 		}
@@ -45,7 +46,7 @@ export function serveTokenList(){
 
 
 export function serveTokenSummary(){
-	return ({ ctx, token, decode_currency, sources, changes }) => {
+	return ({ ctx, token, decode_currency, prefer_sources, include_sources, include_changes }) => {
 		let cache = ctx.db.tokenCache.readOne({
 			where: {
 				token
@@ -61,8 +62,9 @@ export function serveTokenSummary(){
 			ctx,
 			cache,
 			decodeCurrency: decode_currency,
-			includeSources: sources,
-			includeChanges: changes,
+			preferSources: prefer_sources,
+			includeSources: include_sources,
+			includeChanges: include_changes,
 		})
 	}
 }
@@ -104,7 +106,7 @@ export function serveTokenSeries(){
 		}else{
 			throw {
 				type: `invalidParam`,
-				message: `Invalid metric. Allowed values are: price, volume, trustlines, holders, supply, marketcap`,
+				message: `Invalid metric. Allowed values are: price, volume, trustlines, holders, supply, marketcap.`,
 				expose: true
 			}
 		}
@@ -142,7 +144,7 @@ export function serveTokenSeries(){
 }
 
 
-function formatTokenCache({ ctx, cache, decodeCurrency, includeSources, includeChanges }){
+function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, includeSources, includeChanges }){
 	let token = {
 		currency: decodeCurrency
 			? decodeCurrencyCode(cache.token.currency)
@@ -152,12 +154,18 @@ function formatTokenCache({ ctx, cache, decodeCurrency, includeSources, includeC
 			token: reduceProps({
 				props: cache.tokenProps || [],
 				includeSources,
-				sourceRanking: ctx.config.server?.sourceRanking
+				sourceRanking: [
+					...(preferSources || []),
+					...(ctx.config.server?.sourceRanking || [])
+				]
 			}),
 			issuer: reduceProps({
 				props: cache.issuerProps || [],
 				includeSources,
-				sourceRanking: ctx.config.server?.sourceRanking
+				sourceRanking: [
+					...(preferSources || []),
+					...(ctx.config.server?.sourceRanking || [])
+				]
 			})
 		},
 		metrics: {

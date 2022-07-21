@@ -26,11 +26,14 @@ export function createRouter({ ctx }){
 				procedure: 'tokens',
 				args: {
 					...svc.query,
-					sources: svc.query.sources !== undefined,
-					changes: svc.query.changes !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
 					trust_levels: svc.query.trust_levels
 						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
 						: undefined
 				}
 			})
@@ -46,9 +49,12 @@ export function createRouter({ ctx }){
 				procedure: 'token',
 				args: {
 					token: parseTokenURI(svc.params.token),
-					sources: svc.query.sources !== undefined,
-					changes: svc.query.changes !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
 				}
 			})
 		}

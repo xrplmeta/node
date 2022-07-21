@@ -22,6 +22,8 @@ const sortKeymap = {
 	marketcap_percent_24h: 'marketcapPercent24H',
 	marketcap_delta_7d: 'marketcapDelta7D',
 	marketcap_percent_7d: 'marketcapPercent7D',
+	price_percent_24h: 'pricePercent24H',
+	price_percent_7d: 'pricePercent7D',
 }
 
 
@@ -94,11 +96,11 @@ export function sanitizeTrustLevels(){
 }
 
 export function sanitizeTokenListSortBy(){
-	return ({ ctx, sort, ...args }) => {
-		if(sort){
-			sort = sortKeymap[sort]
+	return ({ ctx, sort_by, ...args }) => {
+		if(sort_by){
+			sort_by = sortKeymap[sort_by]
 
-			if(!sort){
+			if(!sort_by){
 				throw {
 					type: `invalidParam`,
 					message: `This sorting mode is not allowed. Possible values are: ${
@@ -114,7 +116,7 @@ export function sanitizeTokenListSortBy(){
 		return {
 			...args,
 			ctx,
-			sort
+			sort_by
 		}
 	}
 }
