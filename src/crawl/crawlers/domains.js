@@ -82,7 +82,7 @@ export default async function({ ctx }){
 							source: 'domain'
 						})
 
-						publishedIssuer++
+						publishedIssuers++
 					}
 
 					for(let { currency, issuer, ...props } of xls26.tokens){
@@ -103,10 +103,10 @@ export default async function({ ctx }){
 							source: 'domain'
 						})
 
-						publishedToken++
+						publishedTokens++
 					}
 
-					if(publishedIssuer || publishedToken){
+					if(publishedIssuers || publishedTokens){
 						log.accumulate.info({
 							text: [`%domainIssuersUpdated issuers and %domainTokensUpdated tokens updated in %time`],
 							data: {
