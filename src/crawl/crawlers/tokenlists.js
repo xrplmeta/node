@@ -95,7 +95,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 					tokenUpdates++
 				}
 
-				log.info(`tokenlist [${id}] scanned (issuers: ${issuerUpdates} tokens: ${tokenUpdates})`)
+				log.info(`tokenlist [${id}] synced (issuers: ${issuerUpdates} tokens: ${tokenUpdates})`)
 			}
 		})
 	}
