@@ -6,7 +6,7 @@ import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let configs = ctx.config.crawl?.auxlist
+	let configs = ctx.config.crawl?.tokenlist
 
 	if(!configs){
 		throw new Error(`disabled by config`)
@@ -31,7 +31,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 	while(true){
 		await scheduleGlobal({
 			ctx,
-			task: `aux.${id}`,
+			task: `tokenlist.${id}`,
 			interval: crawlInterval,
 			routine: async () => {
 				log.info(`reading ${url}`)
@@ -53,7 +53,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 				let tokenUpdates = 0
 
 				if(issues.length > 0){
-					log.debug(`auxlist [${id}] has issues: ${
+					log.debug(`tokenlist [${id}] has issues: ${
 						issues
 							.map(issue => `  - ${issue}`)
 							.join(`\n`)
@@ -95,7 +95,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 					tokenUpdates++
 				}
 
-				log.info(`auxlist [${id}] scanned (issuers: ${issuerUpdates} tokens: ${tokenUpdates})`)
+				log.info(`tokenlist [${id}] scanned (issuers: ${issuerUpdates} tokens: ${tokenUpdates})`)
 			}
 		})
 	}

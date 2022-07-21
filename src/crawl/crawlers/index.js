@@ -1,5 +1,5 @@
 import domains from './domains.js'
-import auxlists from './auxlists.js'
+import tokenlists from './tokenlists.js'
 import xumm from './xumm.js'
 import bithomp from './bithomp.js'
 import xrpscan from './xrpscan.js'
@@ -8,7 +8,7 @@ import twitter from './twitter.js'
 
 export default [
 	{ name: 'domains', start: domains },
-	{ name: 'auxlists', start: auxlists },
+	{ name: 'tokenlists', start: tokenlists },
 	{ name: 'xumm', start: xumm },
 	{ name: 'bithomp', start: bithomp },
 	{ name: 'xrpscan', start: xrpscan },

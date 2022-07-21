@@ -24,15 +24,16 @@ url = "wss://s1.ripple.com"
 
 
 
-[[CRAWL.AUXLIST]]
-# Auxlists are manually published lists containing token metadata according to XLS-26.
+[[CRAWL.TOKENLIST]]
+# Tokenlists are manually published lists containing token metadata according to XLS-26.
 # https://github.com/XRPLF/XRPL-Standards/discussions/71
 # You can add as many as you want.
 # The id field is used for ranking. Read below at "source_ranking".
+# The trust_level field defines the maximum possible trust level the list can set for any token.
 id = "xrplmeta"
-url = "https://xrplmeta.org/auxlist.toml"
-trust_level = 3
+url = "https://xrplmeta.org/tokens.toml"
 crawl_interval = 30
+trust_level = 3
 
 
 [CRAWL.DOMAINS]
