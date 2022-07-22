@@ -1,8 +1,4 @@
-# The XRPL Meta Node
-### Development Version 2
+# The XRPL Meta Server
+### Development Branch
 
-
-This branch is a complete overhaul of the previous version (stable branch), which comes with countless performance and feature improvements. Ledgers are now being diffed continuously instead of being scanned in a fixed interval.
-
-
-Detailed documentation and a first release candidate will come early July.
+This is the active development branch. Any new or even experimental features will be commited here. If you are looking for a stable version, visit the `release` branch.
