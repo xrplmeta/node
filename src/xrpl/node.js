@@ -13,6 +13,7 @@ export default class Node extends EventEmitter{
 
 		this.tasks = []
 		this.socket = createSocket({ url: config.url })
+		this.availableLedgers = []
 
 		this.socket.on('transaction', tx => {
 			this.emit('event', {hash: tx.transaction.hash, tx})
@@ -21,14 +22,14 @@ export default class Node extends EventEmitter{
 		this.socket.on('ledgerClosed', ledger => {
 			this.emit('event', {hash: ledger.ledger_hash, ledger})
 
-			/*if(ledger.validated_ledgers){
-				spec.ledgers = ledger.validated_ledgers
+			if(ledger.validated_ledgers){
+				this.availableLedgers = ledger.validated_ledgers
 					.split(',')
 					.map(range => range
 						.split('-')
 						.map(i => parseInt(i))
 					)
-			}*/
+			}
 		})
 
 		this.socket.on('open', async () => {
@@ -74,6 +75,17 @@ export default class Node extends EventEmitter{
 			if(payload.ticket){
 				if(this.tasks.some(task => task.ticket === payload.ticket))
 					return Infinity
+				else
+					return 0
+			}
+
+			if(payload.ledger_index && this.availableLedgers.length > 0){
+				let hasLedger = this.availableLedgers.some(
+					([start, end]) => payload.ledger_index >= start && payload.ledger_index <= end
+				)
+
+				if(hasLedger)
+					return 2
 				else
 					return 0
 			}
