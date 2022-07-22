@@ -26,11 +26,11 @@ export default async function({ ctx }){
 	})
 
 	await Promise.all([
-		crawlAssets({
+		/*crawlAssets({
 			ctx,
 			fetch: fetchApi,
 			interval: config.crawlIntervalAssets
-		}),
+		}),*/
 		crawlKyc({
 			ctx,
 			fetch: fetchApi,
