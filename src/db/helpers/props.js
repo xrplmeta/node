@@ -1,12 +1,37 @@
 import { updateCacheForAccountProps, updateCacheForTokenProps } from './cache.js'
 
 export function readTokenProps({ ctx, token }){
-	return ctx.db.tokenProps.readMany({
+	let props = ctx.db.tokenProps.readMany({
 		where: {
 			token
 		}
 	})
-		.map(({ key, value, source }) => ({ key, value, source }))
+	
+	let issuerKycProps = ctx.db.accountProps.readMany({
+		where: {
+			account: token.issuer,
+			key: 'kyc',
+			value: true
+		}
+	})
+
+	for(let { source } of issuerKycProps){
+		let existingTrustProp = props.find(
+			prop => prop.key === 'trust_level' && prop.source === source
+		)
+
+		if(existingTrustProp){
+			existingTrustProp.value = Math.max(existingTrustProp.value, 1)
+		}else{
+			props.push({
+				key: 'trust_level',
+				value: 1,
+				source
+			})
+		}
+	}
+	
+	return props.map(({ key, value, source }) => ({ key, value, source }))
 }
 
 export function writeTokenProps({ ctx, token, props, source }){
