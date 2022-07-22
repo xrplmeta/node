@@ -58,6 +58,11 @@ export function updateCacheForTokenProps({ ctx, token }){
 export function updateCacheForAccountProps({ ctx, account }){
 	if(ctx.backwards)
 		return
+
+	let props = readAccountProps({ 
+		ctx, 
+		account 
+	})
 	
 	let tokens = ctx.db.tokens.readMany({
 		where: {
@@ -72,12 +77,11 @@ export function updateCacheForAccountProps({ ctx, account }){
 		ctx.db.tokenCache.createOne({
 			data: {
 				token,
-				issuerProps: readAccountProps({ 
-					ctx, 
-					account: token.issuer 
-				})
+				issuerProps: props
 			}
 		})
+
+		updateCacheForTokenProps({ ctx, token })
 	}
 }
 

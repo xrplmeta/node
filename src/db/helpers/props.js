@@ -70,6 +70,26 @@ export function readAccountProps({ ctx, account }){
 		}
 	})
 
+	let kycProps = props.filter(
+		prop => prop.key === 'kyc' && prop.value === true
+	)
+
+	for(let { source } of kycProps){
+		let trustProp = props.find(
+			prop => prop.key === 'trust_level' && prop.source === source
+		)
+
+		if(trustProp){
+			trustProp.value = Math.max(trustProp.value, 1)
+		}else{
+			props.push({
+				key: 'trust_level',
+				value: 1,
+				source
+			})
+		}
+	}
+
 	account = ctx.db.accounts.readOne({
 		where: account
 	})
@@ -80,6 +100,7 @@ export function readAccountProps({ ctx, account }){
 			value: account.domain,
 			source: 'ledger'
 		})
+
 
 	return props.map(({ key, value, source }) => ({ key, value, source }))
 }
