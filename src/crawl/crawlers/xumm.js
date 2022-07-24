@@ -26,11 +26,11 @@ export default async function({ ctx }){
 	})
 
 	await Promise.all([
-		/*crawlAssets({
+		crawlAssets({
 			ctx,
 			fetch: fetchApi,
 			interval: config.crawlIntervalAssets
-		}),*/
+		}),
 		crawlKyc({
 			ctx,
 			fetch: fetchApi,
@@ -73,8 +73,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 							props: {
 								name: issuer.name,
 								domain: issuer.domain,
-								icon: issuer.avatar,
-								trust_level: 3
+								icon: issuer.avatar
 							},
 							source: 'xumm'
 						})
@@ -90,7 +89,9 @@ async function crawlAssets({ ctx, fetch, interval }){
 							props: {
 								name: currency.name,
 								icon: currency.avatar,
-								trust_level: 3
+								trust_level: currency.shortlist
+									? 3
+									: 1
 							},
 							source: 'xumm'
 						})
