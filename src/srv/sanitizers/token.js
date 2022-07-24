@@ -1,4 +1,4 @@
-import { decodeCurrencyCode } from '@xrplkit/amount'
+import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 const sortKeymap = {
@@ -39,7 +39,7 @@ export function sanitizeToken({ key }){
 		let { currency, issuer } = args[key]
 		let token = ctx.db.tokens.readOne({
 			where: {
-				currency: decodeCurrencyCode(currency),
+				currency: encodeCurrencyCode(currency),
 				issuer: {
 					address: issuer
 				}

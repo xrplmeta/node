@@ -3,6 +3,7 @@ import { parse as parseXLS26 } from '@xrplkit/xls26'
 import { scheduleGlobal } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
+import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 export default async function({ ctx }){
@@ -83,7 +84,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 					writeTokenProps({
 						ctx,
 						token: {
-							currency,
+							currency: encodeCurrencyCode(currency),
 							issuer: {
 								address: issuer
 							}

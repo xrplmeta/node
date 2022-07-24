@@ -3,6 +3,7 @@ import { parse as parseXLS26 } from '@xrplkit/xls26'
 import { scheduleGlobal, scheduleIterator } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
+import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 export default async function({ ctx }){
@@ -94,7 +95,7 @@ export default async function({ ctx }){
 						writeTokenProps({
 							ctx,
 							token: {
-								currency,
+								currency: encodeCurrencyCode(currency),
 								issuer: {
 									address: issuer
 								}
