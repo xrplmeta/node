@@ -15,7 +15,7 @@ export async function startServer({ ctx }){
 	koa.use(websocket())
 	koa.use(async (ctx, next) => {
 		if(ctx.ws){
-			ws.register(await ctx.ws())
+			ws.registerSocket(await ctx.ws())
 		}else{
 			return await next(ctx)
 		}
