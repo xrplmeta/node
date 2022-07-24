@@ -95,6 +95,13 @@ export function serveTokenSeries(){
 					...point,
 					value: point.price
 				}))
+				.filter((point, i, list) => {
+					if(i >= list.length - 1)
+						return true
+
+					if(point.time !== list[i+1].time)
+						return true
+				})
 		}else if(['trustlines', 'holders', 'supply', 'marketcap'].includes(metric)){
 			series = readTokenMetricIntervalSeries({
 				ctx,
