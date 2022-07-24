@@ -370,6 +370,7 @@
 				["account", "token", "ledgerSequence"]
 			],
 			"index": [
+				["account", "ledgerSequence"],
 				["token", "ledgerSequence"]
 			]
 		},
