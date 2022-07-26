@@ -26,6 +26,19 @@ export async function runSnapshot({ ctx }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
+
+	let db = openDB({ ctx })
+
+	console.log(
+		db.tokenSupply.readManyRaw({
+			query: 
+				`SELECT sumint(value) FROM TokenSupply LIMIT 3`,
+			params: []
+		})
+	)
+
+	await new Promise(r => r)
+
 	return await createSnapshot({
 		ctx: {
 			...ctx,

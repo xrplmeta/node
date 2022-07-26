@@ -1,5 +1,7 @@
 .DS_Store
 .vs
+.npm
 node_modules
 package-lock.json
+deps/build
 config.toml

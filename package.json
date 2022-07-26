@@ -3,7 +3,9 @@
 	"version": "2.0.0-alpha",
 	"type": "module",
 	"scripts": {
-		"start": "node src/run.js"
+		"start": "node src/run.js",
+		"install": "npm run build-deps",
+		"build-deps": "node-gyp rebuild --directory=deps --release"
 	},
 	"dependencies": {
 		"@koa/router": "^10.1.1",
