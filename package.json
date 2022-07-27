@@ -1,6 +1,6 @@
 {
 	"name": "xrplmeta",
-	"version": "2.0.0-alpha",
+	"version": "2.1.0-alpha",
 	"type": "module",
 	"scripts": {
 		"start": "node src/run.js",
@@ -11,7 +11,7 @@
 		"@koa/router": "^10.1.1",
 		"@mwni/events": "1.0.0",
 		"@mwni/log": "2.1.1",
-		"@structdb/sqlite": "1.0.3-alpha",
+		"@structdb/sqlite": "1.2.0-alpha",
 		"@xrplkit/amount": "1.2.1",
 		"@xrplkit/socket": "2.0.0",
 		"@xrplkit/time": "1.0.0",
