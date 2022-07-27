@@ -41,7 +41,7 @@ export function readLedgerAt({ ctx, time, clamp }){
 			}
 		},
 		orderBy: {
-			sequence: 'desc'
+			closeTime: 'desc'
 		}
 	})
 
@@ -53,7 +53,7 @@ export function readLedgerAt({ ctx, time, clamp }){
 				}
 			},
 			orderBy: {
-				sequence: 'asc'
+				closeTime: 'asc'
 			}
 		})
 	}
