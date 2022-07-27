@@ -2,6 +2,8 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 const sortKeymap = {
+	volume_24h: 'volume24H',
+	volume_7d: 'volume7D',
 	trustlines: 'trustlines',
 	trustlines_delta_24h: 'trustlinesDelta24H',
 	trustlines_percent_24h: 'trustlinesPercent24H',
