@@ -23,6 +23,18 @@ export function open({ ctx }){
 		codecs
 	})
 
+	db.loadExtension(
+		path.join(
+			__dirname, 
+			'..', 
+			'..', 
+			'deps', 
+			'build', 
+			'Release', 
+			'sqlite-xfl.node'
+		)
+	)
+
 	db.tokens.createOne({
 		data: {
 			currency: 'XRP',
