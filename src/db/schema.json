@@ -638,11 +638,14 @@
 				"maker",
 				"taker",
 				"ledgerSequence",
-				"takerPaysValue",
-				"takerGetsValue"
+				"takerPaidValue",
+				"takerGotValue"
 			],
 			"unique": [
 				["txHash", "maker", "sequence"]
+			],
+			"index": [
+				["takerPaidToken", "takerGotToken", "ledgerSequence"]
 			]
 		},
 		"TokenSupply": {
