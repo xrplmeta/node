@@ -40,38 +40,42 @@ export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 
 export function readTokenVolume({ ctx, base, quote, sequenceStart, sequenceEnd }){
 	let volume = XFL(0)
-	let iter = ctx.db.tokenExchanges.iter({
-		where: {
-			OR: [
-				{
-					takerPaidToken: base,
-					takerGotToken: quote
+	
+	for(let counter of [false, true]){
+		let sumKey = counter 
+			? 'takerPaidValue' 
+			: 'takerGotValue'
+			
+		let aggregate = ctx.db.tokenExchanges.readOne({
+			select: {
+				[sumKey]: {
+					function: 'XFL_SUM'
 				},
-				{
-					takerPaidToken: quote,
-					takerGotToken: base
+				id: {
+					function: 'COUNT'
 				}
-			],
-			AND: [
-				{
-					ledgerSequence: {
-						greaterOrEqual: sequenceStart
+			},
+			where: {
+				AND: [
+					{
+						takerPaidToken: counter ? quote : base,
+						takerGotToken: counter ? base : quote
+					},
+					{
+						ledgerSequence: {
+							greaterOrEqual: sequenceStart
+						}
+					},
+					{
+						ledgerSequence: {
+							lessOrEqual: sequenceEnd
+						}
 					}
-				},
-				{
-					ledgerSequence: {
-						lessOrEqual: sequenceEnd
-					}
-				}
-			]
-		}
-	})
+				]
+			}
+		})
 
-	for(let exchange of iter){
-		volume = sum(
-			volume,
-			alignTokenExchange({ exchange, base, quote }).volume
-		)
+		volume = sum(volume, aggregate[sumKey])
 	}
 
 	return volume
