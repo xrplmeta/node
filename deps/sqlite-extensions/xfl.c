@@ -14,10 +14,6 @@ static int64_t const mantissaMask  = 0b11111111111111111111111111111111111111111
 static int64_t const exponentMask = 0b11111111;
 
 static int64_t const INVALID_FLOAT = -1ll;
-static int64_t const MANTISSA_OVERSIZED = -1ll;
-static int64_t const MANTISSA_UNDERSIZED = -1ll;
-static int64_t const EXPONENT_OVERSIZED = -1ll;
-static int64_t const EXPONENT_UNDERSIZED = -1ll;
 
 
 static bool xfl_is_negative(int64_t float1)
