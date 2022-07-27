@@ -231,18 +231,18 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 
 
 function getCommonLedgerSequences({ ctx }){
-	let now = unixNow()
+	let currentLedger = readMostRecentLedger({ ctx })
 	
 	return {
-		current: readMostRecentLedger({ ctx }).sequence,
+		current: currentLedger.sequence,
 		pre24h: readLedgerAt({ 
 			ctx, 
-			time: now - 60 * 60 * 24, 
+			time: currentLedger.closeTime - 60 * 60 * 24, 
 			clamp: true 
 		}).sequence,
 		pre7d: readLedgerAt({ 
 			ctx, 
-			time: now - 60 * 60 * 24 * 7, 
+			time: currentLedger.closeTime - 60 * 60 * 24 * 7, 
 			clamp: true 
 		}).sequence
 	}
