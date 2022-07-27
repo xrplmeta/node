@@ -645,7 +645,7 @@
 				["txHash", "maker", "sequence"]
 			],
 			"index": [
-				["takerPaidToken", "takerGotToken", "ledgerSequence"]
+				["takerPaidToken", "takerGotToken", "ledgerSequence:desc"]
 			]
 		},
 		"TokenSupply": {
