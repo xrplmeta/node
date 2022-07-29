@@ -4,13 +4,8 @@ import { open as openDB } from '../db/index.js'
 import { startCrawlers } from '../crawl/crawl.js'
 
 
-export async function run({ config }){
-	await spawn(':runCrawl', {
-		ctx: { 
-			config, 
-			log,
-		}
-	})
+export async function run({ ctx }){
+	await spawn(':runCrawl', { ctx })
 }
 
 

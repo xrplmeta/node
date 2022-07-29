@@ -7,11 +7,10 @@ import { startSync } from '../etl/sync.js'
 import { startBackfill } from '../etl/backfill.js'
 
 
-export async function run({ config }){
-	let ctx = { 
-		xrpl: createPool(config.etl.source),
-		config, 
-		log,
+export async function run({ ctx }){
+	ctx = { 
+		...ctx,
+		xrpl: createPool(ctx.config.etl.source),
 	}
 
 	await spawn(':runSnapshot', { ctx })
