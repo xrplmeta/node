@@ -1,7 +1,7 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
 import { sanitizeToken, sanitizeTokenListSortBy, sanitizeTrustLevels } from './sanitizers/token.js'
 import { serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList } from './procedures/token.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList } from './procedures/token.js'
 
 
 export const server_info = compose([
@@ -14,6 +14,17 @@ export const tokens = compose([
 	sanitizeTokenListSortBy(),
 	sanitizeSourcePreferences(),
 	serveTokenList()
+])
+
+export const tokens_subscribe = compose([
+	sanitizeToken({ key: 'tokens', array: true }),
+	sanitizeSourcePreferences(),
+	subscribeTokenList()
+])
+
+export const tokens_unsubscribe = compose([
+	sanitizeToken({ key: 'tokens', array: true }),
+	unsubscribeTokenList()
 ])
 
 export const token = compose([
@@ -33,7 +44,6 @@ export const token_series = compose([
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
 ])
-
 
 
 function compose(functions){

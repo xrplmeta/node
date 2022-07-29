@@ -29,16 +29,8 @@ const sortKeymap = {
 }
 
 
-export function sanitizeToken({ key }){
-	return ({ ctx, ...args }) => {
-		if(!args.hasOwnProperty(key))
-			throw {
-				type: `missingParam`,
-				message: `No token specified.`,
-				expose: true
-			}
-
-		let { currency, issuer } = args[key]
+export function sanitizeToken({ key, array = false }){
+	function parse(ctx, { currency, issuer }){
 		let token = ctx.db.tokens.readOne({
 			where: {
 				currency: encodeCurrencyCode(currency),
@@ -58,11 +50,30 @@ export function sanitizeToken({ key }){
 				expose: true
 			}
 		}
-	
-		return {
-			...args,
-			ctx,
-			[key]: token,
+
+		return token
+	}
+
+	return ({ ctx, ...args }) => {
+		if(!args.hasOwnProperty(key))
+			throw {
+				type: `missingParam`,
+				message: `No token specified.`,
+				expose: true
+			}
+
+		if(array){
+			return {
+				...args,
+				ctx,
+				[key]: args[key].map(token => parse(ctx, token)),
+			}
+		}else{
+			return {
+				...args,
+				ctx,
+				[key]: parse(ctx, args[key]),
+			}
 		}
 	}
 }

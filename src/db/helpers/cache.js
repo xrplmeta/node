@@ -11,6 +11,7 @@ const maxChangePercent = 999999999
 const metricInts = ['trustlines', 'holders']
 
 
+
 export function updateCacheForEverything({ ctx }){
 	log.time.info(`cache.update.all`, `updating token cache ...`)
 
@@ -41,8 +42,7 @@ export function updateCacheForTokenProps({ ctx, token }){
 		return
 
 	let props = readTokenProps({ ctx, token })
-
-	ctx.db.tokenCache.createOne({
+	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
 			token,
 			tokenProps: props,
@@ -51,8 +51,13 @@ export function updateCacheForTokenProps({ ctx, token }){
 					.filter(({ key }) => key === 'trust_level')
 					.map(({ value }) => value)
 			)
-		}
+		},
+		returnUnchanged: false
 	})
+
+	if(changedCache){
+		dispatchTokenUpdate({ ctx, token, subject: 'tokenProps' })
+	}
 }
 
 export function updateCacheForAccountProps({ ctx, account }){
@@ -74,12 +79,17 @@ export function updateCacheForAccountProps({ ctx, account }){
 		if(!token.issuer)
 			continue
 
-		ctx.db.tokenCache.createOne({
+		let changedCache = ctx.db.tokenCache.createOne({
 			data: {
 				token,
 				issuerProps: props
-			}
+			},
+			returnUnchanged: false
 		})
+
+		if(changedCache){
+			dispatchTokenUpdate({ ctx, token, subject: 'issuerProps' })
+		}
 
 		updateCacheForTokenProps({ ctx, token })
 	}
@@ -140,12 +150,17 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 		cache[`${key}Percent7D`] = percent7d
 	}
 
-	ctx.db.tokenCache.createOne({
+	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
 			token,
 			...cache
-		}
+		},
+		returnUnchanged: false
 	})
+
+	if(changedCache){
+		dispatchTokenUpdate({ ctx, token, subject: 'metrics' })
+	}
 }
 
 export function updateCacheForTokenExchanges({ ctx, token }){
@@ -217,7 +232,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		sequenceEnd: sequences.current
 	})
 
-	ctx.db.tokenCache.createOne({
+	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
 			token,
 			price: current,
@@ -225,8 +240,13 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 			pricePercent7D: percent7d,
 			volume24H,
 			volume7D
-		}
+		},
+		returnUnchanged: false
 	})
+
+	if(changedCache){
+		dispatchTokenUpdate({ ctx, token, subject: 'metrics' })
+	}
 }
 
 
@@ -246,4 +266,13 @@ function getCommonLedgerSequences({ ctx }){
 			clamp: true 
 		}).sequence
 	}
+}
+
+function dispatchTokenUpdate({ ctx, token, subject }){
+	ctx.ipc.emit({
+		tokenUpdate: {
+			token,
+			subject
+		}
+	})
 }

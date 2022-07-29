@@ -44,6 +44,42 @@ export function serveTokenList(){
 	}
 }
 
+export function subscribeTokenList(){
+	return ({ ctx, tokens, decode_currency, prefer_sources, include_sources, include_changes }) => {
+		for(let token of tokens){
+			ctx.client.tokenSubscriptions[token.id] = {
+				token: {
+					currency: token.currency,
+					issuer: token.issuer.address
+				},
+				decode_currency,
+				prefer_sources,
+				include_sources,
+				include_changes
+			}
+		}
+
+		return {
+			subscriptions: Object.values(
+				ctx.client.tokenSubscriptions
+			)
+		}
+	}
+}
+
+export function unsubscribeTokenList(){
+	return ({ ctx, tokens }) => {
+		for(let token of tokens){
+			delete ctx.client.tokenSubscriptions[token.id]
+		}
+
+		return {
+			subscriptions: Object.values(
+				ctx.client.tokenSubscriptions
+			)
+		}
+	}
+}
 
 export function serveTokenSummary(){
 	return ({ ctx, token, decode_currency, prefer_sources, include_sources, include_changes }) => {
@@ -151,7 +187,7 @@ export function serveTokenSeries(){
 }
 
 
-function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, includeSources, includeChanges }){
+export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, includeSources, includeChanges }){
 	let token = {
 		currency: decodeCurrency
 			? decodeCurrencyCode(cache.token.currency)

@@ -1,5 +1,6 @@
 import log from '@mwni/log'
 import * as procedures from './api.js'
+import { formatTokenCache } from './procedures/token.js'
 
 
 const checkAliveInterval = 10000
@@ -14,7 +15,7 @@ export function createManager({ ctx }){
 			for(let client of clients){
 				if(!client.alive){
 					client.socket.close()
-					log.info(`client #${client.id} inactivity kick`)
+					log.debug(`client #${client.id} inactivity kick`)
 					continue
 				}
 	
@@ -25,19 +26,45 @@ export function createManager({ ctx }){
 		checkAliveInterval
 	)
 
-	async function serve(client, { command, ...params }){
-		if(!procedures[command]){
-			throw {message: 'unknown command', expose: true}
+	ctx.ipc.subscribe(
+		async payload => {
+			if(payload.tokenUpdate){
+				let token = payload.tokenUpdate.token
+				let key = `${token.id}`
+				let recipients = []
+				
+				for(let client of clients){
+					let subscription = client.tokenSubscriptions[key]
+					
+					if(subscription){
+						recipients.push({
+							client,
+							subscription
+						})
+					}
+				}
+
+				if(recipients.length > 0){
+					pushTokenUpdate({ 
+						ctx, 
+						token, 
+						recipients 
+					})
+				}
+			}
 		}
+	)
 
-		return await procedures[command]({
-			ctx,
-			...params
+	function logCount(change){
+		log.accumulate.info({
+			text: [
+				clients.length,
+				`client(s) connected (%wsConnectionChange in %time)`
+			],
+			data: {
+				wsConnectionChange: change
+			}
 		})
-	}
-
-	async function subscribe(){
-
 	}
 
 	return {
@@ -45,50 +72,61 @@ export function createManager({ ctx }){
 			let client = {
 				id: ++counter,
 				socket, 
-				subscriptions: [],
+				tokenSubscriptions: {},
 				alive: true
 			}
 	
 			socket.on('message', async message => {
 				try{
-					var request = JSON.parse(message)
+					var { id, command, ...params } = JSON.parse(message)
 				}catch{
-					log.info(`client #${client.id} sent malformed request - dropping them`)
+					log.debug(`client #${client.id} sent malformed request - dropping them`)
 					socket.close()
 				}
 	
 				try{
-					if(request.command === 'subscribe'){
-						socket.send(
-							JSON.stringify({
-								result: await subscribe(client, request),
-								id: request.id, 
-							})
-						)
-					}else{
-						socket.send(
-							JSON.stringify({
-								result: await serve(client, request),
-								id: request.id, 
-							})
-						)
+					if(!procedures[command]){
+						throw {
+							message: 'unknown command', 
+							expose: true
+						}
 					}
+
+					socket.send(
+						JSON.stringify({
+							result: await procedures[command]({
+								ctx: {
+									...ctx,
+									client
+								},
+								...params
+							}),
+							id
+						})
+					)
 				}catch(error){
 					let response = null
 	
 					if(typeof error === 'object'){
-						if(error.expose)
+						if(error.expose){
 							response = error
+							delete response.expose
+						}
 					}
 	
 					if(!response){
-						log.info(`internal server error while serving client #${client.id}:`, error.message)
+						log.debug(`internal server error while serving client #${client.id}:`, error.message)
 						response = {message: 'internal server error'}
+					}
+
+					response.request = {
+						...params,
+						command,
 					}
 	
 					socket.send(
 						JSON.stringify({
-							id: request.id, 
+							id, 
 							error: response
 						})
 					)
@@ -101,11 +139,43 @@ export function createManager({ ctx }){
 	
 			socket.on('close', () => {
 				clients.splice(clients.indexOf(client))
-				log.info(`client #${client.id} disconnected`)
+				log.debug(`client #${client.id} disconnected`)
+				logCount(-1)
 			})
 	
 			clients.push(client)
-			log.info(`new connection (#${client.id})`)
+
+			log.debug(`new connection (#${client.id} ${socket._socket.remoteAddress})`)
+			logCount(1)
 		}
+	}
+}
+
+function pushTokenUpdate({ ctx, token, recipients }){
+	let cache = ctx.db.tokenCache.readOne({
+		where: {
+			token
+		},
+		include: {
+			token: {
+				issuer: true
+			}
+		}
+	})
+
+	for(let { client, subscription } of recipients){
+		client.socket.send(
+			JSON.stringify({
+				type: 'tokenUpdate',
+				token: formatTokenCache({
+					ctx,
+					cache,
+					decodeCurrency: subscription.decode_currency,
+					preferSources: subscription.prefer_sources,
+					includeSources: subscription.include_sources,
+					includeChanges: subscription.include_changes,
+				})
+			})
+		)
 	}
 }
