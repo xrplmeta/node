@@ -16,6 +16,7 @@ export async function startServer({ ctx }){
 	koa.use(async (ctx, next) => {
 		if(ctx.ws){
 			ws.registerSocket(await ctx.ws())
+			ctx.request.socket.setTimeout(0)
 		}else{
 			return await next(ctx)
 		}
