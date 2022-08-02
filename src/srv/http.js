@@ -18,6 +18,20 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
+		'/ledger',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'ledger',
+				args: {
+					...parsePoint(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
 		'/tokens',
 		async svc => {
 			await handle({
@@ -119,7 +133,7 @@ function parseTokenURI(uri){
 function parseRange({ sequence_start, sequence_end, sequence_interval, time_start, time_end, time_interval }){
 	let range = {}
 
-	if(sequence_start){
+	if(sequence_start !== undefined){
 		range.sequence = {
 			start: parseInt(sequence_start),
 			end: sequence_end
@@ -129,7 +143,7 @@ function parseRange({ sequence_start, sequence_end, sequence_interval, time_star
 
 		if(sequence_interval)
 			range.sequence.interval = parseInt(sequence_interval)
-	}else if(time_start){
+	}else if(time_start !== undefined){
 		range.time = {
 			start: parseInt(time_start),
 			end: time_end
@@ -142,4 +156,12 @@ function parseRange({ sequence_start, sequence_end, sequence_interval, time_star
 	}
 
 	return range
+}
+
+function parsePoint({ sequence, time }){
+	if(sequence !== undefined){
+		return { sequence: parseInt(sequence) }
+	}else if(time !== undefined){
+		return { time: parseInt(time) }
+	}
 }

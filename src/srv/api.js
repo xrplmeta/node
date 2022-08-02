@@ -2,10 +2,16 @@ import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePrefer
 import { sanitizeToken, sanitizeTokenListSortBy, sanitizeTrustLevels } from './sanitizers/token.js'
 import { serveServerInfo } from './procedures/server.js'
 import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList } from './procedures/token.js'
+import { serveLedger } from './procedures/ledger.js'
 
 
 export const server_info = compose([
 	serveServerInfo()
+])
+
+export const ledger = compose([
+	sanitizePoint({ clamp: false }),
+	serveLedger()
 ])
 
 export const tokens = compose([
@@ -35,7 +41,7 @@ export const token = compose([
 
 export const token_metric = compose([
 	sanitizeToken({ key: 'token' }),
-	sanitizePoint(),
+	sanitizePoint({ clamp: false }),
 	serveTokenPoint()
 ])
 
