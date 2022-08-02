@@ -1,34 +1,49 @@
 import { getAvailableRange, readLedgerAt } from '../../db/helpers/ledgers.js'
 
-export function sanitizePoint(){
+export function sanitizePoint({ clamp = false }){
 	return ({ ctx, ...args }) => {
-		let available = getAvailableRange({ ctx })
 		let sequence
 		let time
 
-		if(args.hasOwnProperty('sequence')){
-			sequence = Math.min(
-				Math.max(
-					args.sequence, 
-					available.sequence.start
-				), 
-				available.sequence.end
-			)
-		}else if(args.hasOwnProperty('time')){
-			time = Math.min(
-				Math.max(
-					args.time, 
-					available.time.start
-				), 
-				available.time.end
-			)
+		if(clamp){
+			let available = getAvailableRange({ ctx })
 
-			sequence = readLedgerAt({ ctx, time }).sequence
+			if(args.hasOwnProperty('sequence')){
+				sequence = Math.min(
+					Math.max(
+						args.sequence,
+						available.sequence.start
+					),
+					available.sequence.end
+				)
+			}else if(args.hasOwnProperty('time')){
+				time = Math.min(
+					Math.max(
+						args.time,
+						available.time.start
+					),
+					available.time.end
+				)
+
+				sequence = readLedgerAt({ ctx, time }).sequence
+			}else{
+				throw {
+					type: `missingParam`,
+					message: `This request is missing a ledger sequence or a timestamp.`,
+					expose: true
+				}
+			}
 		}else{
-			throw {
-				type: `missingParam`,
-				message: `This request is missing a ledger sequence or a timestamp.`,
-				expose: true
+			if(args.hasOwnProperty('sequence')){
+				sequence = args.sequence
+			}else if(args.hasOwnProperty('time')){
+				time = args.time
+			}else{
+				throw {
+					type: `missingParam`,
+					message: `This request is missing a ledger sequence or a timestamp.`,
+					expose: true
+				}
 			}
 		}
 
