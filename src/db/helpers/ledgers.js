@@ -33,28 +33,38 @@ export function readMostRecentLedger({ ctx }){
 }
 
 
-export function readLedgerAt({ ctx, time, clamp }){
+export function readLedgerAt({ ctx, sequence, time, clamp, include }){
+	let key = sequence !== undefined
+		? 'sequence'
+		: 'closeTime'
+
+	let point = sequence !== undefined
+		? sequence
+		: time
+
 	let ledger = ctx.db.ledgers.readOne({
 		where: {
-			closeTime: {
-				lessOrEqual: time
+			[key]: {
+				lessOrEqual: point
 			}
 		},
 		orderBy: {
-			closeTime: 'desc'
-		}
+			[key]: 'desc'
+		},
+		include
 	})
 
 	if(!ledger && clamp){
 		ledger = ctx.db.ledgers.readOne({
 			where: {
-				closeTime: {
-					greaterThan: time
+				[key]: {
+					greaterThan: point
 				}
 			},
 			orderBy: {
-				closeTime: 'asc'
-			}
+				[key]: 'asc'
+			},
+			include
 		})
 	}
 
