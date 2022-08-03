@@ -11,19 +11,28 @@ export async function startServer({ ctx }){
 	let router = createRouter({ ctx })
 	let ws = createManager({ ctx })
 
-	koa.use(json({ pretty: true }))
 	koa.use(websocket())
 	koa.use(async (ctx, next) => {
 		if(ctx.ws){
+			ctx.req.socket.ignoreTimeout = true
 			ws.registerSocket(await ctx.ws())
-			ctx.request.socket.setTimeout(0)
 		}else{
 			return await next(ctx)
 		}
 	})
 
+	koa.use(json({ pretty: true }))
 	koa.use(router.routes(), router.allowedMethods())
+
 	koa.listen(ctx.config.server.port)
+		.on('clientError', (error, socket) => {
+			if(error.code === 'ERR_HTTP_REQUEST_TIMEOUT' && socket.ignoreTimeout)
+				return
+
+			log.debug(`client error:`, error)
+			socket.destroy()
+		})
+
 
 	log.info(`listening on port ${ctx.config.server.port}`)
 
