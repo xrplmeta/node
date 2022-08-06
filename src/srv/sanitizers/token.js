@@ -2,9 +2,6 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 const sortKeymap = {
-	volume_24h: 'volume24H',
-	volume_7d: 'volume7D',
-	trustlines: 'trustlines',
 	trustlines_delta_24h: 'trustlinesDelta24H',
 	trustlines_percent_24h: 'trustlinesPercent24H',
 	trustlines_delta_7d: 'trustlinesDelta7D',
@@ -26,6 +23,13 @@ const sortKeymap = {
 	marketcap_percent_7d: 'marketcapPercent7D',
 	price_percent_24h: 'pricePercent24H',
 	price_percent_7d: 'pricePercent7D',
+	volume_24h: 'volume24H',
+	volume_7d: 'volume7D',
+	exchanges_24h: 'exchanges24H',
+	exchanges_7d: 'exchanges7D',
+	takers_24h: 'takers24H',
+	takers_7d: 'takers7D',
+	trustlines: 'trustlines',
 }
 
 

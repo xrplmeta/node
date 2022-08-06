@@ -219,6 +219,10 @@ export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, in
 			price: cache.price.toString(),
 			volume_24h: cache.volume24H.toString(),
 			volume_7d: cache.volume7D.toString(),
+			exchanges_24h: cache.exchanges24H.toString(),
+			exchanges_7d: cache.exchanges7D.toString(),
+			takers_24h: cache.takers24H.toString(),
+			takers_7d: cache.takers7D.toString(),
 		}
 	}
 

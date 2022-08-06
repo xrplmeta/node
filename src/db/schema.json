@@ -530,6 +530,22 @@
 					"type": "string",
 					"format": "xrpl/xfl",
 					"default": "0"
+				},
+				"exchanges24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"exchanges7D": {
+					"type": "integer",
+					"default": 0
+				},
+				"takers24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"takers7D": {
+					"type": "integer",
+					"default": 0
 				}
 			},
 			"required": [
@@ -564,7 +580,11 @@
 				"pricePercent24H",
 				"pricePercent7D",
 				"volume24H",
-				"volume7D"
+				"volume7D",
+				"trades24H",
+				"trades7D",
+				"traders24H",
+				"traders7D"
 			]
 		},
 		"TokenProp": {

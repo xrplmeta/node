@@ -81,6 +81,65 @@ export function readTokenVolume({ ctx, base, quote, sequenceStart, sequenceEnd }
 	return volume
 }
 
+export function readTokenExchangeCount({ ctx, base, quote, sequenceStart, sequenceEnd }){
+	return ctx.db.tokenExchanges.count({
+		where: {
+			OR: [
+				{
+					takerPaidToken: base,
+					takerGotToken: quote
+				},
+				{
+					takerPaidToken: quote,
+					takerGotToken: base
+				}
+			],
+			AND: [
+				{
+					ledgerSequence: {
+						greaterOrEqual: sequenceStart
+					}
+				},
+				{
+					ledgerSequence: {
+						lessOrEqual: sequenceEnd
+					}
+				}
+			]
+		}
+	})
+}
+
+export function readTokenExchangeUniqueTakerCount({ ctx, base, quote, sequenceStart, sequenceEnd }){
+	return ctx.db.tokenExchanges.count({
+		distinct: ['taker'],
+		where: {
+			OR: [
+				{
+					takerPaidToken: base,
+					takerGotToken: quote
+				},
+				{
+					takerPaidToken: quote,
+					takerGotToken: base
+				}
+			],
+			AND: [
+				{
+					ledgerSequence: {
+						greaterOrEqual: sequenceStart
+					}
+				},
+				{
+					ledgerSequence: {
+						lessOrEqual: sequenceEnd
+					}
+				}
+			]
+		}
+	})
+}
+
 export function alignTokenExchange({ exchange, base, quote }){
 	let { takerPaidToken, takerGotToken, takerPaidValue, takerGotValue, ...props } = exchange
 	let takerPaidIsBase = false

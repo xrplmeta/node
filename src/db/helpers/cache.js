@@ -3,7 +3,7 @@ import { sub, mul, div, min, gt } from '@xrplkit/xfl'
 import { unixNow } from '@xrplkit/time'
 import { readLedgerAt, readMostRecentLedger } from './ledgers.js'
 import { readTokenMetrics } from './tokenmetrics.js'
-import { readTokenExchangeAligned, readTokenVolume } from './tokenexchanges.js'
+import { readTokenExchangeAligned, readTokenExchangeCount, readTokenExchangeUniqueTakerCount, readTokenVolume } from './tokenexchanges.js'
 import { readAccountProps, readTokenProps } from './props.js'
 
 
@@ -232,6 +232,50 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		sequenceEnd: sequences.current
 	})
 
+	let exchanges24H = readTokenExchangeCount({
+		ctx,
+		base: token,
+		quote: {
+			id: 1,
+			currency: 'XRP'
+		},
+		sequenceStart: sequences.pre24h,
+		sequenceEnd: sequences.current
+	})
+
+	let exchanges7D = readTokenExchangeCount({
+		ctx,
+		base: token,
+		quote: {
+			id: 1,
+			currency: 'XRP'
+		},
+		sequenceStart: sequences.pre7d,
+		sequenceEnd: sequences.current
+	})
+
+	let takers24H = readTokenExchangeUniqueTakerCount({
+		ctx,
+		base: token,
+		quote: {
+			id: 1,
+			currency: 'XRP'
+		},
+		sequenceStart: sequences.pre24h,
+		sequenceEnd: sequences.current
+	})
+
+	let takers7D = readTokenExchangeUniqueTakerCount({
+		ctx,
+		base: token,
+		quote: {
+			id: 1,
+			currency: 'XRP'
+		},
+		sequenceStart: sequences.pre7d,
+		sequenceEnd: sequences.current
+	})
+
 	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
 			token,
@@ -239,7 +283,11 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 			pricePercent24H: percent24h,
 			pricePercent7D: percent7d,
 			volume24H,
-			volume7D
+			volume7D,
+			exchanges24H,
+			exchanges7D,
+			takers24H,
+			takers7D
 		},
 		returnUnchanged: false
 	})
