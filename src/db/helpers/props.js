@@ -133,38 +133,43 @@ export function writeAccountProps({ ctx, account, props, source }){
 }
 
 
-export function reduceProps({ props, sourceRanking, includeSources }){
+export function reduceProps({ props, expand, sourceRanking }){
 	let data = {}
 	let sources = {}
 	let sourceRanks = {}
+	let weblinks = []
 
 	for(let { key, value, source } of props){
-		let rank = sourceRanking
-			? sourceRanking.indexOf(source)
-			: 0
+		if(expand){
+			if(!data[key])
+				data[key] = {}
 
-		if(rank === -1)
-			rank = Infinity
+			data[key][source] = value
+		}else{
+			let rank = sourceRanking
+				? sourceRanking.indexOf(source)
+				: 0
 
-		if(!sources[key] || sourceRanks[key] > rank){
-			data[key] = value
-			sources[key] = source
-			sourceRanks[key] = rank
+			if(rank === -1)
+				rank = Infinity
+
+			if(key === 'weblinks'){
+				weblinks.push({ links: value, rank })
+			}else{
+				if(!sources[key] || sourceRanks[key] > rank){
+					data[key] = value
+					sourceRanks[key] = rank
+				}
+			}
 		}
 	}
 
-	if(includeSources){
-		return {
-			...data,
-			sources: Object.keys(data).reduce(
-				(composite, key) => ({
-					...composite,
-					[key]: sources[key]
-				}),
-				{}
-			)
-		}
-	}else{
-		return data
+	if(weblinks.length > 0){
+		data.weblinks = weblinks
+			.sort((a, b) => a.rank - b.rank)
+			.map(({ links }) => links)
+			.reduce((a, l) => [...a, ...l], [])
 	}
+
+	return data
 }

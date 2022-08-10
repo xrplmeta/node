@@ -172,7 +172,7 @@ function pushTokenUpdate({ ctx, token, recipients }){
 					cache,
 					decodeCurrency: subscription.decode_currency,
 					preferSources: subscription.prefer_sources,
-					includeSources: subscription.include_sources,
+					expandMeta: subscription.expand_meta,
 					includeChanges: subscription.include_changes,
 				})
 			})

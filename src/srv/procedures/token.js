@@ -5,7 +5,7 @@ import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
 export function serveTokenList(){
-	return ({ ctx, sort_by, trust_levels, decode_currency, prefer_sources, include_sources, include_changes, limit, offset }) => {
+	return ({ ctx, sort_by, trust_levels, decode_currency, prefer_sources, expand_meta, include_changes, limit, offset }) => {
 		let tokens = []
 		let caches = ctx.db.tokenCache.readMany({
 			where: trust_levels
@@ -34,7 +34,7 @@ export function serveTokenList(){
 					cache,
 					decodeCurrency: decode_currency,
 					preferSources: prefer_sources,
-					includeSources: include_sources,
+					expandMeta: expand_meta,
 					includeChanges: include_changes,
 				})
 			)
@@ -45,7 +45,7 @@ export function serveTokenList(){
 }
 
 export function subscribeTokenList(){
-	return ({ ctx, tokens, decode_currency, prefer_sources, include_sources, include_changes }) => {
+	return ({ ctx, tokens, decode_currency, prefer_sources, expand_meta, include_changes }) => {
 		for(let token of tokens){
 			ctx.client.tokenSubscriptions[token.id] = {
 				token: {
@@ -54,7 +54,7 @@ export function subscribeTokenList(){
 				},
 				decode_currency,
 				prefer_sources,
-				include_sources,
+				expand_meta,
 				include_changes
 			}
 		}
@@ -82,7 +82,7 @@ export function unsubscribeTokenList(){
 }
 
 export function serveTokenSummary(){
-	return ({ ctx, token, decode_currency, prefer_sources, include_sources, include_changes }) => {
+	return ({ ctx, token, decode_currency, prefer_sources, expand_meta, include_changes }) => {
 		let cache = ctx.db.tokenCache.readOne({
 			where: {
 				token
@@ -99,7 +99,7 @@ export function serveTokenSummary(){
 			cache,
 			decodeCurrency: decode_currency,
 			preferSources: prefer_sources,
-			includeSources: include_sources,
+			expandMeta: expand_meta,
 			includeChanges: include_changes,
 		})
 	}
@@ -187,7 +187,7 @@ export function serveTokenSeries(){
 }
 
 
-export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, includeSources, includeChanges }){
+export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, expandMeta, includeChanges }){
 	let token = {
 		currency: decodeCurrency
 			? decodeCurrencyCode(cache.token.currency)
@@ -196,7 +196,7 @@ export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, in
 		meta: {
 			token: reduceProps({
 				props: cache.tokenProps || [],
-				includeSources,
+				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
 					...(ctx.config.server?.sourceRanking || [])
@@ -204,7 +204,7 @@ export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, in
 			}),
 			issuer: reduceProps({
 				props: cache.issuerProps || [],
-				includeSources,
+				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
 					...(ctx.config.server?.sourceRanking || [])

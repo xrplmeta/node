@@ -40,7 +40,7 @@ export function createRouter({ ctx }){
 				procedure: 'tokens',
 				args: {
 					...svc.query,
-					include_sources: svc.query.include_sources !== undefined,
+					expand_meta: svc.query.expand_meta !== undefined,
 					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
 					trust_levels: svc.query.trust_levels
@@ -63,7 +63,7 @@ export function createRouter({ ctx }){
 				procedure: 'token',
 				args: {
 					token: parseTokenURI(svc.params.token),
-					include_sources: svc.query.include_sources !== undefined,
+					expand_meta: svc.query.expand_meta !== undefined,
 					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
 					prefer_sources: svc.query.prefer_sources
