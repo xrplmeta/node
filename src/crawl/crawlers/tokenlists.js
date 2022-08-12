@@ -20,7 +20,7 @@ export default async function({ ctx }){
 	)
 }
 
-async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
+async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ignoreAdvisories = false }){
 	let fetch = createFetch({
 		baseUrl: url,
 		headers: {
@@ -44,7 +44,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 				}
 
 				try{
-					var { issuers, tokens, issues } = parseXLS26(data)
+					var { issuers, tokens, issues, advisories } = parseXLS26(data)
 				}catch(error){
 					console.log(error)
 					throw error
@@ -52,6 +52,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 
 				let issuerUpdates = 0
 				let tokenUpdates = 0
+				let advisoryUpdates = 0
 
 				if(issues.length > 0){
 					log.debug(`tokenlist [${id}] has issues: ${
@@ -96,7 +97,34 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0 }){
 					tokenUpdates++
 				}
 
-				log.info(`tokenlist [${id}] synced (issuers: ${issuerUpdates} tokens: ${tokenUpdates})`)
+				if(!ignoreAdvisories && trustLevel > 0){
+					let groupedAdvisories = {}
+
+					for(let { address, ...props } of advisories){
+						if(!groupedAdvisories[address])
+							groupedAdvisories[address] = []
+
+						groupedAdvisories[address].push(props)
+					}
+
+					for(let [address, advisories] of Object.entries(groupedAdvisories)){
+						writeAccountProps({
+							ctx,
+							account: {
+								address
+							},
+							props: {
+								advisories
+							},
+							source: id
+						})
+	
+						advisoryUpdates++
+					}
+				}
+				
+
+				log.info(`tokenlist [${id}] synced (issuers: ${issuerUpdates} tokens: ${tokenUpdates} advisories: ${advisoryUpdates})`)
 			}
 		})
 	}
