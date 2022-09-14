@@ -47,6 +47,7 @@ export function updateCacheForTokenProps({ ctx, token }){
 			token,
 			tokenProps: props,
 			trustLevel: Math.max(
+				0,
 				...props
 					.filter(({ key }) => key === 'trust_level')
 					.map(({ value }) => value)
