@@ -39,6 +39,18 @@ export default async function({ ctx }){
 
 				let { id, address, domain } = token.issuer
 
+				if(!domain){
+					let prop = ctx.db.accountProps.readOne({
+						where: {
+							account: token.issuer,
+							key: 'domain'
+						}
+					})
+
+					if(prop)
+						domain = prop.value
+				}
+
 				if(domain){
 					let tomlUrl = `http://${domain}/.well-known/xrp-ledger.toml`
 
