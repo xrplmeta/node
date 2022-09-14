@@ -1,6 +1,6 @@
-# The XRPL Meta Server
+# The XRPL Meta Node
 
-This is a Javascript implementation of the [XRPL Meta](https://xrplmeta.org) Server.
+This is a Javascript implementation of the [XRPL Meta](https://xrplmeta.org) project.
 
 XRPL Meta provides the data that is not obtainable by the standard rippled API.  It makes the data available through a JSON REST and WebSocket API, just like rippled. It connects to any number of rippled nodes and tracks updates in real time. Historical data is being backfilled.
 

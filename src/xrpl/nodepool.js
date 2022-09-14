@@ -27,7 +27,10 @@ export function create(sources){
 			
 				bestBid.node.do(request.payload)
 					.then(result => request.resolve({result, node: bestBid.node.name}))
-					.catch(error => request.reject({error: error.stack, node: bestBid.node.name}))
+					.catch(error => request.reject({
+						error: error.message || error.stack || error.error_message, 
+						node: bestBid.node.name
+					}))
 
 				queue.splice(i--, 1)
 			}

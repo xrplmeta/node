@@ -1,5 +1,5 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
-import { sanitizeToken, sanitizeTokenListSortBy, sanitizeTrustLevels } from './sanitizers/token.js'
+import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels } from './sanitizers/token.js'
 import { serveServerInfo } from './procedures/server.js'
 import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
@@ -16,6 +16,7 @@ export const ledger = compose([
 
 export const tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
+	sanitizeNameLike(),
 	sanitizeTrustLevels(),
 	sanitizeTokenListSortBy(),
 	sanitizeSourcePreferences(),

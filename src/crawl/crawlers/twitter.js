@@ -68,7 +68,7 @@ export default async function({ ctx }){
 
 				for(let prop of [...issuerWeblinks, ...tokenWeblinks]){
 					let link = prop.value
-						.filter(link => link.type === 'socialmedia')
+						.filter(link => link.type !== 'support')
 						.find(link => link.url.includes('twitter.com'))
 
 					if(!link)
