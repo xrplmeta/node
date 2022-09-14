@@ -318,6 +318,9 @@ function getCommonLedgerSequences({ ctx }){
 }
 
 function dispatchTokenUpdate({ ctx, token, subject }){
+	if(!ctx.ipc)
+		return
+
 	ctx.ipc.emit({
 		tokenUpdate: {
 			token,
