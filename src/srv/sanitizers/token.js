@@ -83,7 +83,9 @@ export function sanitizeToken({ key, array = false }){
 }
 
 export function sanitizeTrustLevels(){
-	return ({ ctx, trust_levels, ...args }) => {
+	return ({ ctx, trust_level, trust_levels, ...args }) => {
+		trust_levels = trust_level || trust_levels
+
 		if(trust_levels){
 			if(!Array.isArray(trust_levels)){
 				throw {
