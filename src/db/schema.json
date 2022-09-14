@@ -412,10 +412,22 @@
 				"token": {
 					"$ref": "#/definitions/Token"
 				},
-				"issuerProps": {
-					"type": "any"
+				"tokenCode": {
+					"type": "string"
+				},
+				"tokenName": {
+					"type": "string"
 				},
 				"tokenProps": {
+					"type": "any"
+				},
+				"issuerAddress": {
+					"type": "string"
+				},
+				"issuerName": {
+					"type": "string"
+				},
+				"issuerProps": {
 					"type": "any"
 				},
 				"trustLevel": {
@@ -549,12 +561,18 @@
 				}
 			},
 			"required": [
-				"token"
+				"token",
+				"tokenCode",
+				"issuerAddress"
 			],
 			"unique": [
 				"token"
 			],
 			"index": [
+				"tokenCode",
+				"tokenName",
+				"issuerAddress",
+				"issuerName",
 				"trustLevel",
 				"trustlines",
 				"trustlinesDelta24H",
@@ -581,10 +599,10 @@
 				"pricePercent7D",
 				"volume24H",
 				"volume7D",
-				"trades24H",
-				"trades7D",
-				"traders24H",
-				"traders7D"
+				"exchanges24H",
+				"exchanges7D",
+				"takers24H",
+				"takers7D"
 			]
 		},
 		"TokenProp": {

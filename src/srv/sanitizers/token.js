@@ -82,6 +82,34 @@ export function sanitizeToken({ key, array = false }){
 	}
 }
 
+export function sanitizeNameLike(){
+	return ({ ctx, name_by, ...args }) => {
+		if(name_by){
+			if(typeof name_by !== 'string'){
+				throw {
+					type: `invalidParam`,
+					message: `The "name_by" term has to be a string.`,
+					expose: true
+				}
+			}
+
+			if(name_by.length === 0){
+				throw {
+					type: `invalidParam`,
+					message: `The "name_by" term has to be at least one character long.`,
+					expose: true
+				}
+			}
+		}
+
+		return {
+			...args,
+			ctx,
+			name_by
+		}
+	}
+}
+
 export function sanitizeTrustLevels(){
 	return ({ ctx, trust_level, trust_levels, ...args }) => {
 		trust_levels = trust_level || trust_levels

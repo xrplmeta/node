@@ -5,16 +5,31 @@ import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
 export function serveTokenList(){
-	return ({ ctx, sort_by, trust_levels, decode_currency, prefer_sources, expand_meta, include_changes, limit, offset }) => {
+	return ({ ctx, sort_by, name_like, trust_levels, decode_currency, prefer_sources, expand_meta, include_changes, limit, offset }) => {
 		let tokens = []
+		let where = {}
+
+		if(trust_levels){
+			where.trustLevel = {
+				in: trust_levels
+			}
+		}
+
+		if(name_like){
+			where.OR = [
+				{ tokenCode: { like: `${name_like}%` } },
+				{ tokenName: { like: `%${name_like}%` } },
+				{ issuerAddress: { like: `${name_like}%` } },
+				{ issuerName: { like: `%${name_like}%` } },
+			]
+		}
+
+		let count = ctx.db.tokenCache.count({
+			where
+		})
+		
 		let caches = ctx.db.tokenCache.readMany({
-			where: trust_levels
-				? {
-					trustLevel: {
-						in: trust_levels
-					}
-				}
-				: undefined,
+			where,
 			include: {
 				token: {
 					issuer: true
@@ -40,7 +55,10 @@ export function serveTokenList(){
 			)
 		}
 
-		return tokens
+		return { 
+			count: Number(count), 
+			tokens 
+		}
 	}
 }
 

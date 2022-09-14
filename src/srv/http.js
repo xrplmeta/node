@@ -43,6 +43,7 @@ export function createRouter({ ctx }){
 					expand_meta: svc.query.expand_meta !== undefined,
 					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
+					name_like: svc.query.name_like,
 					trust_levels: svc.query.trust_levels
 						? svc.query.trust_levels.split(',')
 						: undefined,

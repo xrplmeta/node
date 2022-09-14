@@ -1,6 +1,6 @@
 import log from '@mwni/log'
 import { sub, mul, div, min, gt } from '@xrplkit/xfl'
-import { unixNow } from '@xrplkit/time'
+import { decodeCurrencyCode } from '@xrplkit/amount'
 import { readLedgerAt, readMostRecentLedger } from './ledgers.js'
 import { readTokenMetrics } from './tokenmetrics.js'
 import { readTokenExchangeAligned, readTokenExchangeCount, readTokenExchangeUniqueTakerCount, readTokenVolume } from './tokenexchanges.js'
@@ -42,9 +42,12 @@ export function updateCacheForTokenProps({ ctx, token }){
 		return
 
 	let props = readTokenProps({ ctx, token })
+	let tokenName = props.find(prop => prop.key === 'name')?.value
 	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
+			...deriveCommonTokenFields({ ctx, token }),
 			token,
+			tokenName,
 			tokenProps: props,
 			trustLevel: Math.max(
 				0,
@@ -69,6 +72,8 @@ export function updateCacheForAccountProps({ ctx, account }){
 		ctx, 
 		account 
 	})
+
+	let issuerName = props.find(prop => prop.key === 'name')?.value
 	
 	let tokens = ctx.db.tokens.readMany({
 		where: {
@@ -82,7 +87,9 @@ export function updateCacheForAccountProps({ ctx, account }){
 
 		let changedCache = ctx.db.tokenCache.createOne({
 			data: {
+				...deriveCommonTokenFields({ ctx, token }),
 				token,
+				issuerName,
 				issuerProps: props
 			},
 			returnUnchanged: false
@@ -153,6 +160,7 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 
 	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
+			...deriveCommonTokenFields({ ctx, token }),
 			token,
 			...cache
 		},
@@ -279,6 +287,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 
 	let changedCache = ctx.db.tokenCache.createOne({
 		data: {
+			...deriveCommonTokenFields({ ctx, token }),
 			token,
 			price: current,
 			pricePercent24H: percent24h,
@@ -298,6 +307,22 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 	}
 }
 
+function deriveCommonTokenFields({ ctx, token }){
+	if(!token.issuer || !token.issuer.address)
+		token = ctx.db.tokens.readOne({
+			where: {
+				id: token.id
+			},
+			include: {
+				issuer: true
+			}
+		})
+
+	return {
+		tokenCode: decodeCurrencyCode(token.currency),
+		issuerAddress: token.issuer.address
+	}
+}
 
 function getCommonLedgerSequences({ ctx }){
 	let currentLedger = readMostRecentLedger({ ctx })
