@@ -160,7 +160,7 @@ function createFiller({ ctx, stream, stride }){
 						})
 					)	
 				}catch(error){
-					log.warn(`failed to fetch ledger #${sequence}:`, error.message)
+					log.warn(`failed to fetch ledger #${sequence}:`, error)
 					await wait(1000)
 				}finally{
 					delete reservations[sequence]
