@@ -61,7 +61,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 					throw new Error(`malformed response`)
 				}
 
-				log.info(`got ${Object.values(data.details).length} issuers`)
+				log.info(`got ${Object.values(data.details).length} curated assets`)
 
 				for(let issuer of Object.values(data.details)){
 					for(let currency of Object.values(issuer.currencies)){
@@ -73,7 +73,12 @@ async function crawlAssets({ ctx, fetch, interval }){
 							props: {
 								name: issuer.name,
 								domain: issuer.domain,
-								icon: issuer.avatar
+								icon: issuer.avatar,
+								trust_level: (
+									issuer.info_source.type === 'native'
+										? (issuer.shortlist ? 3 : 2)
+										: 1
+								)
 							},
 							source: 'xumm'
 						})
@@ -89,9 +94,11 @@ async function crawlAssets({ ctx, fetch, interval }){
 							props: {
 								name: currency.name,
 								icon: currency.avatar,
-								trust_level: currency.shortlist
-									? 3
-									: 1
+								trust_level: (
+									currency.info_source.type === 'native'
+										? (currency.shortlist ? 3 : 2)
+										: 1
+								)
 							},
 							source: 'xumm'
 						})

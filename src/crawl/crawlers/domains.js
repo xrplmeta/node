@@ -1,5 +1,7 @@
 import log from '@mwni/log'
 import { parse as parseXLS26 } from '@xrplkit/xls26'
+import { parse as parseURL } from 'url'
+import { sanitize as sanitizeURL } from '../../lib/url.js'
 import { scheduleGlobal, scheduleIterator } from '../common/schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
@@ -37,7 +39,7 @@ export default async function({ ctx }){
 				if(!token.issuer)
 					return
 
-				let { id, address, domain } = token.issuer
+				let { address, domain } = token.issuer
 
 				if(!domain){
 					let prop = ctx.db.accountProps.readOne({
@@ -52,7 +54,25 @@ export default async function({ ctx }){
 				}
 
 				if(domain){
-					let tomlUrl = `http://${domain}/.well-known/xrp-ledger.toml`
+					let { protocol, host, pathname } = parseURL(domain)
+
+					if(!protocol)
+						protocol = 'http:'
+
+					if(protocol !== 'http:' && protocol !== 'https:'){
+						log.debug(`issuer (${address}) has unsupported protocol: ${domain}`)
+						return
+					}
+
+					if(!host)
+						host = ''
+
+					if(!pathname)
+						pathname = ''
+
+					let tomlUrl = sanitizeURL(
+						`${protocol}//${host}${pathname}/.well-known/xrp-ledger.toml`
+					)
 
 					try{
 						log.debug(`issuer (${address}) fetching: ${tomlUrl}`)
