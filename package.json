@@ -1,6 +1,6 @@
 {
 	"name": "xrplmeta",
-	"version": "2.6.1-alpha",
+	"version": "2.6.2-alpha",
 	"type": "module",
 	"scripts": {
 		"start": "node src/run.js",
