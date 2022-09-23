@@ -135,7 +135,6 @@ export function writeAccountProps({ ctx, account, props, source }){
 
 export function reduceProps({ props, expand, sourceRanking }){
 	let data = {}
-	let sources = {}
 	let sourceRanks = {}
 	let weblinks = []
 
@@ -156,7 +155,7 @@ export function reduceProps({ props, expand, sourceRanking }){
 			if(key === 'weblinks'){
 				weblinks.push({ links: value, rank })
 			}else{
-				if(!sources[key] || sourceRanks[key] > rank){
+				if(!sourceRanks[key] || sourceRanks[key] > rank){
 					data[key] = value
 					sourceRanks[key] = rank
 				}
