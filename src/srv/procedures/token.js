@@ -1,6 +1,6 @@
-import { decodeCurrencyCode } from '@xrplkit/amount'
+import { decodeCurrencyCode, isSameCurrency } from '@xrplkit/amount'
 import { reduceProps } from '../../db/helpers/props.js'
-import { readTokenExchangeIntervalSeries } from '../../db/helpers/tokenexchanges.js'
+import { readTokenExchangeIntervalSeries, readTokenExchangesAligned } from '../../db/helpers/tokenexchanges.js'
 import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
 
@@ -198,6 +198,41 @@ export function serveTokenSeries(){
 				point => ({
 					sequence: Number(point.sequence), 
 					value: point.value.toString() 
+				})
+			)
+		}
+	}
+}
+
+
+export function serveTokenExchanges(){
+	return ({ ctx, base, quote, sequence, limit, newestFirst }) => {
+		if(isSameCurrency(base, quote)){
+			throw {
+				type: `invalidParam`,
+				message: `The base and quote asset can not be the same.`,
+				expose: true
+			}
+		}
+
+		let exchanges = readTokenExchangesAligned({ 
+			ctx, 
+			base, 
+			quote, 
+			sequenceStart: sequence.start,
+			sequenceEnd: sequence.end,
+			limit,
+			newestFirst
+		})
+		
+		return {
+			marker: null,
+			exchanges: exchanges.map(
+				({ txHash, ledgerSequence, price, volume }) => ({
+					txHash,
+					ledgerSequence,
+					price: price.toString(),
+					volume: volume.toString()
 				})
 			)
 		}

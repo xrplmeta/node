@@ -56,7 +56,7 @@ export function sanitizePoint({ clamp = false }){
 	}
 }
 
-export function sanitizeRange({ withInterval = false }){
+export function sanitizeRange({ withInterval = false } = {}){
 	return ({ ctx, ...args }) => {
 		let available = getAvailableRange({ ctx })
 		let sequence
