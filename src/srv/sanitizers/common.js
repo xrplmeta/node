@@ -56,7 +56,7 @@ export function sanitizePoint({ clamp = false }){
 	}
 }
 
-export function sanitizeRange({ withInterval = false } = {}){
+export function sanitizeRange({ withInterval = false, defaultToFullRange = false } = {}){
 	return ({ ctx, ...args }) => {
 		let available = getAvailableRange({ ctx })
 		let sequence
@@ -102,6 +102,9 @@ export function sanitizeRange({ withInterval = false } = {}){
 				start: readLedgerAt({ ctx, time: time.start }).sequence,
 				end: readLedgerAt({ ctx, time: time.end }).sequence,
 			}
+		}else if(defaultToFullRange){
+			sequence = available.sequence
+			time = available.time
 		}else{
 			throw {
 				type: `missingParam`,

@@ -55,7 +55,7 @@ export const token_series = compose([
 export const token_exchanges = compose([
 	sanitizeToken({ key: 'base', allowXRP: true }),
 	sanitizeToken({ key: 'quote', allowXRP: true }),
-	sanitizeRange(),
+	sanitizeRange({ defaultToFullRange: true }),
 	serveTokenExchanges()
 ])
 
