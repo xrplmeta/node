@@ -1,7 +1,7 @@
 import { XFL, sum, div, gt } from '@xrplkit/xfl'
 
 
-export function readTokenExchangesAligned({ ctx, base, quote, sequenceStart, sequenceEnd, limit, newestFirst }){
+export function readTokenExchangesAligned({ ctx, base, quote, sequenceStart, sequenceEnd, limit, newestFirst, include }){
 	return ctx.db.tokenExchanges.readMany({
 		where: {
 			OR: [
@@ -31,6 +31,7 @@ export function readTokenExchangesAligned({ ctx, base, quote, sequenceStart, seq
 			ledgerSequence: newestFirst ? 'desc' : 'asc'
 		},
 		include: {
+			...include,
 			takerPaidToken: {
 				issuer: true
 			},

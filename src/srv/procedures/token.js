@@ -222,19 +222,25 @@ export function serveTokenExchanges(){
 			sequenceStart: sequence.start,
 			sequenceEnd: sequence.end,
 			limit,
-			newestFirst
+			newestFirst,
+			include: {
+				taker: true,
+				maker: true
+			}
 		})
 		
 		return {
-			marker: null,
 			exchanges: exchanges.map(
-				({ txHash, ledgerSequence, price, volume }) => ({
+				({ txHash, ledgerSequence, taker, maker, price, volume }) => ({
 					txHash,
 					ledgerSequence,
+					taker: taker.address,
+					maker: maker.address,
 					price: price.toString(),
 					volume: volume.toString()
 				})
-			)
+			),
+			marker: null
 		}
 	}
 }
