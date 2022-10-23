@@ -56,6 +56,7 @@ export const token_exchanges = compose([
 	sanitizeToken({ key: 'base', allowXRP: true }),
 	sanitizeToken({ key: 'quote', allowXRP: true }),
 	sanitizeRange({ defaultToFullRange: true }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges()
 ])
 
