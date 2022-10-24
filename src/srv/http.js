@@ -7,7 +7,7 @@ export function createRouter({ ctx }){
 	let router = new Router()
 
 	router.get(
-		'/server',
+		['/', '/info', '/server'],
 		async svc => {
 			await handle({
 				ctx,
@@ -50,6 +50,23 @@ export function createRouter({ ctx }){
 					prefer_sources: svc.query.prefer_sources
 						? svc.query.prefer_sources.split(',')
 						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/tokens/exchanges/:base/:quote',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_exchanges',
+				args: {
+					base: parseTokenURI(svc.params.base),
+					quote: parseTokenURI(svc.params.quote),
+					newestFirst: svc.query.newest_first !== undefined,
+					...parseRange(svc.query)
 				}
 			})
 		}

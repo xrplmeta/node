@@ -33,8 +33,22 @@ const sortKeymap = {
 }
 
 
-export function sanitizeToken({ key, array = false }){
+export function sanitizeToken({ key, array = false, allowXRP = false }){
 	function parse(ctx, { currency, issuer }){
+		if(currency === 'XRP'){
+			if(allowXRP)
+				return {
+					id: 1,
+					currency: 'XRP'
+				}
+			else
+				throw {
+					type: `invalidParam`,
+					message: `XRP is not allowed as parameter.`,
+					expose: true
+				}
+		}
+
 		let token = ctx.db.tokens.readOne({
 			where: {
 				currency: encodeCurrencyCode(currency),

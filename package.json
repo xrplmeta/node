@@ -1,7 +1,10 @@
 {
 	"name": "xrplmeta",
-	"version": "2.6.2-alpha",
+	"version": "2.7.0-alpha",
 	"type": "module",
+	"bin": {
+		"xrplmeta": "./src/run.js"
+	},
 	"scripts": {
 		"start": "node src/run.js",
 		"postinstall": "npm run build-deps",
