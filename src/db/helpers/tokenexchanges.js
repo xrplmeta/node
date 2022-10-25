@@ -1,6 +1,48 @@
 import { XFL, sum, div, gt } from '@xrplkit/xfl'
 
 
+export function readTokenExchangesAligned({ ctx, base, quote, sequenceStart, sequenceEnd, limit, newestFirst, include }){
+	return ctx.db.tokenExchanges.readMany({
+		where: {
+			OR: [
+				{
+					takerPaidToken: base,
+					takerGotToken: quote
+				},
+				{
+					takerPaidToken: quote,
+					takerGotToken: base
+				}
+			],
+			AND: [
+				{
+					ledgerSequence: {
+						greaterOrEqual: sequenceStart
+					}
+				},
+				{
+					ledgerSequence: {
+						lessOrEqual: sequenceEnd
+					}
+				}
+			]
+		},
+		orderBy: {
+			ledgerSequence: newestFirst ? 'desc' : 'asc'
+		},
+		include: {
+			...include,
+			takerPaidToken: {
+				issuer: true
+			},
+			takerGotToken: {
+				issuer: true
+			}
+		},
+		take: limit
+	})
+		.map(exchange => alignTokenExchange({ exchange, base, quote }))
+}
 
 export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 	let exchange = ctx.db.tokenExchanges.readOne({
@@ -35,7 +77,7 @@ export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 	if(!exchange)
 		return
 
-	return alignTokenExchange({ exchange, base, quote  })
+	return alignTokenExchange({ exchange, base, quote })
 }
 
 export function readTokenVolume({ ctx, base, quote, sequenceStart, sequenceEnd }){

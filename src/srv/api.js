@@ -1,7 +1,7 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
 import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels } from './sanitizers/token.js'
 import { serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList } from './procedures/token.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 
 
@@ -50,6 +50,14 @@ export const token_series = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
+])
+
+export const token_exchanges = compose([
+	sanitizeToken({ key: 'base', allowXRP: true }),
+	sanitizeToken({ key: 'quote', allowXRP: true }),
+	sanitizeRange({ defaultToFullRange: true }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
+	serveTokenExchanges()
 ])
 
 
