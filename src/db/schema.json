@@ -97,6 +97,18 @@
 			"items": {
 				"$ref": "#/definitions/TokenOffer"
 			}
+		},
+		"nfts": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/NFToken"
+			}
+		},
+		"nftOffers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/NFTokenOffer"
+			}
 		}
 	},
 	"definitions": {
@@ -865,6 +877,89 @@
 			],
 			"index": [
 				["book", "ledgerSequence", "lastLedgerSequence", "quality"]
+			]
+		},
+		"NFToken": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"owner": {
+					"$ref": "#/definitions/Account"
+				},
+				"tokenId": {
+					"type": "string",
+					"format": "hex"
+				},
+				"uri": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"issuer",
+				"tokenId"
+			],
+			"unique": [
+				"tokenId"
+			]
+		},
+		"NFTokenOffer": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"offerId": {
+					"type": "string",
+					"format": "hex"
+				},
+				"nft": {
+					"$ref": "#/definitions/NFToken"
+				},
+				"ledgerSequence": {
+					"type": "integer"
+				},
+				"lastLedgerSequence": {
+					"type": "integer"
+				},
+				"amountToken": {
+					"$ref": "#/definitions/Token"
+				},
+				"amountValue": {
+					"type": "string",
+					"format": "xrpl/xfl"
+				},
+				"isSellOffer": {
+					"type": "boolean"
+				},
+				"destination": {
+					"$ref": "#/definitions/Account"
+				},
+				"expirationTime": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"account",
+				"offerId",
+				"nft",
+				"ledgerSequence",
+				"lastLedgerSequence"
+			],
+			"unique": [
+				"offerId"
+			],
+			"index": [
+				["nft", "ledgerSequence", "lastLedgerSequence"]
 			]
 		}
 	}
