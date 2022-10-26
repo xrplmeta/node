@@ -8,10 +8,19 @@ export async function createForwardStream({ ctx, startSequence }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	let latestLedger = await fetchLedger({ 
-		ctx,
-		sequence: 'validated' 
-	})
+	let latestLedger
+
+	while(!latestLedger){
+		try{
+			latestLedger = await fetchLedger({ 
+				ctx,
+				sequence: 'validated' 
+			})
+		}catch(error){
+			log.warn(`unable get latest ledger: \n${error}`)
+			await wait(1000)
+		}
+	}
 
 	let stream = createRegistry({
 		name: 'live',

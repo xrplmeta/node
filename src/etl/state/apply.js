@@ -1,11 +1,16 @@
 import * as accounts from './scopes/accounts.js'
 import * as tokens from './scopes/tokens.js'
 import * as tokenOffers from './scopes/tokenoffers.js'
+import * as nfts from './scopes/nfts.js'
+import * as nftOffers from './scopes/nftoffers.js'
+
 
 const ledgerEntryModules = {
 	AccountRoot: accounts,
 	RippleState: tokens,
-	Offer: tokenOffers
+	Offer: tokenOffers,
+	NFTokenPage: nfts,
+	NFTokenOffer: nftOffers,
 }
 
 
@@ -14,6 +19,7 @@ export function applyObjects({ ctx, objects }){
 		ctx,
 		deltas: objects.map(entry => ({ 
 			type: entry.LedgerEntryType,
+			index: entry.index,
 			final: entry 
 		}))
 	})
@@ -29,6 +35,7 @@ export function applyTransactions({ ctx, ledger }){
 			if(CreatedNode && CreatedNode.NewFields){
 				deltas.push({
 					type: CreatedNode.LedgerEntryType,
+					index: CreatedNode.LedgerIndex,
 					final: {
 						...CreatedNode.NewFields,
 						PreviousTxnLgrSeq: ledger.sequence
@@ -37,6 +44,7 @@ export function applyTransactions({ ctx, ledger }){
 			}else if(ModifiedNode && ModifiedNode.FinalFields){
 				deltas.push({
 					type: ModifiedNode.LedgerEntryType,
+					index: ModifiedNode.LedgerIndex,
 					previous: {
 						...ModifiedNode.FinalFields,
 						...ModifiedNode.PreviousFields,
@@ -50,6 +58,7 @@ export function applyTransactions({ ctx, ledger }){
 			}else if(DeletedNode){
 				deltas.push({
 					type: DeletedNode.LedgerEntryType,
+					index: DeletedNode.LedgerIndex,
 					previous: {
 						...DeletedNode.FinalFields,
 						...DeletedNode.PreviousFields,
@@ -67,7 +76,7 @@ export function applyTransactions({ ctx, ledger }){
 				ledgerSequence: ledger.sequence - 1
 			},
 			deltas: deltas
-				.map(({ type, previous, final }) => ({ type, previous: final, final: previous }))
+				.map(({ type, index, previous, final }) => ({ type, index, previous: final, final: previous }))
 				.reverse(),
 		})
 	}else{
@@ -79,26 +88,24 @@ export function applyTransactions({ ctx, ledger }){
 			deltas
 		})
 	}
-
-	
 }
 
 function applyDeltas({ ctx, deltas }){
 	let groups = {}
 	let solos = []
 
-	for(let { type, previous, final } of deltas){
+	for(let { type, index, previous, final } of deltas){
 		let module = ledgerEntryModules[type]
 
 		if(!module)
 			continue
 
 		let parsedPrevious = previous 
-			? module.parse({ entry: previous }) 
+			? module.parse({ index, entry: previous }) 
 			: undefined
 
 		let parsedFinal = final
-			? module.parse({ entry: final }) 
+			? module.parse({ index, entry: final }) 
 			: undefined
 
 		if(!parsedPrevious && !parsedFinal)
