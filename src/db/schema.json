@@ -109,6 +109,12 @@
 			"items": {
 				"$ref": "#/definitions/NFTokenOffer"
 			}
+		},
+		"nftExchanges": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/NFTokenExchange"
+			}
 		}
 	},
 	"definitions": {
@@ -960,6 +966,44 @@
 			],
 			"index": [
 				["nft", "ledgerSequence", "lastLedgerSequence"]
+			]
+		},
+		"NFTokenExchange": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"txHash": {
+					"type": "string",
+					"format": "hex"
+				},
+				"account": {
+					"$ref": "#/definitions/Account"
+				},
+				"offer": {
+					"$ref": "#/definitions/NFTokenOffer"
+				},
+				"nft": {
+					"$ref": "#/definitions/NFToken"
+				},
+				"ledgerSequence": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"txHash",
+				"account",
+				"offer",
+				"nft",
+				"ledgerSequence"
+			],
+			"unique": [
+				"txHash"
+			],
+			"index": [
+				["nft", "ledgerSequence"]
 			]
 		}
 	}
