@@ -9,6 +9,8 @@
 snapshot_chunk_size = 64000
 # how many ledgers to fetch in advance before writing them to the database
 stream_queue_size = 100
+# any ledgers before this sequence will be ignored
+backfill_to_ledger = 32570
 
 
 [[ETL.SOURCE]]

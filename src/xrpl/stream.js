@@ -45,7 +45,7 @@ export async function createBackwardStream({ ctx, startSequence }){
 	let stream = createRegistry({
 		name: 'backfill',
 		startSequence,
-		targetSequence: 0,
+		targetSequence: ctx.config.etl.backfillToLedger || 0,
 		maxSize: ctx.config.etl.streamQueueSize || 100
 	})
 
