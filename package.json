@@ -21,7 +21,7 @@
 		"@xrplkit/toml": "1.0.0",
 		"@xrplkit/txmeta": "1.0.4",
 		"@xrplkit/xfl": "2.0.2",
-		"@xrplkit/xls26": "2.2.0",
+		"@xrplkit/xls26": "2.3.1",
 		"multitasked": "1.0.0",
 		"koa": "2.13.4",
 		"koa-easy-ws": "2.1.0",
