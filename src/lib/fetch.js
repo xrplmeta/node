@@ -39,13 +39,14 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
 		}
 
 		try{
-			if(res.headers.get('content-type').includes('application/json')){
+			if(res.headers.get('content-type')?.includes('application/json')){
 				data = await res.json()
 			}else{
 				data = await res.text()
 			}
-		}catch{
+		}catch(e){
 			data = null
+			await res.blob()
 		}
 
 		return { 
