@@ -1,3 +1,4 @@
+import log from '@mwni/log'
 import EventEmitter from 'events'
 import fetch from 'node-fetch'
 import { RateLimiter } from 'limiter'
@@ -20,10 +21,11 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
 		let data
 		let signal = new AbortSignal()
 		let timeoutTimer = setTimeout(() => signal.emit('abort'), timeout * 1000)
+		let sanitizedUrl = sanitize(baseUrl ? `${baseUrl}/${url}` : url)
 
 		try{
 			res = await fetch(
-				sanitize(baseUrl ? `${baseUrl}/${url}` : url),
+				sanitizedUrl,
 				{
 					signal,
 					headers: {
@@ -45,6 +47,7 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
 				data = await res.text()
 			}
 		}catch(e){
+			log.info(`fetch ${sanitizedUrl} failed: \n`, e)
 			data = null
 			await res.blob()
 		}
