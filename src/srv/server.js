@@ -13,6 +13,10 @@ export async function startServer({ ctx }){
 
 	koa.use(websocket())
 	koa.use(async (ctx, next) => {
+		ctx.req.on('error', error => {
+			log.info(`client error: ${error.message}`)
+		})
+
 		if(ctx.ws){
 			ctx.req.socket.ignoreTimeout = true
 			ws.registerSocket(await ctx.ws())
@@ -31,6 +35,9 @@ export async function startServer({ ctx }){
 
 			log.debug(`client error:`, error)
 			socket.destroy()
+		})
+		.on('error', error => {
+			log.warn(`server error: ${error.message}`)
 		})
 
 
