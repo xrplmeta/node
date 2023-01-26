@@ -31,17 +31,21 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
 					}
 				}
 			)
+		}catch(error){
+			res?.blob()?.catch(() => null)
+			throw error
+		}finally{
+			clearTimeout(timeoutTimer)
+		}
 
+		try{
 			if(res.headers.get('content-type')?.includes('application/json')){
 				data = await res.json()
 			}else{
 				data = await res.text()
 			}
-		}catch(e){
+		}catch{
 			data = null
-			res?.blob()?.catch(() => null)
-		}finally{
-			clearTimeout(timeoutTimer)
 		}
 
 		return { 
