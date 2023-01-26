@@ -94,7 +94,7 @@ export function readAccountProps({ ctx, account }){
 		where: account
 	})
 	
-	if(account.domain)
+	if(account?.domain)
 		props.push({
 			key: 'domain',
 			value: account.domain,
