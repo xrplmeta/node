@@ -1,5 +1,3 @@
-import log from '@mwni/log'
-import EventEmitter from 'events'
 import { RateLimiter } from 'limiter'
 import { sanitize } from './url.js'
 
@@ -40,9 +38,8 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
 				data = await res.text()
 			}
 		}catch(e){
-			log.info(`fetch ${sanitizedUrl} failed: \n`, e)
 			data = null
-			await res.blob()
+			res?.blob()?.catch(() => null)
 		}finally{
 			clearTimeout(timeoutTimer)
 		}
