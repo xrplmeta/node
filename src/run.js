@@ -1,3 +1,5 @@
+#!node
+
 import minimist from 'minimist'
 import log from '@mwni/log'
 import { find as findConfig } from './lib/config.js'
