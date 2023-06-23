@@ -54,7 +54,7 @@ crawl_interval = 600
 
 
 [CRAWL.GRAVATAR]
-# gravatar.com provides avatar images for XRPL accounts that have the "EmailHash" field set.
+# gravatar.com provides avatar images for XRPL accounts that are linked via the on-chain Account "EmailHash" field.
 crawl_interval = 43200
 max_requests_per_minute = 60
 
