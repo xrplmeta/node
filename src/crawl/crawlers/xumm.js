@@ -132,6 +132,8 @@ async function crawlKyc({ ctx, fetch, interval }){
 				if(!token.issuer)
 					return
 
+				log.debug(`checking KYC for ${token.issuer.address}`)
+
 				let { data } = await fetch(`kyc-status/${token.issuer.address}`)
 
 				writeAccountProps({
@@ -140,8 +142,10 @@ async function crawlKyc({ ctx, fetch, interval }){
 					props: {
 						kyc: data.kycApproved
 					},
-					source: 'xumm'
+					source: 'xumm/kyc'
 				})
+
+				log.debug(`KYC for ${token.issuer.address}: ${data.kycApproved}`)
 	
 				log.accumulate.info({
 					text: [`%kycChecked KYC checked in %time`],

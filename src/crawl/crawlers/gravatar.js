@@ -37,6 +37,8 @@ export default async function({ ctx }){
 				let icon
 	
 				if(emailHash){
+					log.debug(`checking avatar for ${token.issuer.address}`)
+
 					let { status } = await fetch(`avatar/${emailHash.toLowerCase()}?d=404`)
 	
 					if(status === 200){
@@ -44,6 +46,8 @@ export default async function({ ctx }){
 					}else if(status !== 404){
 						throw `HTTP ${status}`
 					}
+
+					log.debug(`avatar for ${token.issuer.address}: ${icon}`)
 				}
 
 				writeAccountProps({

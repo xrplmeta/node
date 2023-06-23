@@ -15,6 +15,9 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 	if(previousOperation)
 		duration = interval - unixNow() + previousOperation.time
 
+	if(duration > 0)
+		log.debug(`${task}:`, `waiting ${duration} seconds for next operation`)
+
 	await wait(duration * 1000 + 1)
 
 	try{
