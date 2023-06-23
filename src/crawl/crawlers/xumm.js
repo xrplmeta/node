@@ -57,7 +57,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 				let updatedCurrencies = 0
 
 				if(!data?.details){
-					log.warn(`got malformed XUMM cureated asset list:`, data)
+					log.warn(`got malformed XUMM curated asset list:`, data)
 					throw new Error(`malformed response`)
 				}
 
