@@ -7,7 +7,7 @@ export function serveServerInfo(){
 		return {
 			server_version: version,
 			available_range: getAvailableRange({ ctx }),
-			tokenslists: ctx.config.crawl?.tokenlist
+			tokenlists: ctx.config.crawl?.tokenlist
 				? ctx.config.crawl?.tokenlist.map(
 					list => ({
 						id: list.id,
