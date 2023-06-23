@@ -55,6 +55,28 @@ export function create(file){
 	fs.writeFileSync(file, customizedTemplate)
 }
 
-export function override(config, overrides){
-	return config
+export function override(config, ...overrides){
+	if (!overrides.length) 
+		return config
+
+	let source = overrides.shift()
+
+	if(isObject(config) && isObject(source)){
+		for (const key in source){
+			if(isObject(source[key])){
+				if(!config[key]) 
+					Object.assign(config, { [key]: {} })
+
+				override(config[key], source[key])
+			}else{
+				Object.assign(config, { [key]: source[key] })
+			}
+		}
+	}
+
+	return override(config, ...overrides)
+}
+
+function isObject(item) {
+	return item && typeof item === 'object' && !Array.isArray(item)
 }
