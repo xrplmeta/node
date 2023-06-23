@@ -9,9 +9,11 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 
-export function open({ ctx }){
+export function open({ ctx, inMemory=false }){
 	let db = openStructDB({
-		file: `${ctx.config.data.dir}/data.db`,
+		file: inMemory
+			? ':memory:'
+			: `${ctx.config.data.dir}/data.db`,
 		schema: JSON.parse(
 			fs.readFileSync(
 				path.join(__dirname, 'schema.json')
