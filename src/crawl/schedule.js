@@ -39,7 +39,6 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 
 export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, concurrency = 1, routine }){
 	let ids = []
-	let promises = []
 
 	for(let item of ctx.db[table].iter(iterator)){
 		ids.push(item.id)
@@ -47,54 +46,51 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 
 	log.debug(`${task}:`, ids.length, `items[${table}] to iterate`)
 
-	for(let id of ids){
-		let item = ctx.db[table].readOne({
-			where: {
-				id
-			},
-			include: iterator.include
-		})
+	await Promise.all(
+		Array(concurrency)
+			.fill(0)
+			.map(async () => {
+				while(ids.length > 0){
+					let id = ids.shift()
+					let item = ctx.db[table].readOne({
+						where: {
+							id
+						},
+						include: iterator.include
+					})
 
-		let previousOperation = ctx.db.operations.readOne({
-			where: {
-				subjectType,
-				subjectId: item.id,
-				task,
-				time: {
-					greaterThan: unixNow() - interval
-				}
-			}
-		})
+					let previousOperation = ctx.db.operations.readOne({
+						where: {
+							subjectType,
+							subjectId: item.id,
+							task,
+							time: {
+								greaterThan: unixNow() - interval
+							}
+						}
+					})
 
-		await wait(1)
+					if(previousOperation)
+						continue
 
-		if(previousOperation)
-			continue
-
-		let promise = routine(item)
-			.then(() => {
-				promises.splice(promises.indexOf(promise), 1)
-			})
-			.catch(error => {
-				log.warn(`scheduled task "${task}" failed for item:\n`, error.stack)
-			})
-			.then(() => {
-				ctx.db.operations.createOne({
-					data: {
-						subjectType,
-						subjectId: item.id,
-						task,
-						time: unixNow()
+					try{
+						await routine(item)
+					}catch(error){
+						log.warn(`scheduled task "${task}" failed for item:\n`, error.stack)
+						await wait(3000)
 					}
-				})
-			})
-		
-		promises.push(promise)
 
-		if(promises.length >= concurrency){
-			await Promise.any(promises)
-		}
-	}
+					ctx.db.operations.createOne({
+						data: {
+							subjectType,
+							subjectId: item.id,
+							task,
+							time: unixNow()
+						}
+					})
+				}
+			})
+	)
 
 	await wait(1)
 }
