@@ -4,7 +4,7 @@ import { AbortController } from 'node-abort-controller'
 import fetch from 'node-fetch'
 
 
-export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
+export function createFetch({ baseUrl, headers, ratelimit, timeout = 20 } = {}){
 	let limiter = ratelimit 
 		? new RateLimiter({
 			tokensPerInterval: ratelimit, 
