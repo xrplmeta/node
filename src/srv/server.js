@@ -14,7 +14,7 @@ export async function startServer({ ctx }){
 	koa.use(websocket())
 	koa.use(async (ctx, next) => {
 		ctx.req.on('error', error => {
-			log.info(`client error: ${error.message}`)
+			log.debug(`client error: ${error.message}`)
 		})
 
 		if(ctx.ws){
