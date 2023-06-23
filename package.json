@@ -22,12 +22,14 @@
 		"@xrplkit/txmeta": "1.0.4",
 		"@xrplkit/xfl": "2.0.2",
 		"@xrplkit/xls26": "2.3.1",
-		"multitasked": "1.0.0",
 		"koa": "2.13.4",
 		"koa-easy-ws": "2.1.0",
 		"koa-json": "2.0.2",
 		"limiter": "2.0.1",
 		"minimist": "1.2.6",
+		"multitasked": "1.0.0",
+		"node-abort-controller": "^3.1.1",
+		"node-fetch": "^3.3.1",
 		"ripple-address-codec": "4.2.4",
 		"ws": "8.8.1"
 	}

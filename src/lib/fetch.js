@@ -1,5 +1,7 @@
 import { RateLimiter } from 'limiter'
 import { sanitize } from './url.js'
+import { AbortController } from 'node-abort-controller'
+import fetch from 'node-fetch'
 
 
 export function createFetch({ baseUrl, headers, ratelimit, timeout = 60 } = {}){
