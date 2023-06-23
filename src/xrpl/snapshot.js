@@ -17,7 +17,6 @@ export async function start({ ctx, ledgerSequence, marker, node }){
 
 	let ticket = result.ticket
 	let fetching = true
-	let failures = 0
 	let resolveNext
 
 	log.info(`reserved snapshot ticket with node`, assignedNode)
@@ -42,17 +41,11 @@ export async function start({ ctx, ledgerSequence, marker, node }){
 				})
 
 				marker = result.marker
-				failures = 0
 
 				if(resolveNext)
 					resolveNext()
 					
 			}catch(e){
-				if(++failures >= 10){
-					throw e
-					break
-				}
-
 				log.info(`could not fetch ledger chunk:`, e.error ? e.error : e)
 				await wait(2500)
 				continue
