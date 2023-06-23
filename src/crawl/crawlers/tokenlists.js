@@ -1,8 +1,8 @@
 import log from '@mwni/log'
 import { parse as parseXLS26 } from '@xrplkit/xls26'
-import { scheduleGlobal } from '../common/schedule.js'
+import { scheduleGlobal } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
+import { diffAccountsProps, diffTokensProps } from '../../db/helpers/props.js'
 import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
@@ -25,7 +25,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ig
 		baseUrl: url,
 		headers: {
 			'user-agent': ctx.config.crawl?.userAgent ||
-				'XRPL-Meta-Crawler (https://xrplmeta.org)'
+			'XRPL-Meta-Crawler (https://xrplmeta.org)'
 		}
 	})
 
@@ -37,6 +37,9 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ig
 			routine: async () => {
 				log.info(`reading ${url}`)
 
+				let tokens = []
+				let accounts = []
+
 				let { status, data } = await fetch()
 			
 				if(status !== 200){
@@ -44,15 +47,11 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ig
 				}
 
 				try{
-					var { issuers, tokens, issues, advisories } = parseXLS26(data)
+					var { issuers: declaredIssuers, tokens: declaredTokens, issues, advisories } = parseXLS26(data)
 				}catch(error){
 					console.log(error)
 					throw error
 				}
-
-				let issuerUpdates = 0
-				let tokenUpdates = 0
-				let advisoryUpdates = 0
 
 				if(issues.length > 0){
 					log.debug(`tokenlist [${id}] has issues: ${
@@ -62,40 +61,30 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ig
 					}`)
 				}
 				
-				for(let { address, ...props } of issuers){
+				for(let { address, ...props } of declaredIssuers){
 					if(props.hasOwnProperty('trust_level'))
 						props.trust_level = Math.min(props.trust_level, trustLevel)
 
-					writeAccountProps({
-						ctx,
-						account: {
-							address
-						},
-						props,
-						source: id
+					accounts.push({
+						address,
+						props
 					})
-
-					issuerUpdates++
 				}
 
-				for(let { currency, issuer, ...props } of tokens){
+				for(let { currency, issuer, ...props } of declaredTokens){
 					if(props.hasOwnProperty('trust_level'))
 						props.trust_level = Math.min(props.trust_level, trustLevel)
 
-					writeTokenProps({
-						ctx,
-						token: {
-							currency: encodeCurrencyCode(currency),
-							issuer: {
-								address: issuer
-							}
+					tokens.push({
+						currency: encodeCurrencyCode(currency),
+						issuer: {
+							address: issuer
 						},
-						props,
-						source: id
+						props
 					})
-
-					tokenUpdates++
 				}
+
+				let advisoryUpdates = 0
 
 				if(!ignoreAdvisories && trustLevel > 0){
 					let groupedAdvisories = {}
@@ -108,23 +97,29 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ig
 					}
 
 					for(let [address, advisories] of Object.entries(groupedAdvisories)){
-						writeAccountProps({
-							ctx,
-							account: {
-								address
-							},
+						advisoryUpdates++
+						accounts.push({
+							address,
 							props: {
 								advisories
-							},
-							source: id
+							}
 						})
-	
-						advisoryUpdates++
 					}
 				}
 				
+				diffAccountsProps({
+					ctx,
+					accounts,
+					source: `tokenlist/${id}`
+				})
 
-				log.info(`tokenlist [${id}] synced (issuers: ${issuerUpdates} tokens: ${tokenUpdates} advisories: ${advisoryUpdates})`)
+				diffTokensProps({
+					ctx,
+					tokens,
+					source: `tokenlist/${id}`
+				})
+
+				log.info(`tokenlist [${id}] synced (issuers: ${issues.length} tokens: ${tokens.length} advisories: ${advisoryUpdates})`)
 			}
 		})
 	}

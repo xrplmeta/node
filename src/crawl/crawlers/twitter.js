@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { scheduleBatchedIterator } from '../common/schedule.js'
+import { scheduleBatchedIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
@@ -168,7 +168,7 @@ export default async function({ ctx }){
 							ctx,
 							token,
 							props,
-							source: 'twitter'
+							source: 'twitter/profile'
 						})
 
 						updatedTokens++
@@ -179,7 +179,7 @@ export default async function({ ctx }){
 							ctx,
 							account,
 							props,
-							source: 'twitter'
+							source: 'twitter/profile'
 						})
 
 						updatedAccounts++

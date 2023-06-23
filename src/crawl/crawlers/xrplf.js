@@ -1,7 +1,7 @@
 import log from '@mwni/log'
-import { scheduleGlobal } from '../common/schedule.js'
+import { scheduleGlobal } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeTokenProps } from '../../db/helpers/props.js'
+import { diffTokensProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
@@ -18,26 +18,23 @@ export default async function({ ctx }){
 	while(true){
 		await scheduleGlobal({
 			ctx,
-			task: 'xrplf.assessments',
+			task: 'xrplf.self-assessments',
 			interval: config.crawlInterval,
 			routine: async () => {
 				log.info(`fetching assessments list...`)
 
+				let tokens = []
 				let { data } = await fetch('all')
-				let updatedTokens = 0
 
 				log.info(`got`, data.length, `assessments`)
 
 				for(let assessment of data){
 					if(assessment.self_assessment){
-						writeTokenProps({
-							ctx,
-							token: {
-								issuer: {
-									address: assessment.issuer
-								},
-								currency: assessment.currency_code
+						tokens.push({
+							issuer: {
+								address: assessment.issuer
 							},
+							currency: assessment.currency_code,
 							props: {
 								self_assessment: true,
 								weblinks: [{
@@ -45,15 +42,18 @@ export default async function({ ctx }){
 									type: 'info',
 									title: 'XRPL Foundation Self Assessment'
 								}]
-							},
-							source: 'xrplf'
+							}
 						})
-
-						updatedTokens++
 					}
 				}
 
-				log.info(`updated`, updatedTokens, `tokens`)
+				diffTokensProps({
+					ctx,
+					tokens,
+					source: 'xrplf/self-assessment'
+				})
+
+				log.info(`updated`, tokens.length, `tokens`)
 			}
 		})
 	}

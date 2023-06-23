@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { scheduleIterator } from '../common/schedule.js'
+import { scheduleIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps } from '../../db/helpers/props.js'
 
@@ -56,7 +56,7 @@ export default async function({ ctx }){
 					props: {
 						icon
 					},
-					source: 'gravatar'
+					source: 'gravatar/avatar'
 				})
 	
 				log.accumulate.info({

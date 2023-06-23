@@ -1,7 +1,7 @@
 import log from '@mwni/log'
-import { scheduleGlobal, scheduleIterator } from '../common/schedule.js'
+import { scheduleGlobal, scheduleIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
+import { diffAccountsProps, diffTokensProps, writeAccountProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
@@ -48,13 +48,15 @@ async function crawlAssets({ ctx, fetch, interval }){
 	while(true){
 		await scheduleGlobal({
 			ctx,
-			task: 'xumm.assets',
+			task: 'xumm.curated',
 			interval,
 			routine: async () => {
 				log.info(`fetching curated asset list...`)
 
+				let tokens = []
+				let accounts = []
+
 				let { data } = await fetch('curated-assets')
-				let updatedCurrencies = 0
 
 				if(!data?.details){
 					log.warn(`got malformed XUMM curated asset list:`, data)
@@ -65,13 +67,12 @@ async function crawlAssets({ ctx, fetch, interval }){
 
 				for(let issuer of Object.values(data.details)){
 					for(let currency of Object.values(issuer.currencies)){
-						writeAccountProps({
-							ctx,
-							account: {
-								address: currency.issuer
-							},
+						accounts.push({
+							address: currency.issuer,
 							props: {
-								name: issuer.name,
+								name: issuer.name.length > 0
+									? issuer.name
+									: undefined,
 								domain: issuer.domain,
 								icon: issuer.avatar,
 								trust_level: (
@@ -79,35 +80,42 @@ async function crawlAssets({ ctx, fetch, interval }){
 										? (issuer.shortlist ? 3 : 2)
 										: 1
 								)
-							},
-							source: 'xumm'
+							}
 						})
-
-						writeTokenProps({
-							ctx,
-							token: {
-								currency: currency.currency,
-								issuer: {
-									address: currency.issuer
-								}
+						
+						tokens.push({
+							currency: currency.currency,
+							issuer: {
+								address: currency.issuer
 							},
 							props: {
-								name: currency.name,
+								name: currency.name > 0
+									? currency.name
+									: undefined,
 								icon: currency.avatar,
 								trust_level: (
 									currency.info_source.type === 'native'
 										? (currency.shortlist ? 3 : 2)
 										: 1
 								)
-							},
-							source: 'xumm'
+							}
 						})
-
-						updatedCurrencies++
 					}
 				}
 
-				log.info(`updated`, updatedCurrencies, `tokens`)
+				diffAccountsProps({ 
+					ctx, 
+					accounts,
+					source: 'xumm/curated'
+				})
+
+				diffTokensProps({
+					ctx, 
+					tokens,
+					source: 'xumm/curated'
+				})
+
+				log.info(`updated`, tokens.length, `tokens and`, accounts.length, `issuers`)
 			}
 		})
 	}
@@ -176,23 +184,29 @@ async function crawlAvatar({ ctx, fetch, interval }){
 				if(!token.issuer)
 					return
 
+				log.debug(`checking avatar for ${token.issuer.address}`)
+
 				let { headers } = await fetch(
 					`${token.issuer.address}.png`, 
 					{
 						redirect: 'manual'
 					}
 				)
+
+				let avatar = headers.get('location')
+					? headers.get('location').split('?')[0]
+					: undefined
 	
 				writeAccountProps({
 					ctx,
 					account: token.issuer,
 					props: {
-						icon: headers.get('location')
-							? headers.get('location').split('?')[0]
-							: undefined
+						icon: avatar
 					},
-					source: 'xumm'
+					source: 'xumm/avatar'
 				})
+
+				log.debug(`avatar for ${token.issuer.address}: ${avatar}`)
 				
 				log.accumulate.info({
 					text: [`%avatarsChecked avatars checked in %time`],

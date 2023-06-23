@@ -1,7 +1,7 @@
 import log from '@mwni/log'
-import { scheduleGlobal } from '../common/schedule.js'
+import { scheduleGlobal } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeAccountProps } from '../../db/helpers/props.js'
+import { diffAccountsProps } from '../../db/helpers/props.js'
 
 const socialMediaUrls = {
 	twitter: `https://twitter.com/%`,
@@ -37,9 +37,10 @@ export default async function({ ctx }){
 			routine: async () => {
 				log.info(`fetching services list...`)
 
+				let accounts = []
+
 				let { data } = await fetch('services')
 				let services = data.services
-				let updatedAccounts = 0
 
 				log.info(`got`, services.length, `services`)
 
@@ -56,24 +57,24 @@ export default async function({ ctx }){
 							)
 						}
 
-						writeAccountProps({
-							ctx,
-							account: {
-								address
-							},
+						accounts.push({
+							address,
 							props: {
 								name: service.name,
 								domain: service.domain,
 								weblinks,
 							},
-							source: 'bithomp'
 						})
-
-						updatedAccounts++
 					}
 				}
 
-				log.info(`updated`, updatedAccounts, `issuers`)
+				diffAccountsProps({
+					ctx,
+					accounts,
+					source: 'bithomp/services'
+				})
+
+				log.info(`updated`, accounts.length, `issuers`)
 			}
 		})
 	}

@@ -1,7 +1,7 @@
 import log from '@mwni/log'
-import { scheduleGlobal } from '../common/schedule.js'
+import { scheduleGlobal } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeAccountProps } from '../../db/helpers/props.js'
+import { diffAccountsProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
@@ -23,6 +23,7 @@ export default async function({ ctx }){
 			routine: async () => {
 				log.info(`fetching well-known list...`)
 
+				let accounts = []
 				let { data } = await fetch('names/well-known')
 
 				log.info(`got`, data.length, `well known`)
@@ -37,21 +38,23 @@ export default async function({ ctx }){
 						}]
 					}
 
-					writeAccountProps({
-						ctx,
-						account: {
-							address: account
-						},
+					accounts.push({
+						address: account,
 						props: {
 							name,
 							domain,
 							weblinks
 						},
-						source: 'xrpscan'
 					})
 				}
 
-				log.info(`updated`, data.length, `issuers`)
+				diffAccountsProps({
+					ctx,
+					accounts,
+					source: 'xrpscan/well-known'
+				})
+
+				log.info(`updated`, accounts.length, `issuers`)
 			}
 		})
 	}

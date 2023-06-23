@@ -1,4 +1,126 @@
+import { isSameCurrency } from '@xrplkit/amount'
 import { updateCacheForAccountProps, updateCacheForTokenProps } from './cache.js'
+
+
+
+export function diffTokensProps({ ctx, tokens, source }){
+	for(let { currency, issuer, props } of tokens){
+		writeTokenProps({
+			ctx,
+			token: {
+				currency,
+				issuer
+			},
+			props,
+			source
+		})
+	}
+
+	let staleProps = ctx.db.tokenProps.readMany({
+		where: {
+			NOT: {
+				OR: tokens.map(
+					({ currency, issuer }) => ({
+						token: {
+							currency,
+							issuer
+						}
+					})
+				)
+			},
+			source
+		},
+		include: {
+			token: true
+		}
+	})
+
+	ctx.db.tokenProps.deleteMany({
+		where: {
+			id: {
+				in: staleProps.map(
+					({ id }) => id
+				)
+			}
+		}
+	})
+
+	let deletionAffectedTokens = staleProps
+		.map(({ token }) => token)
+		.filter(
+			(token, index, tokens) => index === tokens.findIndex(
+				({ currency, issuer }) => isSameCurrency(token, { currency, issuer })
+			)
+		)
+	
+	for(let token of deletionAffectedTokens){
+		updateCacheForTokenProps({ ctx, token })
+	}
+}
+
+export function diffAccountsProps({ ctx, accounts, source }){
+	for(let { address, props } of accounts){
+		writeAccountProps({
+			ctx,
+			account: {
+				address
+			},
+			props,
+			source
+		})
+	}
+
+	let accountIds = ctx.db.accounts.readMany({
+		select: {
+			id: true
+		},
+		where: {
+			address: {
+				in: accounts.map(
+					({ address }) => address
+				)
+			}
+		}
+	}).map(
+		({ id }) => id
+	)
+
+	let staleProps = ctx.db.accountProps.readMany({
+		where: {
+			NOT: {
+				account: {
+					id: {
+						in: accountIds
+					}
+				}
+			},
+			source
+		}
+	})
+
+	ctx.db.accountProps.deleteMany({
+		where: {
+			id: {
+				in: staleProps.map(
+					({ id }) => id
+				)
+			}
+		}
+	})
+
+	let deletionAffectedAccounts = staleProps
+		.map(({ account }) => account)
+		.filter(
+			(account, index, accounts) => index === accounts.findIndex(
+				({ address }) => address === account.address
+			)
+		)
+	
+	for(let account of deletionAffectedAccounts){
+		updateCacheForAccountProps({ ctx, account })
+	}
+}
+
 
 export function readTokenProps({ ctx, token }){
 	let props = ctx.db.tokenProps.readMany({
@@ -60,7 +182,6 @@ export function writeTokenProps({ ctx, token, props, source }){
 
 	updateCacheForTokenProps({ ctx, token })
 }
-
 
 
 export function readAccountProps({ ctx, account }){
@@ -130,6 +251,31 @@ export function writeAccountProps({ ctx, account, props, source }){
 	})
 
 	updateCacheForAccountProps({ ctx, account })
+}
+
+
+export function clearTokenProps({ ctx, token, source }){
+	let deletedNum = ctx.db.tokenProps.deleteMany({
+		where: {
+			token,
+			source
+		}
+	})
+	
+	if(deletedNum > 0)
+		updateCacheForTokenProps({ ctx, token })
+}
+
+export function clearAccountProps({ ctx, account, source }){
+	let deletedNum = ctx.db.accountProps.deleteMany({
+		where: {
+			account,
+			source
+		}
+	})
+	
+	if(deletedNum > 0)
+		updateCacheForAccountProps({ ctx, account })
 }
 
 

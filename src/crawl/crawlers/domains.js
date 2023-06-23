@@ -2,9 +2,9 @@ import log from '@mwni/log'
 import { parse as parseXLS26 } from '@xrplkit/xls26'
 import { parse as parseURL } from 'url'
 import { sanitize as sanitizeURL } from '../../lib/url.js'
-import { scheduleGlobal, scheduleIterator } from '../common/schedule.js'
+import { scheduleIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
+import { clearAccountProps, clearTokenProps, writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
@@ -28,6 +28,7 @@ export default async function({ ctx }){
 			task: 'domains',
 			interval: config.crawlInterval,
 			subjectType: 'issuer',
+			concurrency: 3,
 			iterator: {
 				table: 'tokens',
 				groupBy: ['issuer'],
@@ -112,7 +113,7 @@ export default async function({ ctx }){
 								address: issuer
 							},
 							props,
-							source: 'domain'
+							source: `issuer/domain/${address}`
 						})
 
 						publishedIssuers++
@@ -133,11 +134,13 @@ export default async function({ ctx }){
 								}
 							},
 							props,
-							source: 'domain'
+							source: `issuer/domain/${address}`
 						})
 
 						publishedTokens++
 					}
+
+					log.debug(`issuer (${address}) valid xls26:`, xls26)
 
 					if(publishedIssuers || publishedTokens){
 						log.accumulate.info({
@@ -149,7 +152,17 @@ export default async function({ ctx }){
 						})
 					}
 				}else{
-					// todo: clear all props of this issuer having source "domain"
+					clearAccountProps({
+						ctx,
+						account: token.issuer,
+						source: `issuer/domain/${token.issuer.address}`
+					})
+
+					clearTokenProps({
+						ctx,
+						token,
+						source: `issuer/domain/${token.issuer.address}`
+					})
 				}
 			}
 		})
