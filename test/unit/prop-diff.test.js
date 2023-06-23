@@ -1,6 +1,8 @@
-import { createContext } from './env.js'
-import { diffAccountsProps, diffTokensProps, reduceProps } from '../../src/db/helpers/props.js'
 import { expect } from 'chai'
+import { createContext } from './env.js'
+import { diffAccountsProps, diffTokensProps } from '../../src/db/helpers/props.js'
+import { reduceProps } from '../../src/srv/procedures/token.js'
+
 
 const ctx = createContext()
 

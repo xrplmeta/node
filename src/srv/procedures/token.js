@@ -1,5 +1,4 @@
 import { decodeCurrencyCode, isSameCurrency } from '@xrplkit/amount'
-import { reduceProps } from '../../db/helpers/props.js'
 import { readTokenExchangeIntervalSeries, readTokenExchangesAligned } from '../../db/helpers/tokenexchanges.js'
 import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
 
@@ -333,4 +332,51 @@ export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, ex
 	}
 
 	return token
+}
+
+export function reduceProps({ props, expand, sourceRanking }){
+	let data = {}
+	let sources = {}
+	let weblinks = []
+
+	for(let { key, value, source } of props){
+		if(expand){
+			if(!data[key])
+				data[key] = {}
+
+			data[key][source] = value
+		}else{
+			let rank = sourceRanking
+				? sourceRanking.findIndex(rs => doSourcesMatch(rs, source))
+				: 0
+
+			if(rank === -1)
+				rank = Infinity
+
+			if(key === 'weblinks'){
+				weblinks.push({ links: value, rank })
+			}else{
+				if(!sources.hasOwnProperty(key) || sources[key] > rank){
+					data[key] = value
+					sources[key] = rank
+				}
+			}
+		}
+	}
+
+	if(weblinks.length > 0){
+		data.weblinks = weblinks
+			.sort((a, b) => a.rank - b.rank)
+			.map(({ links }) => links)
+			.reduce((a, l) => [...a, ...l], [])
+	}
+
+	return data
+}
+
+function doSourcesMatch(s1, s2){
+	s1 = s1.split('/')
+	s2 = s2.split('/')
+
+	return s1.every((s, i) => s === s2[i])
 }
