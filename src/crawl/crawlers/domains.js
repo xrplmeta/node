@@ -11,7 +11,7 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 export default async function({ ctx }){
 	let config = ctx.config.crawl?.domains
 
-	if(!config){
+	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 	

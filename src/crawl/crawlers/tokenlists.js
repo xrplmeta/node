@@ -9,7 +9,7 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 export default async function({ ctx }){
 	let configs = ctx.config.crawl?.tokenlist
 
-	if(!configs){
+	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 

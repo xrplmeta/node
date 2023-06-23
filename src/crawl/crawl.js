@@ -5,6 +5,11 @@ import crawlers from './crawlers/index.js'
 
 
 export async function startCrawlers({ ctx }){
+	if(ctx.config.crawl?.disabled){
+		log.warn(`skipping all crawlers (disabled by config)`)
+		return
+	}
+
 	for(let { name } of crawlers){
 		spawn(':spawnCrawler', { ctx, name })
 	}

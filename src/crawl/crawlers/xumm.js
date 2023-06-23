@@ -7,7 +7,7 @@ import { diffAccountsProps, diffTokensProps, writeAccountProps } from '../../db/
 export default async function({ ctx }){
 	let config = ctx.config.crawl?.xumm
 
-	if(!config){
+	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 	

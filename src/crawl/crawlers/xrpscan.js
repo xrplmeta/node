@@ -7,7 +7,7 @@ import { diffAccountsProps } from '../../db/helpers/props.js'
 export default async function({ ctx }){
 	let config = ctx.config.crawl?.xrpscan
 
-	if(!config){
+	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 	
