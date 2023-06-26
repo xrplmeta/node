@@ -16,7 +16,7 @@
 		"@koa/router": "12.0.0",
 		"@mwni/events": "1.0.0",
 		"@mwni/log": "2.2.0",
-		"@structdb/sqlite": "1.4.2-alpha",
+		"@structdb/sqlite": "1.5.1-alpha",
 		"@xrplkit/amount": "1.2.3",
 		"@xrplkit/socket": "2.0.0",
 		"@xrplkit/time": "1.0.0",
