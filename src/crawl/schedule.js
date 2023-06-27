@@ -32,7 +32,7 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 			}
 		})
 	}catch(error){
-		log.warn(`scheduled task "${task}" failed:\n`, error.stack)
+		log.warn(`scheduled task "${task}" failed:\n`, error.stack || error.message || error)
 		await wait(4000)
 	}
 }
@@ -76,7 +76,7 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 					try{
 						await routine(item)
 					}catch(error){
-						log.warn(`scheduled task "${task}" failed for item:\n`, error.stack)
+						log.warn(`scheduled task "${task}" failed for item:\n`, error.stack || error.message || error)
 						await wait(3000)
 					}
 
@@ -105,7 +105,7 @@ export async function scheduleBatchedIterator({ ctx, iterator: { table, ...itera
 		try{
 			await commit(batch)
 		}catch(error){
-			log.warn(`scheduled task "${task}" failed for batch:\n`, error.stack)
+			log.warn(`scheduled task "${task}" failed for batch:\n`, error.stack || error.message || error)
 		}
 
 		let time = unixNow()
