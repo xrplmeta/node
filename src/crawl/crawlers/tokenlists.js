@@ -9,14 +9,14 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 export default async function({ ctx }){
 	let configs = ctx.config.crawl?.tokenlist
 
-	if(!config || config.disabled){
+	if(!configs || configs.length == 0){
 		throw new Error(`disabled by config`)
 	}
 
 	await Promise.all(
-		configs.map(
-			config => crawlList({ ctx, ...config })
-		)
+		configs
+			.filter(config => !config.disabled)
+			.map(config => crawlList({ ctx, ...config }))
 	)
 }
 
