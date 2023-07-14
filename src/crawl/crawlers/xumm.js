@@ -66,6 +66,9 @@ async function crawlAssets({ ctx, fetch, interval }){
 				log.info(`got ${Object.values(data.details).length} curated assets`)
 
 				for(let issuer of Object.values(data.details)){
+					if(issuer.info_source.type !== 'native')
+						continue
+
 					for(let currency of Object.values(issuer.currencies)){
 						accounts.push({
 							address: currency.issuer,
@@ -75,11 +78,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 									: undefined,
 								domain: issuer.domain,
 								icon: issuer.avatar,
-								trust_level: (
-									issuer.info_source.type === 'native'
-										? (issuer.shortlist ? 3 : 2)
-										: 1
-								)
+								trust_level: issuer.shortlist ? 3 : 2
 							}
 						})
 						
