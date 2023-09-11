@@ -26,7 +26,7 @@ export async function createForwardStream({ ctx, startSequence }){
 		name: 'live',
 		startSequence,
 		targetSequence: latestLedger.sequence,
-		maxSize: ctx.config.etl.streamQueueSize || 100
+		maxSize: ctx.config.node.streamQueueSize || 100
 	})
 
 	ctx.xrpl.on('ledger', ledger => {
@@ -45,8 +45,8 @@ export async function createBackwardStream({ ctx, startSequence }){
 	let stream = createRegistry({
 		name: 'backfill',
 		startSequence,
-		targetSequence: ctx.config.etl.backfillToLedger || 0,
-		maxSize: ctx.config.etl.streamQueueSize || 100
+		targetSequence: ctx.config.source.backfillToLedger || 0,
+		maxSize: ctx.config.source.streamQueueSize || 100
 	})
 
 	createFiller({ ctx, stream, stride: -1 })

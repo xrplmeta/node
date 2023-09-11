@@ -1,78 +1,77 @@
-[DATA]
-# The file directory where the node can store its persistent data.
-# dir = "path"
-
-
-
-[ETL]
-# how many ledger objects per ledger_data request to fetch
+[NODE]
+# The file directory where the node can store its persistent data
+data_dir = "<path to empty folder>"
+# How many ledger objects per ledger_data request to fetch
 snapshot_chunk_size = 64000
-# how many ledgers to fetch in advance before writing them to the database
+# How many ledgers to fetch in advance before writing them to the database
 stream_queue_size = 100
-# any ledgers before this sequence will be ignored
+# Any ledgers before this sequence will be ignored
+# For full-history livenet, this value should be 32570, beause the first 32569 ledgers were lost
 backfill_to_ledger = 32570
 
 
-[[ETL.SOURCE]]
+[[SOURCE.XRPLS]]
+# A public websocket endpoint provided by a rippled or clio node
+# The node will pull all relevant ledger data from there
 url = "wss://xrplcluster.com"
 connections = 2
 
-[[ETL.SOURCE]]
+[[SOURCE.XRPLS]]
 url = "wss://s2.ripple.com"
 connections = 2
 
-[[ETL.SOURCE]]
+[[SOURCE.XRPLS]]
 url = "wss://s1.ripple.com"
 
 
 
-[[CRAWL.TOKENLIST]]
-# Tokenlists are manually published lists containing token metadata according to XLS-26.
+[[SOURCE.TOKENLISTS]]
+# Tokenlists are manually published lists containing token metadata according to XLS-26
 # https://github.com/XRPLF/XRPL-Standards/discussions/71
-# You can add as many as you want.
-# The id field is used for ranking. Read below at "source_ranking".
-# The trust_level field defines the maximum possible trust level the list can set for any token.
+# You can add as many as you want
+# The id field is used for ranking. Read below at "source_ranking"
+# The trust_level field defines the maximum possible trust level the list can set for any token
 id = "xrplmeta"
 url = "https://xrplmeta.org/tokens.toml"
-crawl_interval = 30
+fetch_interval = 30
 trust_level = 3
 
 
-[CRAWL.DOMAINS]
+[SOURCE.ISSUERDOMAIN]
 # All issuing accounts with the Domain field set are being automatically crawled for
 # DOMAIN/.well-known/xrp-ledger.toml. If the issuer published metadata about their token
 # according to XLS-26, the data will be copied and presented by the server.
 concurrency = 3
-timeout = 10
-crawl_interval = 600
+connection_timeout = 10
+fetch_interval = 600
 
 
-[CRAWL.XRPSCAN]
+[SOURCE.XRPSCAN]
 # xrpscan.com provides usernames, social media links and verifications for XRPL accounts.
 # https://docs.xrpscan.com/api-doc.html#get-names
-crawl_interval = 600
+fetch_interval = 600
 
 
-[CRAWL.GRAVATAR]
+[SOURCE.GRAVATAR]
 # gravatar.com provides avatar images for XRPL accounts that are linked via the on-chain Account "EmailHash" field.
-crawl_interval = 43200
+fetch_interval = 43200
 max_requests_per_minute = 60
 
 
-# [CRAWL.XUMM]
+# [SOURCE.XUMM]
 # xumm.app provides a list of curated assets, KYC status and avatar images.
 # It is required to obtain an API key to use this service.
 # https://apps.xumm.dev
 #
 # api_key = "paste_here"
 # api_secret = "paste_here"
-# crawl_interval_assets = 60
-# crawl_interval_kyc = 43200
-# crawl_interval_avatar = 43200
+# fetch_interval_assets = 60
+# fetch_interval_kyc = 43200
+# fetch_interval_avatar = 43200
 # max_requests_per_minute = 30
 
 
-# [CRAWL.BITHOMP]
+# [SOURCE.BITHOMP]
 # bithomp.com provides icons, usernames, website and social media links for XRPL accounts.
 # It is required to obtain an API key for this service.
 # https://bithomp.com/developer
@@ -81,18 +80,18 @@ max_requests_per_minute = 60
 # api_key = "<key>"
 
 
-# [CRAWL.TWITTER]
+# [SOURCE.TWITTER]
 # twitter.com can provide icons, display names, website links and descriptions for both XRPL accounts and tokens.
 # It is required to obtain an API key for this service.
 # https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api
 #
 # bearer_token = "paste_here"
-# crawl_interval = 3600
+# fetch_interval = 3600
 # max_requests_per_minute = 60
 
 
 
-[SERVER]
+[API]
 # The server listens on the specified port for incoming HTTP (REST + WebSocket) connections.
 port = 4080
 

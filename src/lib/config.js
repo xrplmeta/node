@@ -45,8 +45,8 @@ export function create(file){
 	let template = fs.readFileSync(templatePath, 'utf-8')
 	let customizedTemplate = template
 		.replace(
-			'# dir = "path"', 
-			`dir = "${dir.replace(/\\/g, '\\\\')}"`
+			'data_dir = "<path to empty folder>"', 
+			`data_dir = "${dir.replace(/\\/g, '\\\\')}"`
 		)
 
 	if(!fs.existsSync(dir))

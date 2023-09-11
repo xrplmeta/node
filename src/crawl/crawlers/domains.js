@@ -9,13 +9,14 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl?.domains
+	let config = ctx.config.source.issuerdomain
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 	
 	let fetch = createFetch({
+		timeout: config.connectionTimeout || 20,
 		headers: {
 			'user-agent': ctx.config.crawl?.userAgent ||
 				'XRPL-Meta-Crawler (https://xrplmeta.org)'
@@ -26,7 +27,7 @@ export default async function({ ctx }){
 		await scheduleIterator({
 			ctx,
 			task: 'domains',
-			interval: config.crawlInterval,
+			interval: config.fetchInterval,
 			subjectType: 'issuer',
 			concurrency: 3,
 			iterator: {

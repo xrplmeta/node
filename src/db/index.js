@@ -13,7 +13,7 @@ export function open({ ctx, inMemory=false }){
 	let db = openStructDB({
 		file: inMemory
 			? ':memory:'
-			: `${ctx.config.data.dir}/database.db`,
+			: `${ctx.config.node.dataDir}/database.db`,
 		schema: JSON.parse(
 			fs.readFileSync(
 				path.join(__dirname, 'schema.json')

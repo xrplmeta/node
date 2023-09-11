@@ -5,7 +5,7 @@ import { diffAccountsProps, diffTokensProps, writeAccountProps } from '../../db/
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl?.xumm
+	let config = ctx.config.source.xumm
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
@@ -29,17 +29,17 @@ export default async function({ ctx }){
 		crawlAssets({
 			ctx,
 			fetch: fetchApi,
-			interval: config.crawlIntervalAssets
+			interval: config.fetchIntervalAssets
 		}),
 		crawlKyc({
 			ctx,
 			fetch: fetchApi,
-			interval: config.crawlIntervalKyc
+			interval: config.fetchIntervalKyc
 		}),
 		crawlAvatar({
 			ctx,
 			fetch: fetchAvatar,
-			interval: config.crawlIntervalAvatar
+			interval: config.fetchIntervalAvatar
 		})
 	])
 }

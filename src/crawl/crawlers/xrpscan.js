@@ -5,7 +5,7 @@ import { diffAccountsProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl?.xrpscan
+	let config = ctx.config.source.xrpscan
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
@@ -19,7 +19,7 @@ export default async function({ ctx }){
 		await scheduleGlobal({
 			ctx,
 			task: 'xrpscan.well-known',
-			interval: config.crawlInterval,
+			interval: config.fetchInterval,
 			routine: async () => {
 				log.info(`fetching well-known list...`)
 

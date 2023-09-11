@@ -16,7 +16,7 @@ const socialMediaUrls = {
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl?.bithomp
+	let config = ctx.config.source.bithomp
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
@@ -33,7 +33,7 @@ export default async function({ ctx }){
 		await scheduleGlobal({
 			ctx,
 			task: 'bithomp.services',
-			interval: config.crawlInterval,
+			interval: config.fetchInterval,
 			routine: async () => {
 				log.info(`fetching services list...`)
 

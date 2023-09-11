@@ -28,7 +28,7 @@ export async function startServer({ ctx }){
 	koa.use(json({ pretty: true }))
 	koa.use(router.routes(), router.allowedMethods())
 
-	koa.listen(ctx.config.server.port)
+	koa.listen(ctx.config.api.port)
 		.on('clientError', (error, socket) => {
 			if(error.code === 'ERR_HTTP_REQUEST_TIMEOUT' && socket.ignoreTimeout)
 				return
@@ -41,7 +41,7 @@ export async function startServer({ ctx }){
 		})
 
 
-	log.info(`listening on port ${ctx.config.server.port}`)
+	log.info(`listening on port ${ctx.config.api.port}`)
 
 	await new Promise(resolve => {
 		koa.on('close', resolve)

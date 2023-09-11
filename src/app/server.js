@@ -5,8 +5,8 @@ import { startServer } from '../srv/server.js'
 
 
 export async function run({ ctx }){
-	if(!ctx.config.server){
-		log.warn(`config is missing server stanza: disabling server`)
+	if(!ctx.config.api){
+		log.warn(`config is missing [API] stanza: disabling server`)
 		return
 	}
 

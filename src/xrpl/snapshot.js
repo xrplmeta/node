@@ -5,7 +5,7 @@ export async function start({ ctx, ledgerSequence, marker, node }){
 	if(ctx.log)
 		log.pipe(ctx.log)
 
-	let chunkSize = ctx.config.etl.snapshotChunkSize || 10000
+	let chunkSize = ctx.config.node.snapshotChunkSize || 10000
 	let queue = []
 	
 	let { result, node: assignedNode } = await ctx.xrpl.request({

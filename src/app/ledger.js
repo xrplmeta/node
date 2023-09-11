@@ -10,7 +10,7 @@ import { startBackfill } from '../etl/backfill.js'
 export async function run({ ctx }){
 	ctx = { 
 		...ctx,
-		xrpl: createPool(ctx.config.etl.source),
+		xrpl: createPool(ctx.config.source.xrpls),
 	}
 
 	await spawn(':runSnapshot', { ctx })

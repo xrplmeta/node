@@ -5,7 +5,7 @@ import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl?.twitter
+	let config = ctx.config.source.twitter
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
@@ -23,7 +23,7 @@ export default async function({ ctx }){
 		await scheduleBatchedIterator({
 			ctx,
 			task: 'twitter',
-			interval: config.crawlInterval,
+			interval: config.fetchInterval,
 			subjectType: 'issuer',
 			batchSize: 100,
 			iterator: {

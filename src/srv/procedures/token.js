@@ -257,7 +257,7 @@ export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, ex
 				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
-					...(ctx.config.server?.sourceRanking || [])
+					...(ctx.config.api?.sourceRanking || [])
 				]
 			}),
 			issuer: reduceProps({
@@ -265,7 +265,7 @@ export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, ex
 				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
-					...(ctx.config.server?.sourceRanking || [])
+					...(ctx.config.api?.sourceRanking || [])
 				]
 			})
 		},

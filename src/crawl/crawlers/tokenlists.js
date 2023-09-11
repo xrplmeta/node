@@ -7,7 +7,7 @@ import { encodeCurrencyCode } from '@xrplkit/amount'
 
 
 export default async function({ ctx }){
-	let configs = ctx.config.crawl?.tokenlist
+	let configs = ctx.config.source.tokenlists
 
 	if(!configs || configs.length == 0){
 		throw new Error(`disabled by config`)
@@ -20,7 +20,7 @@ export default async function({ ctx }){
 	)
 }
 
-async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ignoreAdvisories = false }){
+async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ignoreAdvisories = false }){
 	let fetch = createFetch({
 		baseUrl: url,
 		headers: {
@@ -33,7 +33,7 @@ async function crawlList({ ctx, id, url, crawlInterval = 600, trustLevel = 0, ig
 		await scheduleGlobal({
 			ctx,
 			task: `tokenlist.${id}`,
-			interval: crawlInterval,
+			interval: fetchInterval,
 			routine: async () => {
 				log.info(`reading ${url}`)
 

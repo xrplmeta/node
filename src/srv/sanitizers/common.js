@@ -172,9 +172,9 @@ export function sanitizeSourcePreferences(){
 				].includes(source))
 					continue
 
-				if(ctx.config.crawl?.tokenlist){
+				if(ctx.config.source.tokenlists){
 					if(
-						ctx.config.crawl?.tokenlist.some(
+						ctx.config.source.tokenlists.some(
 							list => list.id === source
 						)
 					)

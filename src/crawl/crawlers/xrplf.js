@@ -19,7 +19,7 @@ export default async function({ ctx }){
 		await scheduleGlobal({
 			ctx,
 			task: 'xrplf.self-assessments',
-			interval: config.crawlInterval,
+			interval: config.fetchInterval,
 			routine: async () => {
 				log.info(`fetching assessments list...`)
 

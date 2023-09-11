@@ -53,8 +53,8 @@ if(args.testdb){
 
 	log.info(`overriding data dir to "${testDataDir}"`)
 
-	Object.assign(config.data, {
-		dir: testDataDir
+	Object.assign(config.node, {
+		dataDir: testDataDir
 	})
 
 	if(!fs.existsSync(testDataDir)){
