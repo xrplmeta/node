@@ -16,11 +16,7 @@ export default async function({ ctx }){
 	}
 	
 	let fetch = createFetch({
-		timeout: config.connectionTimeout || 20,
-		headers: {
-			'user-agent': ctx.config.crawl?.userAgent ||
-				'XRPL-Meta-Crawler (https://xrplmeta.org)'
-		}
+		timeout: config.connectionTimeout || 20
 	})
 
 	while(true){

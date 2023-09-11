@@ -28,6 +28,7 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 20 } = {}){
 				{
 					signal: controller.signal,
 					headers: {
+						'user-agent': 'XRPL-Meta-Node (https://xrplmeta.org)',
 						...headers,
 						...options.headers
 					}

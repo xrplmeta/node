@@ -5,12 +5,7 @@ import { createFetch } from '../../../src/lib/fetch.js'
 
 export default async ({ config, args }) => {
 	let tomlUrl = args._[1]
-	let fetch = createFetch({
-		headers: {
-			'user-agent': config.crawl?.userAgent ||
-				'XRPL-Meta-Crawler (https://xrplmeta.org)'
-		}
-	})
+	let fetch = createFetch()
 
 	if(!tomlUrl){
 		throw new Error(`no toml url provided. use: npm livetest read.toml [url]`)

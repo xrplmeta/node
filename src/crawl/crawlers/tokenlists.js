@@ -22,11 +22,7 @@ export default async function({ ctx }){
 
 async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ignoreAdvisories = false }){
 	let fetch = createFetch({
-		baseUrl: url,
-		headers: {
-			'user-agent': ctx.config.crawl?.userAgent ||
-			'XRPL-Meta-Crawler (https://xrplmeta.org)'
-		}
+		baseUrl: url
 	})
 
 	while(true){
