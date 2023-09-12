@@ -17,7 +17,7 @@ export async function createForwardStream({ ctx, startSequence }){
 				sequence: 'validated' 
 			})
 		}catch(error){
-			log.warn(`unable get latest ledger: \n${error}`)
+			log.warn(`cannot start forward stream, unable get latest ledger: \n${error}`)
 			await wait(1000)
 		}
 	}
