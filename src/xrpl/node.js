@@ -80,7 +80,7 @@ export default class Node extends EventEmitter{
 			}
 
 			if(payload.ledger_index && this.availableLedgers.length > 0){
-				let hasLedger = this.availableLedgers.some(
+				let hasLedger = payload.ledger_index === 'validated' || this.availableLedgers.some(
 					([start, end]) => payload.ledger_index >= start && payload.ledger_index <= end
 				)
 
