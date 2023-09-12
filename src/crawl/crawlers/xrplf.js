@@ -5,7 +5,7 @@ import { diffTokensProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.crawl?.xrplf
+	let config = ctx.config.source.xrplf
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
