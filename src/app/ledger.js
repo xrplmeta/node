@@ -1,6 +1,6 @@
 import log from '@mwni/log'
 import { spawn } from 'multitasked'
-import { create as createPool } from '../xrpl/nodepool.js'
+import { createPool } from '../xrpl/nodepool.js'
 import { open as openDB } from '../db/index.js'
 import { createSnapshot } from '../etl/snapshot.js'
 import { startSync } from '../etl/sync.js'

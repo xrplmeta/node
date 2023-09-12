@@ -5,7 +5,7 @@ import { format as formatLedger } from './ledger.js'
 import Node from './node.js'
 
 
-export function create(sources){
+export function createPool(sources){
 	let events = new EventEmitter().bind({})
 	let seenHashes = []
 	let queue = []
