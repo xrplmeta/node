@@ -46,8 +46,14 @@ connection_timeout = 10
 fetch_interval = 600
 
 
+[SOURCE.XRPLF]
+# The XRPL Foundation provides token self-assessments made by issuers
+# The node fetches wether a token issuer has completed it
+fetch_interval = 60
+
+
 [SOURCE.XRPSCAN]
-# xrpscan.com provides usernames, social media links and verifications for XRPL accounts.
+# xrpscan.com provides usernames, social media links and verifications of XRPL accounts.
 # https://docs.xrpscan.com/api-doc.html#get-names
 fetch_interval = 600
 
