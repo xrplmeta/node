@@ -7,6 +7,9 @@ export function extractNFTokenExchanges({ ctx, ledger }){
 		if(transaction.TransactionType !== 'NFTokenAcceptOffer')
 			continue
 
+		if(transaction.metaData.TransactionResult !== 'tesSUCCESS')
+			continue
+
 		let offer
 
 		for(let { DeletedNode } of transaction.metaData.AffectedNodes){
