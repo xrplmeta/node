@@ -6,7 +6,7 @@ import { override as overrideConfig } from './lib/config.js'
 import startApp from './app/main.js'
 import rebuildCache from './cmd/rebuild-cache.js'
 import backup from './cmd/backup.js'
-
+import version from './lib/version.js'
 
 
 const args = minimist(process.argv.slice(2))
@@ -16,7 +16,7 @@ const configPath = args.config
 
 	
 log.config({ severity: args.log || 'info' })
-log.info(`*** XRPLMETA NODE ***`)
+log.info(`*** XRPLMETA NODE ${version} ***`)
 log.info(`using config at "${configPath}"`)
 
 
