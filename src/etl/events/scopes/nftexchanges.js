@@ -19,16 +19,16 @@ export function extractNFTokenExchanges({ ctx, ledger }){
 			if(DeletedNode.LedgerEntryType !== 'NFTokenOffer')
 				continue
 
-			if(DeletedNode.LedgerIndex !== transaction.NFTokenSellOffer)
-				continue
-
-			offer = {
-				...parseOffer({
-					index: DeletedNode.LedgerIndex,
-					entry: DeletedNode.FinalFields
-				}),
-				ledgerSequence: DeletedNode.FinalFields.PreviousTxnLgrSeq,
-				lastLedgerSequence: ledger.sequence - 1
+			if(DeletedNode.LedgerIndex === transaction.NFTokenBuyOffer
+				 || DeletedNode.LedgerIndex === transaction.NFTokenSellOffer){
+				offer = {
+					...parseOffer({
+						index: DeletedNode.LedgerIndex,
+						entry: DeletedNode.FinalFields
+					}),
+					ledgerSequence: DeletedNode.FinalFields.PreviousTxnLgrSeq,
+					lastLedgerSequence: ledger.sequence - 1
+				}
 			}
 		}
 
