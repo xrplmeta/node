@@ -189,12 +189,18 @@ export function alignTokenExchange({ exchange, base, quote }){
 	let takerPaidIsQuote = false
 	let takerGotIsQuote = false
 
+	if(base?.currency === 'XRP')
+		base.id = 1
+
+	if(quote?.currency === 'XRP')
+		quote.id = 1
+
 	if(base){
 		takerPaidIsBase = (
 			takerPaidToken.id === base.id
 			|| (
 				takerPaidToken.currency === base.currency
-				&& takerPaidToken.issuer?.address === base.issuer?.address
+				&& takerPaidToken.issuer?.address == base.issuer?.address
 			)
 		)
 
@@ -202,7 +208,7 @@ export function alignTokenExchange({ exchange, base, quote }){
 			takerGotToken.id === base.id
 			|| (
 				takerGotToken.currency === base.currency
-				&& takerGotToken.issuer?.address === base.issuer?.address
+				&& takerGotToken.issuer?.address == base.issuer?.address
 			)
 		)
 	}
@@ -212,7 +218,7 @@ export function alignTokenExchange({ exchange, base, quote }){
 			takerPaidToken.id === quote.id
 			|| (
 				takerPaidToken.currency === quote.currency
-				&& takerPaidToken.issuer?.address === quote.issuer?.address
+				&& takerPaidToken.issuer?.address == quote.issuer?.address
 			)
 		)
 
@@ -220,7 +226,7 @@ export function alignTokenExchange({ exchange, base, quote }){
 			takerGotToken.id === quote.id
 			|| (
 				takerGotToken.currency === quote.currency
-				&& takerGotToken.issuer?.address === quote.issuer?.address
+				&& takerGotToken.issuer?.address == quote.issuer?.address
 			)
 		)
 	}
@@ -228,6 +234,8 @@ export function alignTokenExchange({ exchange, base, quote }){
 	if(takerPaidIsBase || takerGotIsQuote){
 		return {
 			...props,
+			base: exchange.takerPaidToken,
+			quote: exchange.takerGotToken,
 			price: gt(takerPaidValue, 0)
 				? div(takerGotValue, takerPaidValue)
 				: XFL(0),
@@ -238,6 +246,8 @@ export function alignTokenExchange({ exchange, base, quote }){
 	{
 		return {
 			...props,
+			base: exchange.takerGotToken,
+			quote: exchange.takerPaidToken,
 			price: gt(takerGotValue, 0)
 				? div(takerPaidValue, takerGotValue)
 				: XFL(0),

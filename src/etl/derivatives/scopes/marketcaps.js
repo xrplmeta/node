@@ -1,5 +1,6 @@
+import log from '@mwni/log'
 import { mul } from '@xrplkit/xfl'
-import { readTokenMetrics, writeTokenMetrics } from '../../../db/helpers/tokenmetrics.js'
+import { readTokenMetricSeries, readTokenMetrics, writeTokenMetrics } from '../../../db/helpers/tokenmetrics.js'
 import { readTokenExchangeAligned, alignTokenExchange } from '../../../db/helpers/tokenexchanges.js'
 
 
@@ -9,26 +10,29 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 			exchange,
 			quote: { currency: 'XRP' }
 		})
-	}catch{
+	}catch(error){
+		if(exchange.takerGotToken.id === 1 || exchange.takerPaidToken.id === 1){
+			log.warn(`market cap update failed: ${error.message}`)
+		}
 		return
 	}
 
 	if(ctx.backwards){
 		let firstMarketcap = ctx.db.tokenMarketcap.readOne({
 			where: {
-				token,
+				token: exchange.base,
 				ledgerSequence: {
 					greaterOrEqual: ctx.ledgerSequence
-				},
-				orderBy: {
-					ledgerSequence: 'asc'
 				}
+			},
+			orderBy: {
+				ledgerSequence: 'asc'
 			}
 		})
 
 		let series = readTokenMetricSeries({
 			ctx,
-			token,
+			token: exchange.base,
 			metric: 'supply',
 			sequenceStart: ctx.ledgerSequence,
 			sequenceEnd: firstMarketcap?.ledgerSequence
@@ -37,7 +41,7 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 		for(let { ledgerSequence: sequence, value: supply } of series){
 			writeTokenMetrics({
 				ctx,
-				token,
+				token: exchange.base,
 				ledgerSequence: sequence,
 				metrics: {
 					marketcap: supply
@@ -49,7 +53,7 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 	}else{
 		let { supply } = readTokenMetrics({
 			ctx,
-			token,
+			token: exchange.base,
 			ledgerSequence: ctx.ledgerSequence,
 			metrics: {
 				supply: true
@@ -58,7 +62,7 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 	
 		writeTokenMetrics({
 			ctx,
-			token,
+			token: exchange.base,
 			ledgerSequence: ctx.ledgerSequence,
 			metrics: {
 				marketcap: supply
@@ -67,8 +71,6 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 			}
 		})
 	}
-
-	
 }
 
 export function updateMarketcapBySupply({ ctx, supply }){
