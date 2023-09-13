@@ -10,7 +10,7 @@ const metricTables = {
 }
 
 
-export function writeTokenMetrics({ ctx, token, ledgerSequence, metrics }){
+export function writeTokenMetrics({ ctx, token, ledgerSequence, metrics, updateCache = true }){
 	for(let [key, value] of Object.entries(metrics)){
 		writePoint({
 			table: ctx.db[metricTables[key]],
@@ -25,7 +25,8 @@ export function writeTokenMetrics({ ctx, token, ledgerSequence, metrics }){
 		})
 	}
 
-	updateCacheForTokenMetrics({ ctx, token, metrics })
+	if(updateCache)
+		updateCacheForTokenMetrics({ ctx, token, metrics })
 }
 
 
