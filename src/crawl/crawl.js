@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { spawn } from 'multitasked'
+import { spawn } from '@mwni/workers'
 import { openDB } from '../db/index.js'
 import crawlers from './crawlers/index.js'
 

@@ -1,6 +1,6 @@
 import log from '@mwni/log'
 import { unixNow } from '@xrplkit/time'
-import { spawn } from 'multitasked'
+import { spawn } from '@mwni/workers'
 import { fetch as fetchLedger } from '../xrpl/ledger.js'
 import { applyObjects } from './state/apply.js'
 import { extractEvents } from './events/extract.js'
