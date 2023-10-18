@@ -24,7 +24,7 @@ export async function startSync({ ctx }){
 		}
 	)
 
-	log.info(`catching up from #${lastSequence} -> #${(await stream.status()).targetSequence}`)
+	log.info(`catching up from ledger #${lastSequence} -> #${(await stream.status()).targetSequence}`)
 	
 	;(async () => {
 		while(true){
