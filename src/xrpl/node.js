@@ -68,7 +68,7 @@ export default class Node extends EventEmitter{
 	}
 
 	bid(payload){
-		if(this.busy)
+		if(this.busy || !this.status.connected)
 			return 0
 
 		if(payload.command){
