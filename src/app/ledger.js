@@ -1,7 +1,7 @@
 import log from '@mwni/log'
 import { spawn } from 'multitasked'
 import { createPool } from '../xrpl/nodepool.js'
-import { open as openDB } from '../db/index.js'
+import { openDB } from '../db/index.js'
 import { createSnapshot } from '../etl/snapshot.js'
 import { startSync } from '../etl/sync.js'
 import { startBackfill } from '../etl/backfill.js'
@@ -28,7 +28,7 @@ export async function runSnapshot({ ctx }){
 	return await createSnapshot({
 		ctx: {
 			...ctx,
-			db: openDB({ ctx })
+			db: await openDB({ ctx })
 		}
 	})
 }
@@ -42,7 +42,7 @@ export async function runSync({ ctx }){
 	return await startSync({
 		ctx: {
 			...ctx,
-			db: openDB({ ctx })
+			db: await openDB({ ctx })
 		}
 	})
 }
@@ -56,7 +56,7 @@ export async function runBackfill({ ctx }){
 	return await startBackfill({
 		ctx: {
 			...ctx,
-			db: openDB({ ctx })
+			db: await openDB({ ctx })
 		}
 	})
 }

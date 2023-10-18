@@ -1,6 +1,6 @@
 import log from '@mwni/log'
 import { spawn } from 'multitasked'
-import { open as openDB } from '../db/index.js'
+import { openDB } from '../db/index.js'
 import { startServer } from '../srv/server.js'
 
 
@@ -23,7 +23,7 @@ export async function runServer({ ctx }){
 	return await startServer({
 		ctx: {
 			...ctx,
-			db: openDB({ ctx })
+			db: await openDB({ ctx })
 		}
 	})
 }

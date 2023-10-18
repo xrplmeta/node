@@ -1,9 +1,9 @@
 import log from '@mwni/log'
-import { open } from '../db/index.js'
+import { openDB } from '../db/index.js'
 
 
 export default async function({ config, destinationFile }){
-	let { database } = open({ ctx: { config } })
+	let { database } = await openDB({ ctx: { config } })
 	
 	try{
 		await database.backup({

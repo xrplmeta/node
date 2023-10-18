@@ -1,6 +1,6 @@
 import log from '@mwni/log'
 import { spawn } from 'multitasked'
-import { open as openDB } from '../db/index.js'
+import { openDB } from '../db/index.js'
 import { startCrawlers } from '../crawl/crawl.js'
 
 
@@ -18,7 +18,7 @@ export async function runCrawl({ ctx }){
 	return await startCrawlers({
 		ctx: {
 			...ctx,
-			db: openDB({ ctx })
+			db: await openDB({ ctx })
 		}
 	})
 }

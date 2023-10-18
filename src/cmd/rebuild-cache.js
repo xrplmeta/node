@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { open } from '../db/index.js'
+import { openDB } from '../db/index.js'
 import { 
 	updateCacheForTokenProps,
 	updateCacheForAccountProps,
@@ -12,7 +12,7 @@ export default async function({ config }){
 	const ctx = {
 		config,
 		log,
-		db: open({ ctx: { config } })
+		db: await openDB({ ctx: { config } })
 	}
 
 	const tokens = ctx.db.tokens.readMany()

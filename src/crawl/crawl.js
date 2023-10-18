@@ -1,6 +1,6 @@
 import log from '@mwni/log'
 import { spawn } from 'multitasked'
-import { open } from '../db/index.js'
+import { openDB } from '../db/index.js'
 import crawlers from './crawlers/index.js'
 
 
@@ -23,7 +23,7 @@ export async function spawnCrawler({ ctx, name }){
 
 	ctx = {
 		...ctx,
-		db: open({ ctx })
+		db: await openDB({ ctx })
 	}
 
 	start({ ctx })

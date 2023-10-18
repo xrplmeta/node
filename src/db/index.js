@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { open as openStructDB } from '@structdb/sqlite'
+import createStructDB from '@structdb/sqlite'
 import codecs from './codecs/index.js'
 
 
@@ -9,8 +9,8 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 
-export function open({ ctx, inMemory=false }){
-	let db = openStructDB({
+export async function openDB({ ctx, inMemory=false }){
+	let db = await createStructDB({
 		file: inMemory
 			? ':memory:'
 			: `${ctx.config.node.dataDir}/database.db`,
