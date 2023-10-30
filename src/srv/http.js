@@ -131,9 +131,10 @@ async function handle({ ctx, svc, procedure, args = {} }){
 			svc.body = e
 		}else{
 			svc.status = 500
-			log.warn(`internal error while handling procedure "${procedure}":`)
-			log.warn(e.stack)
-			log.warn(`args:`, args)
+			svc.body = {
+				message: `Internal error while handling your request.`
+			}
+			log.warn(`internal error while handling procedure "${procedure}":\n${e.stack}\args:`, args)
 		}
 	}
 }
