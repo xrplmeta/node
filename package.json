@@ -6,11 +6,11 @@
 		"xrplmeta": "./src/run.js"
 	},
 	"scripts": {
-		"start": "node src/run.js",
+		"start": "bun run src/run.js",
 		"postinstall": "npm run build-deps",
 		"build-deps": "node-gyp rebuild --directory=deps --release",
 		"test": "mocha test/unit/*.test.js",
-		"livetest": "node test/live/run.js"
+		"livetest": "bun run test/live/run.js"
 	},
 	"dependencies": {
 		"@koa/router": "12.0.0",
