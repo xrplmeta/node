@@ -144,17 +144,14 @@ export function serveTokenSeries(){
 				sequence,
 				time
 			})
+				.filter((point, i, list) => 
+					!(point.time && point.time === list[i+1]?.time) &&
+					!(point.sequence && point.sequence === list[i+1]?.sequence)
+				)
 				.map(point => ({
 					...point,
 					value: point.price
 				}))
-				.filter((point, i, list) => {
-					if(i >= list.length - 1)
-						return true
-
-					if(point.time !== list[i+1].time)
-						return true
-				})
 		}else if(['trustlines', 'holders', 'supply', 'marketcap'].includes(metric)){
 			series = readTokenMetricIntervalSeries({
 				ctx,
