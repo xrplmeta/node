@@ -216,7 +216,7 @@ function minMaxRange({ requested, available }){
 		if(requested.end < 0)
 			end = Math.max(requested.end + available.end, available.start)
 		else
-			end = Math.min(Math.max(requested.start, available.start), available.end)
+			end = Math.min(Math.max(requested.end, available.end), available.end)
 	}else{
 		end = available.end
 	}
