@@ -18,7 +18,9 @@ describe(
 				})
 
 				expect(result.ledger.ledger_hash).to.be.equal('DB978F031BB14734213998060E077D5F813358222DAB07CA8148588D852A55DF')
+
+				pool.close()
 			}
-		)
+		).timeout(10000)
 	}
 )
