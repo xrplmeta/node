@@ -21,6 +21,7 @@ export default class Node extends EventEmitter{
 
 		this.socket.on('ledgerClosed', ledger => {
 			this.emit('event', {hash: ledger.ledger_hash, ledger})
+			this.hasReportedClosedLedger = true
 
 			if(ledger.validated_ledgers){
 				this.availableLedgers = ledger.validated_ledgers
@@ -33,6 +34,7 @@ export default class Node extends EventEmitter{
 		})
 
 		this.socket.on('open', async () => {
+			this.hasReportedClosedLedger = false
 			this.emit('connected')
 
 			try{
@@ -68,7 +70,7 @@ export default class Node extends EventEmitter{
 	}
 
 	bid(payload){
-		if(this.busy || !this.status.connected)
+		if(this.busy || !this.status.connected || !this.hasReportedClosedLedger)
 			return 0
 
 		if(payload.command){
