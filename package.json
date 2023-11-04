@@ -18,7 +18,7 @@
 		"@mwni/log": "2.2.0",
 		"@structdb/sqlite": "1.6.1-alpha",
 		"@xrplkit/amount": "1.2.3",
-		"@xrplkit/socket": "2.0.0",
+		"@xrplkit/socket": "2.1.0",
 		"@xrplkit/time": "1.0.0",
 		"@xrplkit/toml": "1.0.0",
 		"@xrplkit/txmeta": "1.0.4",

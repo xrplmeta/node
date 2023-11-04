@@ -129,4 +129,8 @@ export default class Node extends EventEmitter{
 			this.busy = false
 		}
 	}
+
+	disconnect(){
+		this.socket.close()
+	}
 }

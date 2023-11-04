@@ -11,9 +11,10 @@ export function createPool(sources){
 	let queue = []
 	let nodes = []
 	let latestLedger
+	let closed = false
 	
 	async function workQueue(){
-		while(true){
+		while(!closed){
 			for(let i=0; i<queue.length; i++){
 				let request = queue[i]
 				let [ bestBid ] = nodes
@@ -127,6 +128,13 @@ export function createPool(sources){
 						accepted
 					})
 				})
+			},
+			close(){
+				closed = true
+				
+				for(let node of nodes){
+					node.disconnect()
+				}
 			},
 			get connectionsCount(){
 				return nodes.length
