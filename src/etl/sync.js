@@ -1,8 +1,8 @@
 import log from '@mwni/log'
 import { spawn } from '@mwni/workers'
-import { extractEvents } from './events/extract.js'
-import { applyTransactions } from './state/apply.js'
-import { createDerivatives } from './derivatives/create.js'
+import { extractEvents } from './events/index.js'
+import { applyTransactions } from './state/index.js'
+import { createDerivatives } from './derivatives/index.js'
 import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
 
 

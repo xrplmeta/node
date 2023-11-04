@@ -1,5 +1,5 @@
 import log from '@mwni/log'
-import { parse as parseOffer } from '../../state/scopes/nftoffers.js'
+import { parse as parseOffer } from '../state/nftoffers.js'
 
 
 export function extractNFTokenExchanges({ ctx, ledger }){

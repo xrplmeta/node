@@ -1,8 +1,8 @@
-import * as accounts from './scopes/accounts.js'
-import * as tokens from './scopes/tokens.js'
-import * as tokenOffers from './scopes/tokenoffers.js'
-import * as nfts from './scopes/nfts.js'
-import * as nftOffers from './scopes/nftoffers.js'
+import * as accounts from './accounts.js'
+import * as tokens from './tokens.js'
+import * as tokenOffers from './tokenoffers.js'
+import * as nfts from './nfts.js'
+import * as nftOffers from './nftoffers.js'
 
 
 const ledgerEntryModules = {

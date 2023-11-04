@@ -1,7 +1,7 @@
 import { div } from '@xrplkit/xfl'
-import { isBlackholed } from '../../../xrpl/blackhole.js'
-import { writeBalance } from '../../../db/helpers/balances.js'
-import { updateCacheForAccountProps } from '../../../db/helpers/cache.js'
+import { isBlackholed } from '../../xrpl/blackhole.js'
+import { writeBalance } from '../../db/helpers/balances.js'
+import { updateCacheForAccountProps } from '../../db/helpers/cache.js'
 
 
 export function parse({ entry }){

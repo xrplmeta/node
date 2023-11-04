@@ -1,7 +1,7 @@
 import log from '@mwni/log'
 import { mul } from '@xrplkit/xfl'
-import { readTokenMetricSeries, readTokenMetrics, writeTokenMetrics } from '../../../db/helpers/tokenmetrics.js'
-import { readTokenExchangeAligned, alignTokenExchange } from '../../../db/helpers/tokenexchanges.js'
+import { readTokenMetricSeries, readTokenMetrics, writeTokenMetrics } from '../../db/helpers/tokenmetrics.js'
+import { readTokenExchangeAligned, alignTokenExchange } from '../../db/helpers/tokenexchanges.js'
 
 
 export function updateMarketcapByExchange({ ctx, exchange }){

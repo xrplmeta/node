@@ -1,7 +1,7 @@
 import { encodeAccountID } from 'ripple-address-codec'
 import { fromRippled } from '@xrplkit/amount'
 import { rippleToUnix } from '@xrplkit/time'
-import { expireNFTokenOffer, writeNFTokenOffer } from '../../../db/helpers/nftoffers.js'
+import { expireNFTokenOffer, writeNFTokenOffer } from '../../db/helpers/nftoffers.js'
 
 
 export function parse({ index, entry }){

@@ -1,4 +1,4 @@
-import { updateMarketcapByExchange, updateMarketcapBySupply } from './scopes/marketcaps.js'
+import { updateMarketcapByExchange, updateMarketcapBySupply } from './marketcaps.js'
 
 
 export function createDerivatives({ ctx, newItems }){
