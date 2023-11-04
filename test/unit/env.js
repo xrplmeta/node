@@ -1,6 +1,6 @@
 import { openDB } from '../../src/db/index.js'
 
-export function createContext({ debugQueries=false }={}){
+export async function createContext({ debugQueries=false }={}){
 	let ctx = {
 		config: {
 			debug: {

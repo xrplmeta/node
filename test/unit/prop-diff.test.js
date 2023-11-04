@@ -4,7 +4,7 @@ import { diffAccountsProps, diffTokensProps } from '../../src/db/helpers/props.j
 import { reduceProps } from '../../src/srv/procedures/token.js'
 
 
-const ctx = createContext()
+const ctx = await createContext()
 
 const accounts = [
 	{

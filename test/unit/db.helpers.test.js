@@ -5,7 +5,7 @@ import { readBalance, writeBalance } from '../../src/db/helpers/balances.js'
 import { readTokenMetricSeries, writeTokenMetrics } from '../../src/db/helpers/tokenmetrics.js'
 
 
-const ctx = createContext()
+const ctx = await createContext()
 
 
 describe(
