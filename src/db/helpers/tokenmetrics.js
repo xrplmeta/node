@@ -1,5 +1,5 @@
-import { updateCacheForTokenMetrics } from './cache.js'
 import { readPoint, writePoint } from './common.js'
+import { updateCacheForTokenMetrics } from '../../cache/tokens.js'
 
 
 const metricTables = {

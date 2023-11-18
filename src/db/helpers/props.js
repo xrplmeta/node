@@ -1,5 +1,5 @@
 import { isSameCurrency } from '@xrplkit/amount'
-import { updateCacheForAccountProps, updateCacheForTokenProps } from './cache.js'
+import { updateCacheForAccountProps, updateCacheForTokenProps } from '../../cache/tokens.js'
 
 
 

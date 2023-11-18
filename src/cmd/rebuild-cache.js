@@ -5,7 +5,7 @@ import {
 	updateCacheForAccountProps,
 	updateCacheForTokenExchanges,
 	updateCacheForTokenMetrics,
-} from '../db/helpers/cache.js'
+} from '../cache/tokens.js'
 
 
 export default async function({ config }){
