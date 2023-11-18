@@ -16,7 +16,7 @@ export function serveServerInfo(){
 					})
 				)
 				: [],
-			total_tokens: Number(ctx.db.tokens.count()),
+			total_tokens: Number(ctx.db.core.tokens.count()),
 			total_nfts: 0
 		}
 	}

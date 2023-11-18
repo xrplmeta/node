@@ -8,7 +8,7 @@ import { wait } from '@xrplkit/time'
 
 
 export async function startBackfill({ ctx }){
-	let { sequence: firstSequence } = ctx.db.ledgers.readOne({
+	let { sequence: firstSequence } = ctx.db.core.ledgers.readOne({
 		orderBy: {
 			sequence: 'asc'
 		},
@@ -26,7 +26,7 @@ export async function startBackfill({ ctx }){
 	while(true){
 		let { ledger } = await stream.next()
 
-		ctx.db.tx(() => {
+		ctx.db.core.tx(() => {
 			ctx = {
 				...ctx,
 				currentLedger: ledger,

@@ -16,7 +16,7 @@ export function extractLedgerStats({ ctx, ledger }){
 	}
 
 	if(ledger.transactions.length === 0){
-		ctx.db.ledgers.createOne({
+		ctx.db.core.ledgers.createOne({
 			data: baseData
 		})
 	}else{
@@ -34,7 +34,7 @@ export function extractLedgerStats({ ctx, ledger }){
 			fees.push(parseInt(transaction.Fee))
 		}
 
-		ctx.db.ledgers.createOne({
+		ctx.db.core.ledgers.createOne({
 			data: {
 				...baseData,
 				txTypeCounts: Object.entries(types)

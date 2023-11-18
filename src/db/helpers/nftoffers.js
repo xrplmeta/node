@@ -3,7 +3,7 @@ import { writePoint } from './common.js'
 
 export function writeNFTokenOffer({ ctx, offerId, ledgerSequence, ...data }){
 	return writePoint({
-		table: ctx.db.nftOffers,
+		table: ctx.db.core.nftOffers,
 		selector: {
 			offerId,
 		},
@@ -16,7 +16,7 @@ export function writeNFTokenOffer({ ctx, offerId, ledgerSequence, ...data }){
 
 export function expireNFTokenOffer({ ctx, offerId, ledgerSequence }){
 	return writePoint({
-		table: ctx.db.nftOffers,
+		table: ctx.db.core.nftOffers,
 		selector: {
 			offerId,
 		},

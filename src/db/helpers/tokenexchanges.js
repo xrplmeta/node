@@ -2,7 +2,7 @@ import { XFL, sum, div, gt } from '@xrplkit/xfl'
 
 
 export function readTokenExchangesAligned({ ctx, base, quote, sequenceStart, sequenceEnd, limit, newestFirst, include }){
-	return ctx.db.tokenExchanges.readMany({
+	return ctx.db.core.tokenExchanges.readMany({
 		where: {
 			OR: [
 				{
@@ -45,7 +45,7 @@ export function readTokenExchangesAligned({ ctx, base, quote, sequenceStart, seq
 }
 
 export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
-	let exchange = ctx.db.tokenExchanges.readOne({
+	let exchange = ctx.db.core.tokenExchanges.readOne({
 		where: {
 			OR: [
 				{
@@ -88,7 +88,7 @@ export function readTokenVolume({ ctx, base, quote, sequenceStart, sequenceEnd }
 			? 'takerPaidValue' 
 			: 'takerGotValue'
 			
-		let aggregate = ctx.db.tokenExchanges.readOne({
+		let aggregate = ctx.db.core.tokenExchanges.readOne({
 			select: {
 				[sumKey]: {
 					function: 'XFL_SUM'
@@ -124,7 +124,7 @@ export function readTokenVolume({ ctx, base, quote, sequenceStart, sequenceEnd }
 }
 
 export function readTokenExchangeCount({ ctx, base, quote, sequenceStart, sequenceEnd }){
-	return ctx.db.tokenExchanges.count({
+	return ctx.db.core.tokenExchanges.count({
 		where: {
 			OR: [
 				{
@@ -153,7 +153,7 @@ export function readTokenExchangeCount({ ctx, base, quote, sequenceStart, sequen
 }
 
 export function readTokenExchangeUniqueTakerCount({ ctx, base, quote, sequenceStart, sequenceEnd }){
-	return ctx.db.tokenExchanges.count({
+	return ctx.db.core.tokenExchanges.count({
 		distinct: ['taker'],
 		where: {
 			OR: [
@@ -264,7 +264,7 @@ export function alignTokenExchange({ exchange, base, quote }){
 
 export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, time }){
 	if(time){
-		var exchanges = ctx.db.tokenExchanges.readManyRaw({
+		var exchanges = ctx.db.core.tokenExchanges.readManyRaw({
 			query: 
 				`SELECT MAX(Ledger.closeTime) as time, takerPaidToken, takerGotToken, takerPaidValue, takerGotValue
 				FROM TokenExchange
@@ -311,7 +311,7 @@ export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, ti
 			]
 		})
 	}else{
-		var exchanges = ctx.db.tokenExchanges.readManyRaw({
+		var exchanges = ctx.db.core.tokenExchanges.readManyRaw({
 			query: 
 				`SELECT MAX(ledgerSequence) as sequence, takerPaidToken, takerGotToken, takerPaidValue, takerGotValue
 				FROM TokenExchange

@@ -70,7 +70,7 @@ export function group({ previous, final }){
 
 
 export function diff({ ctx, token, deltas }){
-	token = ctx.db.tokens.createOne({
+	token = ctx.db.core.tokens.createOne({
 		data: token
 	})
 

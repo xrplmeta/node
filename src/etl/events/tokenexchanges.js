@@ -27,7 +27,7 @@ export function extractTokenExchanges({ ctx, ledger }){
 				: undefined
 		}
 
-		ctx.db.tokenExchanges.createOne({
+		ctx.db.core.tokenExchanges.createOne({
 			data: {
 				txHash: hash,
 				ledgerSequence: ledger.sequence,

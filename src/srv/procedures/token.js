@@ -16,18 +16,18 @@ export function serveTokenList(){
 
 		if(name_like){
 			where.OR = [
-				{ tokenCode: { like: `${name_like}%` } },
+				{ tokenCodeUtf8: { like: `${name_like}%` } },
 				{ tokenName: { like: `%${name_like}%` } },
 				{ issuerAddress: { like: `${name_like}%` } },
 				{ issuerName: { like: `%${name_like}%` } },
 			]
 		}
 
-		let count = ctx.db.tokenCache.count({
+		let count = ctx.db.cache.tokens.count({
 			where
 		})
 		
-		let caches = ctx.db.tokenCache.readMany({
+		let caches = ctx.db.cache.tokens.readMany({
 			where,
 			include: {
 				token: {
@@ -100,9 +100,9 @@ export function unsubscribeTokenList(){
 
 export function serveTokenSummary(){
 	return ({ ctx, token, decode_currency, prefer_sources, expand_meta, include_changes }) => {
-		let cache = ctx.db.tokenCache.readOne({
+		let cache = ctx.db.cache.tokens.readOne({
 			where: {
-				token
+				token: token.id
 			},
 			include: {
 				token: {

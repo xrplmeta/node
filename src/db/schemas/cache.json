@@ -1,0 +1,309 @@
+{
+	"title": "XRPL Meta Cache Database Structure",
+	"type": "object",
+	"properties": {
+		"tokens": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Token"
+			}
+		},
+		"icons": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Icon"
+			}
+		},
+		"iconUsers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/IconUser"
+			}
+		}
+	},
+	"definitions": {
+		"Token": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"type": "integer"
+				},
+				"tokenCodeHex": {
+					"type": "string"
+				},
+				"tokenCodeUtf8": {
+					"type": "string"
+				},
+				"tokenName": {
+					"type": "string"
+				},
+				"tokenProps": {
+					"type": "any"
+				},
+				"issuerAddress": {
+					"type": "string"
+				},
+				"issuerName": {
+					"type": "string"
+				},
+				"issuerProps": {
+					"type": "any"
+				},
+				"trustLevel": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlines": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlinesDelta24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlinesPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"trustlinesDelta7D": {
+					"type": "integer",
+					"default": 0
+				},
+				"trustlinesPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"holders": {
+					"type": "integer",
+					"default": 0
+				},
+				"holdersDelta24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"holdersPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"holdersDelta7D": {
+					"type": "integer",
+					"default": 0
+				},
+				"holdersPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"supply": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"supplyDelta24H": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"supplyPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"supplyDelta7D": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"supplyPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"marketcap": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"marketcapDelta24H": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"marketcapPercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"marketcapDelta7D": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"marketcapPercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"price": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"pricePercent24H": {
+					"type": "number",
+					"default": 0
+				},
+				"pricePercent7D": {
+					"type": "number",
+					"default": 0
+				},
+				"volume24H": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"volume7D": {
+					"type": "string",
+					"format": "xrpl/xfl",
+					"default": "0"
+				},
+				"exchanges24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"exchanges7D": {
+					"type": "integer",
+					"default": 0
+				},
+				"takers24H": {
+					"type": "integer",
+					"default": 0
+				},
+				"takers7D": {
+					"type": "integer",
+					"default": 0
+				}
+			},
+			"required": [
+				"token",
+				"tokenCodeHex",
+				"tokenCodeUtf8",
+				"issuerAddress"
+			],
+			"unique": [
+				"token"
+			],
+			"index": [
+				"tokenCodeHex",
+				"tokenName",
+				"issuerAddress",
+				"issuerName",
+				"trustLevel",
+				"trustlines",
+				"trustlinesDelta24H",
+				"trustlinesPercent24H",
+				"trustlinesDelta7D",
+				"trustlinesPercent7D",
+				"holders",
+				"holdersDelta24H",
+				"holdersPercent24H",
+				"holdersDelta7D",
+				"holdersPercent7D",
+				"supply",
+				"supplyDelta24H",
+				"supplyPercent24H",
+				"supplyDelta7D",
+				"supplyPercent7D",
+				"marketcap",
+				"marketcapDelta24H",
+				"marketcapPercent24H",
+				"marketcapDelta7D",
+				"marketcapPercent7D",
+				"price",
+				"pricePercent24H",
+				"pricePercent7D",
+				"volume24H",
+				"volume7D",
+				"exchanges24H",
+				"exchanges7D",
+				"takers24H",
+				"takers7D"
+			]
+		},
+		"Icon": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"url": {
+					"type": "string"
+				},
+				"hash": {
+					"type": "string"
+				},
+				"fileType": {
+					"type": "string"
+				},
+				"timeUpdated": {
+					"type": "integer"
+				},
+				"busy": {
+					"type": "boolean",
+					"default": false
+				},
+				"error": {
+					"type": "string"
+				},
+				"users": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/IconUser"
+					}
+				}
+			},
+			"required": [
+				"url"
+			],
+			"unique": [
+				"url"
+			],
+			"index": [
+				"timeUpdated"
+			]
+		},
+		"IconUser": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"icon": {
+					"$ref": "#/definitions/Icon"
+				},
+				"userType": {
+					"type": "string",
+					"enum": [
+						"account",
+						"token"
+					]
+				},
+				"userId": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"icon",
+				"userType",
+				"userId"
+			],
+			"unique": [
+				["icon", "userType", "userId"]
+			],
+			"index": [
+				["userType", "userId"]
+			]
+		}
+	}
+}

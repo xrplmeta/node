@@ -49,7 +49,7 @@ export function sanitizeToken({ key, array = false, allowXRP = false }){
 				}
 		}
 
-		let token = ctx.db.tokens.readOne({
+		let token = ctx.db.core.tokens.readOne({
 			where: {
 				currency: encodeCurrencyCode(currency),
 				issuer: {

@@ -3,7 +3,7 @@ import { writePoint } from './common.js'
 
 export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence, book, quality, size }){
 	return writePoint({
-		table: ctx.db.tokenOffers,
+		table: ctx.db.core.tokenOffers,
 		selector: {
 			account,
 			accountSequence,
@@ -21,7 +21,7 @@ export function writeTokenOffer({ ctx, account, accountSequence, ledgerSequence,
 
 export function expireTokenOffer({ ctx, account, accountSequence, ledgerSequence }){
 	return writePoint({
-		table: ctx.db.tokenOffers,
+		table: ctx.db.core.tokenOffers,
 		selector: {
 			account,
 			accountSequence
@@ -34,7 +34,7 @@ export function expireTokenOffer({ ctx, account, accountSequence, ledgerSequence
 }
 
 export function readOffersBy({ ctx, account, book, ledgerSequence }){
-	return ctx.db.tokenOffers.readMany({
+	return ctx.db.core.tokenOffers.readMany({
 		where: {
 			account,
 			book,

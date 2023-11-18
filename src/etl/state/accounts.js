@@ -22,7 +22,7 @@ export function diff({ ctx, previous, final }){
 
 	if(final){
 		let { balance, ...meta } = final
-		var { id } = ctx.db.accounts.createOne({ 
+		var { id } = ctx.db.core.accounts.createOne({ 
 			data: ctx.backwards
 				? { address }
 				: meta
@@ -31,7 +31,7 @@ export function diff({ ctx, previous, final }){
 		if(final?.Domain != previous?.Domain)
 			updateCacheForAccountProps({ ctx, account: final })
 	}else{
-		var { id } = ctx.db.accounts.createOne({ 
+		var { id } = ctx.db.core.accounts.createOne({ 
 			data: {
 				address
 			}

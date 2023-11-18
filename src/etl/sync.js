@@ -9,7 +9,7 @@ import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
 export async function startSync({ ctx }){
 	let onceInSyncTrigger
 
-	let { sequence: lastSequence } = ctx.db.ledgers.readOne({
+	let { sequence: lastSequence } = ctx.db.core.ledgers.readOne({
 		orderBy: {
 			sequence: 'desc'
 		},
@@ -32,7 +32,7 @@ export async function startSync({ ctx }){
 
 			let { ledger, ledgersBehind } = await stream.next()
 	
-			ctx.db.tx(() => {
+			ctx.db.core.tx(() => {
 				ctx = {
 					...ctx,
 					currentLedger: ledger,

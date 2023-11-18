@@ -37,7 +37,7 @@ export function extractNFTokenExchanges({ ctx, ledger }){
 			continue
 		}
 
-		ctx.db.nftExchanges.createOne({
+		ctx.db.core.nftExchanges.createOne({
 			data: {
 				txHash: transaction.hash,
 				account: {

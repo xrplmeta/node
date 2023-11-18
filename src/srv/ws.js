@@ -152,9 +152,12 @@ export function createManager({ ctx }){
 }
 
 function pushTokenUpdate({ ctx, token, recipients }){
-	let cache = ctx.db.tokenCache.readOne({
+	if(!token.id)
+		throw new Error(`token.id required`)
+
+	let cache = ctx.db.cache.tokens.readOne({
 		where: {
-			token
+			token: token.id
 		},
 		include: {
 			token: {

@@ -15,7 +15,7 @@ const metricInts = ['trustlines', 'holders']
 export function updateCacheForEverything({ ctx }){
 	log.time.info(`cache.update.all`, `updating token cache ...`)
 
-	let tokens = ctx.db.tokens.iter()
+	let tokens = ctx.db.core.tokens.iter()
 
 	for(let token of tokens){
 		updateCacheForTokenProps({ ctx, token })
@@ -43,10 +43,9 @@ export function updateCacheForTokenProps({ ctx, token }){
 
 	let props = readTokenProps({ ctx, token })
 	let tokenName = props.find(prop => prop.key === 'name')?.value
-	let changedCache = ctx.db.tokenCache.createOne({
+	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
-			...deriveCommonTokenFields({ ctx, token }),
-			token,
+			...getCommonTokenFields({ ctx, token }),
 			tokenName,
 			tokenProps: props,
 			trustLevel: Math.max(
@@ -75,7 +74,7 @@ export function updateCacheForAccountProps({ ctx, account }){
 
 	let issuerName = props.find(prop => prop.key === 'name')?.value
 	
-	let tokens = ctx.db.tokens.readMany({
+	let tokens = ctx.db.core.tokens.readMany({
 		where: {
 			issuer: account
 		}
@@ -85,10 +84,9 @@ export function updateCacheForAccountProps({ ctx, account }){
 		if(!token.issuer)
 			continue
 
-		let changedCache = ctx.db.tokenCache.createOne({
+		let changedCache = ctx.db.cache.tokens.createOne({
 			data: {
-				...deriveCommonTokenFields({ ctx, token }),
-				token,
+				...getCommonTokenFields({ ctx, token }),
 				issuerName,
 				issuerProps: props
 			},
@@ -158,10 +156,13 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 		cache[`${key}Percent7D`] = percent7d
 	}
 
-	let changedCache = ctx.db.tokenCache.createOne({
+	cache.supply = cache.supply.toString()
+	cache.supplyDelta24H = cache.supplyDelta24H.toString()
+	cache.supplyDelta7D = cache.supplyDelta7D.toString()
+
+	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
-			...deriveCommonTokenFields({ ctx, token }),
-			token,
+			...getCommonTokenFields({ ctx, token }),
 			...cache
 		},
 		returnUnchanged: false
@@ -285,10 +286,9 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		sequenceEnd: sequences.current
 	})
 
-	let changedCache = ctx.db.tokenCache.createOne({
+	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
-			...deriveCommonTokenFields({ ctx, token }),
-			token,
+			...getCommonTokenFields({ ctx, token }),
 			price: current,
 			pricePercent24H: percent24h,
 			pricePercent7D: percent7d,
@@ -307,9 +307,9 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 	}
 }
 
-function deriveCommonTokenFields({ ctx, token }){
-	if(!token.issuer || !token.issuer.address)
-		token = ctx.db.tokens.readOne({
+function getCommonTokenFields({ ctx, token }){
+	if(!token.id || !token.issuer || !token.issuer.address)
+		token = ctx.db.core.tokens.readOne({
 			where: {
 				id: token.id
 			},
@@ -319,7 +319,9 @@ function deriveCommonTokenFields({ ctx, token }){
 		})
 
 	return {
-		tokenCode: decodeCurrencyCode(token.currency),
+		token: token.id,
+		tokenCodeHex: token.currency,
+		tokenCodeUtf8: decodeCurrencyCode(token.currency),
 		issuerAddress: token.issuer.address
 	}
 }

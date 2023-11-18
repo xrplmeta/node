@@ -10,7 +10,7 @@ import { createAllDerivatives } from './derivatives/index.js'
 export async function createSnapshot({ ctx }){
 	ctx = {
 		...ctx,
-		snapshotState: ctx.db.snapshots.readLast(),
+		snapshotState: ctx.db.core.snapshots.readLast(),
 		ledgerSequence: 0
 	}
 
@@ -43,7 +43,7 @@ export async function createSnapshot({ ctx }){
 		createAllDerivatives({ ctx })
 		log.time.info(`snapshot.derivatives`, `created derivative data in %`)
 
-		ctx.db.snapshots.updateOne({
+		ctx.db.core.snapshots.updateOne({
 			data: {
 				completionTime: unixNow(),
 				marker: null
@@ -66,7 +66,7 @@ async function createSnapshotEntry({ ctx }){
 	extractEvents({ ctx, ledger })
 
 	ctx.currentLedger = ledger
-	ctx.snapshotState = ctx.db.snapshots.createOne({
+	ctx.snapshotState = ctx.db.core.snapshots.createOne({
 		data: {
 			ledgerSequence: ledger.sequence,
 			creationTime: unixNow()
@@ -94,13 +94,13 @@ async function copyFromFeed({ ctx, feed }){
 		if(!chunk)
 			break
 		
-		ctx.db.tx(() => {
+		ctx.db.core.tx(() => {
 			applyObjects({
 				ctx,
 				objects: chunk.objects
 			})
 			
-			ctx.snapshotState = ctx.db.snapshots.updateOne({
+			ctx.snapshotState = ctx.db.core.snapshots.updateOne({
 				data: {
 					originNode: feed.node,
 					marker: chunk.marker,

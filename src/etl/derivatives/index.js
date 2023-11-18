@@ -12,7 +12,7 @@ export function createDerivatives({ ctx, newItems }){
 }
 
 export function createAllDerivatives({ ctx }){
-	let exchanges = ctx.db.tokenExchanges.iter()
+	let exchanges = ctx.db.core.tokenExchanges.iter()
 
 	for(let exchange of exchanges){
 		updateMarketcapByExchange({ ctx, exchange })

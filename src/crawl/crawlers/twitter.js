@@ -52,14 +52,14 @@ export default async function({ ctx }){
 				if(!token.issuer)
 					return
 
-				let issuerWeblinks = ctx.db.accountProps.readMany({
+				let issuerWeblinks = ctx.db.core.accountProps.readMany({
 					where: {
 						account: token.issuer,
 						key: 'weblinks'
 					}
 				})
 
-				let tokenWeblinks = ctx.db.tokenProps.readMany({
+				let tokenWeblinks = ctx.db.core.tokenProps.readMany({
 					where: {
 						token,
 						key: 'weblinks'

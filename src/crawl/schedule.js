@@ -4,7 +4,7 @@ import { unixNow, wait } from '@xrplkit/time'
 
 export async function scheduleGlobal({ ctx, task, interval, routine }){
 	let duration = 0
-	let previousOperation = ctx.db.operations.readOne({
+	let previousOperation = ctx.db.core.operations.readOne({
 		where: {
 			subjectType: 'global',
 			subjectId: 0,
@@ -23,7 +23,7 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 	try{
 		await routine()
 
-		ctx.db.operations.createOne({
+		ctx.db.core.operations.createOne({
 			data: {
 				subjectType: 'global',
 				subjectId: 0,
@@ -40,7 +40,7 @@ export async function scheduleGlobal({ ctx, task, interval, routine }){
 export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, subjectType, task, interval, concurrency = 1, routine }){
 	let ids = []
 
-	for(let item of ctx.db[table].iter(iterator)){
+	for(let item of ctx.db.core[table].iter(iterator)){
 		ids.push(item.id)
 	}
 
@@ -52,14 +52,14 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 			.map(async () => {
 				while(ids.length > 0){
 					let id = ids.shift()
-					let item = ctx.db[table].readOne({
+					let item = ctx.db.core[table].readOne({
 						where: {
 							id
 						},
 						include: iterator.include
 					})
 
-					let previousOperation = ctx.db.operations.readOne({
+					let previousOperation = ctx.db.core.operations.readOne({
 						where: {
 							subjectType,
 							subjectId: item.id,
@@ -80,7 +80,7 @@ export async function scheduleIterator({ ctx, iterator: { table, ...iterator }, 
 						await wait(3000)
 					}
 
-					ctx.db.operations.createOne({
+					ctx.db.core.operations.createOne({
 						data: {
 							subjectType,
 							subjectId: item.id,
@@ -112,7 +112,7 @@ export async function scheduleBatchedIterator({ ctx, iterator: { table, ...itera
 
 		for(let { items } of batch){
 			for(let item of items){
-				ctx.db.operations.createOne({
+				ctx.db.core.operations.createOne({
 					data: {
 						subjectType,
 						subjectId: item.id,
@@ -124,7 +124,7 @@ export async function scheduleBatchedIterator({ ctx, iterator: { table, ...itera
 		}
 	}
 
-	for(let item of ctx.db[table].iter(iterator)){
+	for(let item of ctx.db.core[table].iter(iterator)){
 		ids.push(item.id)
 	}
 
@@ -134,14 +134,14 @@ export async function scheduleBatchedIterator({ ctx, iterator: { table, ...itera
 	let now = unixNow()
 
 	for(let id of ids){
-		let item = ctx.db[table].readOne({
+		let item = ctx.db.core[table].readOne({
 			where: {
 				id
 			},
 			include: iterator.include
 		})
 
-		let previousOperation = ctx.db.operations.readOne({
+		let previousOperation = ctx.db.core.operations.readOne({
 			where: {
 				subjectType,
 				subjectId: item.id,

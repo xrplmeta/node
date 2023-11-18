@@ -18,7 +18,7 @@ export function updateMarketcapByExchange({ ctx, exchange }){
 	}
 
 	if(ctx.backwards){
-		let firstMarketcap = ctx.db.tokenMarketcap.readOne({
+		let firstMarketcap = ctx.db.core.tokenMarketcap.readOne({
 			where: {
 				token: exchange.base,
 				ledgerSequence: {

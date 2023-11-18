@@ -80,7 +80,7 @@ describe(
 		it(
 			'should insert all props',
 			() => {
-				expect(ctx.db.accountProps.readMany().length).to.be.equal(6)
+				expect(ctx.db.core.accountProps.readMany().length).to.be.equal(6)
 			}
 		)
 
@@ -98,7 +98,7 @@ describe(
 		it(
 			'should have removed the redacted props',
 			() => {
-				expect(ctx.db.accountProps.readMany().length).to.be.equal(4)
+				expect(ctx.db.core.accountProps.readMany().length).to.be.equal(4)
 			}
 		)
 	}
@@ -122,7 +122,7 @@ describe(
 		it(
 			'should insert all props',
 			() => {
-				expect(ctx.db.tokenProps.readMany().length).to.be.equal(6)
+				expect(ctx.db.core.tokenProps.readMany().length).to.be.equal(6)
 			}
 		)
 
@@ -140,14 +140,14 @@ describe(
 		it(
 			'should have removed the redacted props',
 			() => {
-				expect(ctx.db.tokenProps.readMany().length).to.be.equal(4)
+				expect(ctx.db.core.tokenProps.readMany().length).to.be.equal(4)
 			}
 		)
 
 		it(
 			'should have the correct token prop cache',
 			() => {
-				let props = ctx.db.tokenCache.readMany()
+				let props = ctx.db.cache.tokens.readMany()
 					.map(cache => reduceProps({ props: cache.tokenProps }))
 
 

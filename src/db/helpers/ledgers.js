@@ -1,11 +1,11 @@
 export function getAvailableRange({ ctx }){
-	let start = ctx.db.ledgers.readOne({
+	let start = ctx.db.core.ledgers.readOne({
 		orderBy: {
 			sequence: 'asc'
 		}
 	})
 
-	let end = ctx.db.ledgers.readOne({
+	let end = ctx.db.core.ledgers.readOne({
 		orderBy: {
 			sequence: 'desc'
 		}
@@ -25,7 +25,7 @@ export function getAvailableRange({ ctx }){
 
 
 export function readMostRecentLedger({ ctx }){
-	return ctx.db.ledgers.readOne({
+	return ctx.db.core.ledgers.readOne({
 		orderBy: {
 			sequence: 'desc'
 		}
@@ -42,7 +42,7 @@ export function readLedgerAt({ ctx, sequence, time, clamp, include }){
 		? sequence
 		: time
 
-	let ledger = ctx.db.ledgers.readOne({
+	let ledger = ctx.db.core.ledgers.readOne({
 		where: {
 			[key]: {
 				lessOrEqual: point
@@ -55,7 +55,7 @@ export function readLedgerAt({ ctx, sequence, time, clamp, include }){
 	})
 
 	if(!ledger && clamp){
-		ledger = ctx.db.ledgers.readOne({
+		ledger = ctx.db.core.ledgers.readOne({
 			where: {
 				[key]: {
 					greaterThan: point

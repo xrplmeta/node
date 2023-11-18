@@ -15,11 +15,11 @@ export default async function({ config }){
 		db: await openDB({ ctx: { config } })
 	}
 
-	const tokens = ctx.db.tokens.readMany()
+	const tokens = ctx.db.core.tokens.readMany()
 
 	log.time.info(`cache.wipe`, `wiping current cache`)
 
-	ctx.db.tokenCache.deleteMany()
+	ctx.db.cache.tokens.deleteMany()
 
 	log.time.info(`cache.wipe`, `wiped cache in %`)
 	log.time.info(`cache.tokens`, `rebuilding for`, tokens.length, `tokens`)

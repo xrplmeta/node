@@ -16,7 +16,7 @@ export function diffTokensProps({ ctx, tokens, source }){
 		})
 	}
 
-	let staleProps = ctx.db.tokenProps.readMany({
+	let staleProps = ctx.db.core.tokenProps.readMany({
 		where: {
 			NOT: {
 				OR: tokens.map(
@@ -35,7 +35,7 @@ export function diffTokensProps({ ctx, tokens, source }){
 		}
 	})
 
-	ctx.db.tokenProps.deleteMany({
+	ctx.db.core.tokenProps.deleteMany({
 		where: {
 			id: {
 				in: staleProps.map(
@@ -70,7 +70,7 @@ export function diffAccountsProps({ ctx, accounts, source }){
 		})
 	}
 
-	let accountIds = ctx.db.accounts.readMany({
+	let accountIds = ctx.db.core.accounts.readMany({
 		select: {
 			id: true
 		},
@@ -85,7 +85,7 @@ export function diffAccountsProps({ ctx, accounts, source }){
 		({ id }) => id
 	)
 
-	let staleProps = ctx.db.accountProps.readMany({
+	let staleProps = ctx.db.core.accountProps.readMany({
 		where: {
 			NOT: {
 				account: {
@@ -98,7 +98,7 @@ export function diffAccountsProps({ ctx, accounts, source }){
 		}
 	})
 
-	ctx.db.accountProps.deleteMany({
+	ctx.db.core.accountProps.deleteMany({
 		where: {
 			id: {
 				in: staleProps.map(
@@ -123,13 +123,13 @@ export function diffAccountsProps({ ctx, accounts, source }){
 
 
 export function readTokenProps({ ctx, token }){
-	let props = ctx.db.tokenProps.readMany({
+	let props = ctx.db.core.tokenProps.readMany({
 		where: {
 			token
 		}
 	})
 	
-	let issuerKycProps = ctx.db.accountProps.readMany({
+	let issuerKycProps = ctx.db.core.accountProps.readMany({
 		where: {
 			account: token.issuer,
 			key: 'kyc',
@@ -157,10 +157,10 @@ export function readTokenProps({ ctx, token }){
 }
 
 export function writeTokenProps({ ctx, token, props, source }){
-	ctx.db.tx(() => {
+	ctx.db.core.tx(() => {
 		for(let [key, value] of Object.entries(props)){
 			if(value == null){
-				ctx.db.tokenProps.deleteOne({
+				ctx.db.core.tokenProps.deleteOne({
 					where: {
 						token,
 						key,
@@ -168,7 +168,7 @@ export function writeTokenProps({ ctx, token, props, source }){
 					}
 				})
 			}else{
-				ctx.db.tokenProps.createOne({
+				ctx.db.core.tokenProps.createOne({
 					data: {
 						token,
 						key,
@@ -185,7 +185,7 @@ export function writeTokenProps({ ctx, token, props, source }){
 
 
 export function readAccountProps({ ctx, account }){
-	let props = ctx.db.accountProps.readMany({
+	let props = ctx.db.core.accountProps.readMany({
 		where: {
 			account
 		}
@@ -211,7 +211,7 @@ export function readAccountProps({ ctx, account }){
 		}
 	}
 
-	account = ctx.db.accounts.readOne({
+	account = ctx.db.core.accounts.readOne({
 		where: account
 	})
 	
@@ -227,10 +227,10 @@ export function readAccountProps({ ctx, account }){
 }
 
 export function writeAccountProps({ ctx, account, props, source }){
-	ctx.db.tx(() => {
+	ctx.db.core.tx(() => {
 		for(let [key, value] of Object.entries(props)){
 			if(value == null){
-				ctx.db.accountProps.deleteOne({
+				ctx.db.core.accountProps.deleteOne({
 					where: {
 						account,
 						key,
@@ -238,7 +238,7 @@ export function writeAccountProps({ ctx, account, props, source }){
 					}
 				})
 			}else{
-				ctx.db.accountProps.createOne({
+				ctx.db.core.accountProps.createOne({
 					data: {
 						account,
 						key,
@@ -255,7 +255,7 @@ export function writeAccountProps({ ctx, account, props, source }){
 
 
 export function clearTokenProps({ ctx, token, source }){
-	let deletedNum = ctx.db.tokenProps.deleteMany({
+	let deletedNum = ctx.db.core.tokenProps.deleteMany({
 		where: {
 			token,
 			source
@@ -267,7 +267,7 @@ export function clearTokenProps({ ctx, token, source }){
 }
 
 export function clearAccountProps({ ctx, account, source }){
-	let deletedNum = ctx.db.accountProps.deleteMany({
+	let deletedNum = ctx.db.core.accountProps.deleteMany({
 		where: {
 			account,
 			source

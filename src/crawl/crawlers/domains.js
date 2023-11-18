@@ -40,7 +40,7 @@ export default async function({ ctx }){
 				let { address, domain } = token.issuer
 
 				if(!domain){
-					let prop = ctx.db.accountProps.readOne({
+					let prop = ctx.db.core.accountProps.readOne({
 						where: {
 							account: token.issuer,
 							key: 'domain'

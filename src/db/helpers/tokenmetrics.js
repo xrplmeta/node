@@ -13,7 +13,7 @@ const metricTables = {
 export function writeTokenMetrics({ ctx, token, ledgerSequence, metrics, updateCache = true }){
 	for(let [key, value] of Object.entries(metrics)){
 		writePoint({
-			table: ctx.db[metricTables[key]],
+			table: ctx.db.core[metricTables[key]],
 			selector: {
 				token
 			},
@@ -35,7 +35,7 @@ export function readTokenMetrics({ ctx, token, ledgerSequence, metrics }){
 
 	for(let key of Object.keys(metrics)){
 		let entry = readPoint({
-			table: ctx.db[metricTables[key]],
+			table: ctx.db.core[metricTables[key]],
 			selector: {
 				token
 			},
@@ -53,7 +53,7 @@ export function readTokenMetrics({ ctx, token, ledgerSequence, metrics }){
 
 
 export function readTokenMetricSeries({ ctx, token, metric, sequenceStart, sequenceEnd }){
-	return ctx.db[metricTables[metric]].readMany({
+	return ctx.db.core[metricTables[metric]].readMany({
 		where: {
 			token,
 			ledgerSequence: {
@@ -78,7 +78,7 @@ export function readTokenMetricIntervalSeries({ ctx, token, metric, sequence, ti
 	let table = metricTables[metric]
 	
 	if(time){
-		return ctx.db[table].readManyRaw({
+		return ctx.db.core[table].readManyRaw({
 			query: 
 				`SELECT MAX(Ledger.closeTime) as time, value
 				FROM ${table}
@@ -110,7 +110,7 @@ export function readTokenMetricIntervalSeries({ ctx, token, metric, sequence, ti
 			]
 		})
 	}else{
-		return ctx.db[table].readManyRaw({
+		return ctx.db.core[table].readManyRaw({
 			query: 
 				`SELECT MAX(ledgerSequence) as sequence, value
 				FROM ${table}

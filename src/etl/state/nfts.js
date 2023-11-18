@@ -33,7 +33,7 @@ export function diff({ ctx, previous, final }){
 			if(final && final.nfts.some(fNft => fNft.tokenId === pNft.tokenId))
 				continue
 
-			ctx.db.nfts.createOne({
+			ctx.db.core.nfts.createOne({
 				data: ctx.backwards
 					? pNft
 					: { ...pNft, owner: null }
@@ -46,7 +46,7 @@ export function diff({ ctx, previous, final }){
 			if(previous && previous.nfts.some(pNft => pNft.tokenId === fNft.tokenId))
 				continue
 
-			ctx.db.nfts.createOne({
+			ctx.db.core.nfts.createOne({
 				data: ctx.backwards
 					? fNft
 					: { ...fNft, owner }
