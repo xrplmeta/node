@@ -41,9 +41,15 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 20 } = {}){
 			clearTimeout(timeoutTimer)
 		}
 
+		if(options.raw){
+			return res
+		}
+
 		try{
 			if(res.headers.get('content-type')?.includes('application/json')){
 				data = await res.json()
+			}else if(res.headers.get('content-type')?.match(/(image\/|video\/|application\/octet-stream)/)){
+				data = Buffer.from(await res.arrayBuffer())
 			}else{
 				data = await res.text()
 			}
