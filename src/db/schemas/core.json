@@ -268,7 +268,8 @@
 						"SetRegularKey",
 						"SignerListSet",
 						"TicketCreate",
-						"TrustSet"
+						"TrustSet",
+						"UNLReport"
 					]
 				},
 				"count": {
