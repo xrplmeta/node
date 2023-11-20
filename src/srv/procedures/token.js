@@ -245,9 +245,9 @@ export function serveTokenExchanges(){
 export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, expandMeta, includeChanges }){
 	let token = {
 		currency: decodeCurrency
-			? decodeCurrencyCode(cache.token.currency)
-			: cache.token.currency,
-		issuer: cache.token.issuer.address,
+			? cache.tokenCodeUtf8
+			: cache.tokenCodeHex,
+		issuer: cache.issuerAddress,
 		meta: {
 			token: reduceProps({
 				props: cache.tokenProps || [],
