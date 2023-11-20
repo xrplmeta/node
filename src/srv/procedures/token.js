@@ -16,7 +16,7 @@ export function serveTokenList(){
 
 		if(name_like){
 			where.OR = [
-				{ tokenCodeUtf8: { like: `${name_like}%` } },
+				{ tokenCurrencyUtf8: { like: `${name_like}%` } },
 				{ tokenName: { like: `%${name_like}%` } },
 				{ issuerAddress: { like: `${name_like}%` } },
 				{ issuerName: { like: `%${name_like}%` } },
@@ -245,8 +245,8 @@ export function serveTokenExchanges(){
 export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, expandMeta, includeChanges }){
 	let token = {
 		currency: decodeCurrency
-			? cache.tokenCodeUtf8
-			: cache.tokenCodeHex,
+			? cache.tokenCurrencyUtf8
+			: cache.tokenCurrencyHex,
 		issuer: cache.issuerAddress,
 		meta: {
 			token: reduceProps({

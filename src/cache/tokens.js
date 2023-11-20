@@ -293,8 +293,8 @@ function getCommonTokenFields({ ctx, token }){
 
 	return {
 		token: token.id,
-		tokenCodeHex: token.currency,
-		tokenCodeUtf8: decodeCurrencyCode(token.currency),
+		tokenCurrencyHex: token.currency,
+		tokenCurrencyUtf8: decodeCurrencyCode(token.currency),
 		issuerAddress: token.issuer.address
 	}
 }

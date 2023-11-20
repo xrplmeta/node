@@ -32,10 +32,10 @@
 				"token": {
 					"type": "integer"
 				},
-				"tokenCodeHex": {
+				"tokenCurrencyHex": {
 					"type": "string"
 				},
-				"tokenCodeUtf8": {
+				"tokenCurrencyUtf8": {
 					"type": "string"
 				},
 				"tokenName": {
@@ -185,15 +185,15 @@
 			},
 			"required": [
 				"token",
-				"tokenCodeHex",
-				"tokenCodeUtf8",
+				"tokenCurrencyHex",
+				"tokenCurrencyUtf8",
 				"issuerAddress"
 			],
 			"unique": [
 				"token"
 			],
 			"index": [
-				"tokenCodeHex",
+				"tokenCurrencyHex",
 				"tokenName",
 				"issuerAddress",
 				"issuerName",
