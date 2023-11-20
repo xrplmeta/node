@@ -19,6 +19,12 @@
 			"items": {
 				"$ref": "#/definitions/IconUser"
 			}
+		},
+		"todos": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/Todo"
+			}
 		}
 	},
 	"definitions": {
@@ -303,6 +309,37 @@
 			],
 			"index": [
 				["userType", "userId"]
+			]
+		},
+		"Todo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"task": {
+					"type": "string",
+					"enum": [
+						"account.props",
+						"token.props",
+						"token.exchanges",
+						"token.metrics.trustlines",
+						"token.metrics.holders",
+						"token.metrics.supply",
+						"token.metrics.marketcap"
+					]
+				},
+				"subject": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"task",
+				"subject"
+			],
+			"unique": [
+				["task", "subject"]
 			]
 		}
 	}

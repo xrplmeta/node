@@ -1,5 +1,5 @@
 import { readPoint, writePoint } from './common.js'
-import { updateCacheForTokenMetrics } from '../../cache/tokens.js'
+import { markCacheDirtyForTokenMetrics } from '../../cache/todo.js'
 
 
 const metricTables = {
@@ -26,7 +26,7 @@ export function writeTokenMetrics({ ctx, token, ledgerSequence, metrics, updateC
 	}
 
 	if(updateCache)
-		updateCacheForTokenMetrics({ ctx, token, metrics })
+		markCacheDirtyForTokenMetrics({ ctx, token, metrics })
 }
 
 

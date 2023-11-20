@@ -1,5 +1,5 @@
 import { extractExchanges } from '@xrplkit/txmeta'
-import { updateCacheForTokenExchanges } from '../../cache/tokens.js'
+import { markCacheDirtyForTokenExchanges } from '../../cache/todo.js'
 
 
 export function extractTokenExchanges({ ctx, ledger }){
@@ -45,7 +45,7 @@ export function extractTokenExchanges({ ctx, ledger }){
 			}
 		})
 		
-		updateCacheForTokenExchanges({ ctx, token: takerPaidToken })
-		updateCacheForTokenExchanges({ ctx, token: takerGotToken })
+		markCacheDirtyForTokenExchanges({ ctx, token: takerPaidToken })
+		markCacheDirtyForTokenExchanges({ ctx, token: takerGotToken })
 	}
 }

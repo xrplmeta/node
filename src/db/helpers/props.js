@@ -1,5 +1,5 @@
 import { isSameCurrency } from '@xrplkit/amount'
-import { updateCacheForAccountProps, updateCacheForTokenProps } from '../../cache/tokens.js'
+import { markCacheDirtyForAccountProps, markCacheDirtyForTokenProps } from '../../cache/todo.js'
 
 
 
@@ -54,7 +54,7 @@ export function diffTokensProps({ ctx, tokens, source }){
 		)
 	
 	for(let token of deletionAffectedTokens){
-		updateCacheForTokenProps({ ctx, token })
+		markCacheDirtyForTokenProps({ ctx, token })
 	}
 }
 
@@ -117,7 +117,7 @@ export function diffAccountsProps({ ctx, accounts, source }){
 		)
 	
 	for(let account of deletionAffectedAccounts){
-		updateCacheForAccountProps({ ctx, account })
+		markCacheDirtyForAccountProps({ ctx, account })
 	}
 }
 
@@ -180,7 +180,7 @@ export function writeTokenProps({ ctx, token, props, source }){
 		}
 	})
 
-	updateCacheForTokenProps({ ctx, token })
+	markCacheDirtyForTokenProps({ ctx, token })
 }
 
 
@@ -250,7 +250,7 @@ export function writeAccountProps({ ctx, account, props, source }){
 		}
 	})
 
-	updateCacheForAccountProps({ ctx, account })
+	markCacheDirtyForAccountProps({ ctx, account })
 }
 
 
@@ -263,7 +263,7 @@ export function clearTokenProps({ ctx, token, source }){
 	})
 	
 	if(deletedNum > 0)
-		updateCacheForTokenProps({ ctx, token })
+		markCacheDirtyForTokenProps({ ctx, token })
 }
 
 export function clearAccountProps({ ctx, account, source }){
@@ -275,5 +275,5 @@ export function clearAccountProps({ ctx, account, source }){
 	})
 	
 	if(deletedNum > 0)
-		updateCacheForAccountProps({ ctx, account })
+		markCacheDirtyForAccountProps({ ctx, account })
 }

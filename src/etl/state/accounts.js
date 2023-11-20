@@ -1,7 +1,7 @@
 import { div } from '@xrplkit/xfl'
 import { isBlackholed } from '../../xrpl/blackhole.js'
 import { writeBalance } from '../../db/helpers/balances.js'
-import { updateCacheForAccountProps } from '../../cache/tokens.js'
+import { markCacheDirtyForAccountProps } from '../../cache/todo.js'
 
 
 export function parse({ entry }){
@@ -29,7 +29,7 @@ export function diff({ ctx, previous, final }){
 		})
 
 		if(final?.Domain != previous?.Domain)
-			updateCacheForAccountProps({ ctx, account: final })
+			markCacheDirtyForAccountProps({ ctx, account: final })
 	}else{
 		var { id } = ctx.db.core.accounts.createOne({ 
 			data: {

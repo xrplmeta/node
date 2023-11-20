@@ -128,3 +128,27 @@ export function writePoint({ table, selector, ledgerSequence, backwards, data, e
 		}
 	})
 }
+
+export function getAccountId({ ctx, account }){
+	if(account.id)
+		return account.id
+
+	return ctx.db.core.accounts.readOne({
+		where: account,
+		select: {
+			id: true
+		}
+	}).id
+}
+
+export function getTokenId({ ctx, token }){
+	if(token.id)
+		return token.id
+
+	return ctx.db.core.tokens.readOne({
+		where: token,
+		select: {
+			id: true
+		}
+	}).id
+}

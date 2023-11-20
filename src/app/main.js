@@ -1,6 +1,7 @@
 import log from '@mwni/log'
 import { run as runLedgerApp } from './ledger.js'
 import { run as runCrawlApp } from './crawl.js'
+import { run as runCacheApp } from './cache.js'
 import { run as runServerApp } from './server.js'
 import createIPC from '../lib/ipc.js'
 
@@ -24,6 +25,13 @@ export default async function({ config }){
 	runCrawlApp({ ctx })
 		.catch(error => {
 			log.error(`crawl app crashed due to fatal error:`)
+			log.error(error)
+			log.warn(`attempting to continue without it`)
+		})
+
+	runCacheApp({ ctx })
+		.catch(error => {
+			log.error(`cache app crashed due to fatal error:`)
 			log.error(error)
 			log.warn(`attempting to continue without it`)
 		})
