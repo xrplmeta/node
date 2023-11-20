@@ -122,6 +122,10 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 		if(metricInts.includes(key)){
 			delta24h = Number(delta24h)
 			delta7d = Number(delta7d)
+		}else{
+			current = current.toString()
+			delta24h = delta24h.toString()
+			delta7d = delta7d.toString()
 		}
 
 		cache[key] = current
@@ -130,10 +134,6 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 		cache[`${key}Delta7D`] = delta7d
 		cache[`${key}Percent7D`] = percent7d
 	}
-
-	cache.supply = cache.supply.toString()
-	cache.supplyDelta24H = cache.supplyDelta24H.toString()
-	cache.supplyDelta7D = cache.supplyDelta7D.toString()
 
 	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
@@ -264,11 +264,11 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
 			...getCommonTokenFields({ ctx, token }),
-			price: current,
+			price: current.toString(),
 			pricePercent24H: percent24h,
 			pricePercent7D: percent7d,
-			volume24H,
-			volume7D,
+			volume24H: volume24H.toString(),
+			volume7D: volume7D.toString(),
 			exchanges24H,
 			exchanges7D,
 			takers24H,
@@ -285,9 +285,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 function getCommonTokenFields({ ctx, token }){
 	if(!token.id || !token.issuer || !token.issuer.address)
 		token = ctx.db.core.tokens.readOne({
-			where: {
-				id: token.id
-			},
+			where: token,
 			include: {
 				issuer: true
 			}
