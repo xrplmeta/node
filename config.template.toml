@@ -101,6 +101,10 @@ max_requests_per_minute = 60
 # The server listens on the specified port for incoming HTTP (REST + WebSocket) connections.
 port = 4080
 
+# Set this to the URL under which your node is reachable. 
+# This is required for the API to correctly return the URLs of locally cached media files, such as token icons.
+# public_url = "https://example.com"
+
 # Multiple sources can give conflicting data for the same field. This array defines who's data has precedence,
 # from highest to lowest. Example for the values below: 
 # if XUMM, Bithomp and Twitter all define an icon for a token, the one from XUMM will be used.
