@@ -20,7 +20,7 @@ export function updateCacheForTokenProps({ ctx, token }){
 	let tokenName = props.find(prop => prop.key === 'name')?.value
 	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
-			...getCommonTokenFields({ ctx, token }),
+			...getCommonTokenCacheFields({ ctx, token }),
 			tokenName,
 			tokenProps: props,
 			trustLevel: Math.max(
@@ -61,7 +61,7 @@ export function updateCacheForAccountProps({ ctx, account }){
 
 		let changedCache = ctx.db.cache.tokens.createOne({
 			data: {
-				...getCommonTokenFields({ ctx, token }),
+				...getCommonTokenCacheFields({ ctx, token }),
 				issuerName,
 				issuerProps: props
 			},
@@ -137,7 +137,7 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 
 	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
-			...getCommonTokenFields({ ctx, token }),
+			...getCommonTokenCacheFields({ ctx, token }),
 			...cache
 		},
 		returnUnchanged: false
@@ -263,7 +263,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 
 	let changedCache = ctx.db.cache.tokens.createOne({
 		data: {
-			...getCommonTokenFields({ ctx, token }),
+			...getCommonTokenCacheFields({ ctx, token }),
 			price: current.toString(),
 			pricePercent24H: percent24h,
 			pricePercent7D: percent7d,
@@ -282,7 +282,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 	}
 }
 
-function getCommonTokenFields({ ctx, token }){
+export function getCommonTokenCacheFields({ ctx, token }){
 	if(!token.id || !token.issuer || !token.issuer.address)
 		token = ctx.db.core.tokens.readOne({
 			where: token,

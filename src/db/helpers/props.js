@@ -1,5 +1,5 @@
 import { isSameCurrency } from '@xrplkit/amount'
-import { markCacheDirtyForAccountProps, markCacheDirtyForTokenProps } from '../../cache/todo.js'
+import { markCacheDirtyForAccountIcons, markCacheDirtyForAccountProps, markCacheDirtyForTokenIcons, markCacheDirtyForTokenProps } from '../../cache/todo.js'
 
 
 
@@ -181,6 +181,9 @@ export function writeTokenProps({ ctx, token, props, source }){
 	})
 
 	markCacheDirtyForTokenProps({ ctx, token })
+
+	if(props.hasOwnProperty('icon'))
+		markCacheDirtyForTokenIcons({ ctx, token })
 }
 
 
@@ -251,6 +254,9 @@ export function writeAccountProps({ ctx, account, props, source }){
 	})
 
 	markCacheDirtyForAccountProps({ ctx, account })
+
+	if(props.hasOwnProperty('icon'))
+		markCacheDirtyForAccountIcons({ ctx, account })
 }
 
 
@@ -262,8 +268,10 @@ export function clearTokenProps({ ctx, token, source }){
 		}
 	})
 	
-	if(deletedNum > 0)
+	if(deletedNum > 0){
 		markCacheDirtyForTokenProps({ ctx, token })
+		markCacheDirtyForTokenIcons({ ctx, token })
+	}
 }
 
 export function clearAccountProps({ ctx, account, source }){
@@ -274,6 +282,8 @@ export function clearAccountProps({ ctx, account, source }){
 		}
 	})
 	
-	if(deletedNum > 0)
+	if(deletedNum > 0){
 		markCacheDirtyForAccountProps({ ctx, account })
+		markCacheDirtyForAccountIcons({ ctx, account })
+	}
 }

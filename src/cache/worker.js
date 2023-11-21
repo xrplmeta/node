@@ -6,6 +6,7 @@ import {
 	updateCacheForTokenMetrics, 
 	updateCacheForTokenProps
 } from './tokens.js'
+import { updateIconCacheFor } from './icons.js'
 
 
 export async function startCacheWorker({ ctx }){
@@ -13,7 +14,18 @@ export async function startCacheWorker({ ctx }){
 	
 	;(async () => {
 		while(running){
-			let todo = ctx.db.cache.todos.readOne()
+			let todo = ctx.db.cache.todos.readOne({
+				where: {
+					NOT: {
+						task: {
+							in: [
+								'account.icons',
+								'token.icons',
+							]
+						}
+					}
+				}
+			})
 
 			if(!todo){
 				await wait(25)
@@ -107,6 +119,60 @@ export async function startCacheWorker({ ctx }){
 			log.accumulate.info({
 				text: [`processed %cacheTasksProcessed cache updates in %time`],
 				data: { cacheTasksProcessed: 1 }
+			})
+
+			await wait(1)
+		}
+	})()
+
+	;(async () => {
+		while(running){
+			let todo = ctx.db.cache.todos.readOne({
+				where: {
+					task: {
+						in: [
+							'account.icons',
+							'token.icons',
+						]
+					}
+				}
+			})
+
+			if(!todo){
+				await wait(1000)
+				continue
+			}
+
+			switch(todo.task){
+				case 'account.icons': {
+					updateIconCacheFor({ 
+						ctx, 
+						account: {
+							id: todo.subject 
+						}
+					})
+					break
+				}
+				case 'token.icons': {
+					updateIconCacheFor({ 
+						ctx, 
+						token: {
+							id: todo.subject 
+						}
+					})
+					break
+				}
+			}
+
+			ctx.db.cache.todos.deleteOne({
+				where: {
+					id: todo.id
+				}
+			})
+
+			log.accumulate.info({
+				text: [`processed %iconCacheTasksProcessed icon cache updates in %time`],
+				data: { iconCacheTasksProcessed: 1 }
 			})
 
 			await wait(1)

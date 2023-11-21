@@ -59,6 +59,9 @@
 				"issuerProps": {
 					"type": "any"
 				},
+				"cachedIcons": {
+					"type": "any"
+				},
 				"trustLevel": {
 					"type": "integer",
 					"default": 0
@@ -254,10 +257,6 @@
 				"timeUpdated": {
 					"type": "integer"
 				},
-				"busy": {
-					"type": "boolean",
-					"default": false
-				},
 				"error": {
 					"type": "string"
 				},
@@ -322,12 +321,14 @@
 					"type": "string",
 					"enum": [
 						"account.props",
+						"account.icons",
 						"token.props",
 						"token.exchanges",
 						"token.metrics.trustlines",
 						"token.metrics.holders",
 						"token.metrics.supply",
-						"token.metrics.marketcap"
+						"token.metrics.marketcap",
+						"token.icons"
 					]
 				},
 				"subject": {
@@ -340,6 +341,9 @@
 			],
 			"unique": [
 				["task", "subject"]
+			],
+			"index": [
+				"task"
 			]
 		}
 	}

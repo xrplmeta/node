@@ -16,6 +16,7 @@
 		"@koa/router": "12.0.0",
 		"@mwni/events": "1.0.0",
 		"@mwni/log": "2.2.0",
+		"@mwni/workers": "1.0.2",
 		"@structdb/sqlite": "1.6.1-alpha",
 		"@xrplkit/amount": "1.2.3",
 		"@xrplkit/socket": "2.1.0",
@@ -30,10 +31,10 @@
 		"koa-json": "2.0.2",
 		"limiter": "2.0.1",
 		"minimist": "1.2.6",
-		"@mwni/workers": "1.0.2",
 		"node-abort-controller": "^3.1.1",
 		"node-fetch": "^3.3.1",
 		"ripple-address-codec": "4.2.4",
+		"sharp": "^0.32.6",
 		"ws": "8.8.1"
 	},
 	"devDependencies": {

@@ -54,3 +54,21 @@ export function markCacheDirtyForTokenExchanges({ ctx, token }){
 		}
 	})
 }
+
+export function markCacheDirtyForTokenIcons({ ctx, token }){
+	ctx.db.cache.todos.createOne({
+		data: {
+			task: 'token.icons',
+			subject: getTokenId({ ctx, token })
+		}
+	})
+}
+
+export function markCacheDirtyForAccountIcons({ ctx, account }){
+	ctx.db.cache.todos.createOne({
+		data: {
+			task: 'account.icons',
+			subject: getAccountId({ ctx, account })
+		}
+	})
+}
