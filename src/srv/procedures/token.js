@@ -1,10 +1,11 @@
 import { decodeCurrencyCode, isSameCurrency } from '@xrplkit/amount'
 import { readTokenExchangeIntervalSeries, readTokenExchangesAligned } from '../../db/helpers/tokenexchanges.js'
 import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
+import { sanitize as sanitizeUrl } from '../../lib/url.js'
 
 
 export function serveTokenList(){
-	return ({ ctx, sort_by, name_like, trust_levels, decode_currency, prefer_sources, expand_meta, include_changes, limit, offset }) => {
+	return ({ ctx, sort_by, name_like, trust_levels, decode_currency, prefer_sources, expand_meta, include_changes, original_icons, limit, offset }) => {
 		let tokens = []
 		let where = {}
 
@@ -50,6 +51,7 @@ export function serveTokenList(){
 					preferSources: prefer_sources,
 					expandMeta: expand_meta,
 					includeChanges: include_changes,
+					originalIcons: original_icons
 				})
 			)
 		}
@@ -99,7 +101,7 @@ export function unsubscribeTokenList(){
 }
 
 export function serveTokenSummary(){
-	return ({ ctx, token, decode_currency, prefer_sources, expand_meta, include_changes }) => {
+	return ({ ctx, token, decode_currency, prefer_sources, expand_meta, include_changes, original_icons }) => {
 		let cache = ctx.db.cache.tokens.readOne({
 			where: {
 				token: token.id
@@ -118,6 +120,7 @@ export function serveTokenSummary(){
 			preferSources: prefer_sources,
 			expandMeta: expand_meta,
 			includeChanges: include_changes,
+			originalIcons: original_icons
 		})
 	}
 }
@@ -242,7 +245,11 @@ export function serveTokenExchanges(){
 }
 
 
-export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, expandMeta, includeChanges }){
+export function formatTokenCache({ ctx, cache, decodeCurrency, preferSources, expandMeta, includeChanges, originalIcons }){
+	if(!originalIcons){
+		cache = applyIconCaches({ ctx, cache })
+	}
+
 	let token = {
 		currency: decodeCurrency
 			? cache.tokenCurrencyUtf8
@@ -369,6 +376,26 @@ export function reduceProps({ props, expand, sourceRanking }){
 	}
 
 	return data
+}
+
+function applyIconCaches({ ctx, cache }){
+	let apply = props => props
+		.map(
+			prop => prop.key === 'icon'
+				? (
+					cache.cachedIcons?.[prop.value]
+					? {...prop, value: sanitizeUrl(`${ctx.config.api.publicUrl}/icon/${cache.cachedIcons?.[prop.value]}`)}
+					: null
+				)
+				: prop
+		)
+		.filter(Boolean)
+
+	return {
+		...cache,
+		issuerProps: apply(cache.issuerProps || []),
+		tokenProps: apply(cache.tokenProps || []),
+	}
 }
 
 function doSourcesMatch(s1, s2){

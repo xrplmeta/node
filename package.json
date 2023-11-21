@@ -29,6 +29,7 @@
 		"koa": "2.13.4",
 		"koa-easy-ws": "2.1.0",
 		"koa-json": "2.0.2",
+		"koa-send": "^5.0.1",
 		"limiter": "2.0.1",
 		"minimist": "1.2.6",
 		"node-abort-controller": "^3.1.1",

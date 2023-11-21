@@ -1,6 +1,10 @@
+import fs from 'fs'
+import path from 'path'
 import Router from '@koa/router'
+import sendFile from 'koa-send'
 import log from '@mwni/log'
 import * as procedures from './api.js'
+import { getCachedIconPath, iconSizes } from '../cache/icons.js'
 
 
 export function createRouter({ ctx }){
@@ -43,6 +47,7 @@ export function createRouter({ ctx }){
 					expand_meta: svc.query.expand_meta !== undefined,
 					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
 					name_like: svc.query.name_like,
 					trust_levels: svc.query.trust_levels
 						? svc.query.trust_levels.split(',')
@@ -84,6 +89,7 @@ export function createRouter({ ctx }){
 					expand_meta: svc.query.expand_meta !== undefined,
 					include_changes: svc.query.include_changes !== undefined,
 					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
 					prefer_sources: svc.query.prefer_sources
 						? svc.query.prefer_sources.split(',')
 						: undefined
@@ -105,6 +111,53 @@ export function createRouter({ ctx }){
 					...parseRange(svc.query)
 				}
 			})
+		}
+	)
+
+	router.get(
+		'/icon/:file',
+		async svc => {
+			try{
+				var [hash, fileType] = svc.params.file.split('.')
+
+				if(!hash || !fileType)
+					throw 'bad'
+			}catch{
+				svc.status = 400
+				svc.body = 'Invalid icon URL. The URL should consists of a hash and file extension, such as C0FFE.png'
+				return
+			}
+
+			let size
+			let suffix
+
+			if(svc.query.size){
+				size = parseInt(svc.query.size)
+
+				if(!iconSizes.includes(size)){
+					svc.status = 400
+					svc.body = `The specified icon "${svc.query.size}" size is not available. Available sizes are: ${iconSizes}`
+					return
+				}
+
+				suffix = `@${size}`
+			}
+
+			let iconPath = getCachedIconPath({ ctx, hash, suffix, fileType })
+
+			if(!fs.existsSync(iconPath)){
+				svc.status = 404
+				svc.body = 'This icon does not exist. Make sure to only use icon URLs from the live token manifest.'
+				return
+			}
+
+			await sendFile(
+				svc,
+				path.basename(iconPath),
+				{
+					root: path.dirname(iconPath)
+				}
+			)
 		}
 	)
 

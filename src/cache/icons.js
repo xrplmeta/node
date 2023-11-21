@@ -18,7 +18,7 @@ const mimeTypes = {
     'image/svg+xml': 'svg'
 }
 
-const iconSizes = [
+export const iconSizes = [
 	512,
 	256,
 	128,
@@ -244,7 +244,7 @@ async function downloadAndProcessIcon({ ctx, url }){
 		.slice(0, 10)
 		.toUpperCase()
 
-	let makePath = suffix => getIconPath({ ctx, hash, suffix, fileType })
+	let makePath = suffix => getCachedIconPath({ ctx, hash, suffix, fileType })
 
 	fs.writeFileSync(
 		makePath(),
@@ -272,11 +272,11 @@ function deleteIcon({ ctx, url }){
 		}
 	})
 
-	fs.rmSync(getIconPath({ ctx, ...icon }))
+	fs.rmSync(getCachedIconPath({ ctx, ...icon }))
 
 	if(icon.fileType !== 'svg'){
 		for(let size of iconSizes){
-			fs.rmSync(getIconPath({ ctx, ...icon, suffix: `@${size}` }))
+			fs.rmSync(getCachedIconPath({ ctx, ...icon, suffix: `@${size}` }))
 		}
 	}
 
@@ -296,6 +296,6 @@ function getIconCacheDir({ ctx }){
 	return dir
 }
 
-function getIconPath({ ctx, hash, suffix, fileType }){
+export function getCachedIconPath({ ctx, hash, suffix, fileType }){
 	return path.join(getIconCacheDir({ ctx }), `${hash}${suffix || ''}.${fileType}`)
 }
