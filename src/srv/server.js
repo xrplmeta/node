@@ -7,6 +7,23 @@ import { createManager } from './ws.js'
 
 
 export async function startServer({ ctx }){
+	if(!ctx.config.api.publicUrl){
+		let fallbackUrl = `http://localhost:${ctx.config.api.port}`
+
+		log.warn(`public URL not set in config - using fallback: ${fallbackUrl}\n >> consider setting "public_url" in the [API] stanza of your config.toml`)
+
+		ctx = {
+			...ctx,
+			config: {
+				...ctx.config,
+				api: {
+					...ctx.config.api,
+					publicUrl: fallbackUrl
+				}
+			}
+		}
+	}
+
 	let koa = new Koa()
 	let router = createRouter({ ctx })
 	let ws = createManager({ ctx })
