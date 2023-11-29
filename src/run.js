@@ -36,14 +36,17 @@ if(args._[0] === 'rebuild-cache'){
 
 	log.info(`writing backup to "${destinationFile}"`)
 	await backup({ config, destinationFile })
-}else{
+}else if(args._.length === 0 || args._[0] === 'run'){
 	log.info(`data directory is at "${config.node.dataDir}"`)
 	log.info(`will start app now`)
 
-	const app = await startApp({ config })
+	const app = await startApp({ config, args })
 
 	process.on('SIGINT', async () => {
 		await app.terminate()
 		process.exit(0)
 	})
+}else{
+	log.error(`unknown command "${args._[0]}"`)
+	process.exit(1)
 }
