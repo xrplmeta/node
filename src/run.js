@@ -25,7 +25,7 @@ const config = overrideConfig(baseConfig, args)
 
 if(args._[0] === 'rebuild-cache'){
 	log.info(`rebuilding cache at "${config.node.dataDir}"`)
-	await rebuildCache({ config })
+	await rebuildCache({ config, args })
 }else if(args._[0] === 'backup'){
 	let destinationFile = args._[1]
 

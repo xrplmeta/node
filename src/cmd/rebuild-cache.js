@@ -8,7 +8,7 @@ import {
 } from '../cache/tokens.js'
 
 
-export default async function({ config }){
+export default async function({ config, args }){
 	const ctx = {
 		config,
 		log,
@@ -17,11 +17,12 @@ export default async function({ config }){
 
 	const tokens = ctx.db.core.tokens.readMany()
 
-	log.time.info(`cache.wipe`, `wiping current cache`)
+	if(args.clean){
+		log.time.info(`cache.wipe`, `wiping current cache`)
+		ctx.db.cache.tokens.deleteMany()
+		log.time.info(`cache.wipe`, `wiped cache in %`)
+	}
 
-	ctx.db.cache.tokens.deleteMany()
-
-	log.time.info(`cache.wipe`, `wiped cache in %`)
 	log.time.info(`cache.tokens`, `rebuilding for`, tokens.length, `tokens`)
 
 	for(let i=1; i<tokens.length; i++){
