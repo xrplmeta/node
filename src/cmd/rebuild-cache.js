@@ -12,7 +12,10 @@ export default async function({ config, args }){
 	const ctx = {
 		config,
 		log,
-		db: await openDB({ ctx: { config } })
+		db: await openDB({ 
+			ctx: { config },
+			coreReadOnly: true
+		})
 	}
 
 	const tokens = ctx.db.core.tokens.readMany()
