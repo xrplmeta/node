@@ -3,7 +3,14 @@ const maxLedgerSequence = 1_000_000_000_000
 
 
 export function readPoint({ table, selector, ledgerSequence, expirable }){
-	if(expirable){
+	if(ledgerSequence === undefined){
+		return table.readOne({
+			where: selector,
+			orderBy: {
+				ledgerSequence: 'desc'
+			}
+		})
+	}else if(expirable){
 		return table.readOne({
 			where: {
 				...selector,
