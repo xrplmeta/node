@@ -1,5 +1,11 @@
 import { isSameCurrency } from '@xrplkit/amount'
-import { markCacheDirtyForAccountIcons, markCacheDirtyForAccountProps, markCacheDirtyForTokenIcons, markCacheDirtyForTokenProps } from '../../cache/todo.js'
+import { readTokenMetrics } from './tokenmetrics.js'
+import { 
+	markCacheDirtyForAccountIcons, 
+	markCacheDirtyForAccountProps, 
+	markCacheDirtyForTokenIcons, 
+	markCacheDirtyForTokenProps 
+} from '../../cache/todo.js'
 
 
 
@@ -128,16 +134,17 @@ export function readTokenProps({ ctx, token }){
 			token
 		}
 	})
-	
-	let issuerKycProps = ctx.db.core.accountProps.readMany({
-		where: {
-			account: token.issuer,
-			key: 'kyc',
-			value: true
-		}
+
+	let issuerGivenTrustLevelProps = []
+	let issuerProps = readAccountProps({
+		ctx,
+		account: token.issuer
 	})
 
-	for(let { source } of issuerKycProps){
+	for(let { key, value, source } of issuerProps){
+		if(key !== 'trust_level')
+			continue
+
 		let existingTrustProp = props.find(
 			prop => prop.key === 'trust_level' && prop.source === source
 		)
@@ -145,11 +152,25 @@ export function readTokenProps({ ctx, token }){
 		if(existingTrustProp){
 			existingTrustProp.value = Math.max(existingTrustProp.value, 1)
 		}else{
-			props.push({
+			issuerGivenTrustLevelProps.push({
 				key: 'trust_level',
-				value: 1,
+				value,
 				source
 			})
+		}
+	}
+
+	if(issuerGivenTrustLevelProps.length > 0){
+		let { holders } = readTokenMetrics({ 
+			ctx, 
+			token, 
+			metrics: {
+				holders: true
+			}
+		})
+
+		if(holders > 0){
+			props.push(...issuerGivenTrustLevelProps)
 		}
 	}
 	
