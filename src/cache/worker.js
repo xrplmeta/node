@@ -9,7 +9,7 @@ import {
 import { updateIconCacheFor } from './icons.js'
 
 
-export async function startCacheWorker({ ctx }){
+export async function startMetaCacheWorker({ ctx }){
 	let running = true
 	
 	;(async () => {
@@ -124,6 +124,16 @@ export async function startCacheWorker({ ctx }){
 			await wait(1)
 		}
 	})()
+
+	return {
+		stop(){
+			running = false
+		}
+	}
+}
+
+export async function startIconCacheWorker({ ctx }){
+	let running = true
 
 	;(async () => {
 		while(running){
