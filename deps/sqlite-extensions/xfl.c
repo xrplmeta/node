@@ -1,6 +1,6 @@
-#include <sqlite3ext.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "sqlite3ext.h"
 
 SQLITE_EXTENSION_INIT1
 

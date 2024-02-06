@@ -31,9 +31,8 @@ export async function openDB({ ctx, inMemory=false }){
 			'..', 
 			'..', 
 			'deps', 
-			'build', 
-			'Release', 
-			'sqlite-xfl.node'
+			'sqlite-extensions', 
+			'xfl.so',
 		)
 	)
 
