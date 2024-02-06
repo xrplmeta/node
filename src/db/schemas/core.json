@@ -269,7 +269,8 @@
 						"SignerListSet",
 						"TicketCreate",
 						"TrustSet",
-						"UNLReport"
+						"UNLReport",
+						"Clawback"
 					]
 				},
 				"count": {
