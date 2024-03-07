@@ -139,6 +139,8 @@ export function readTokenProps({ ctx, token }){
 	let issuerProps = readAccountProps({
 		ctx,
 		account: token.issuer
+			? token.issuer
+			: ctx.db.core.tokens.readOne({ where: token }).issuer
 	})
 
 	for(let { key, value, source } of issuerProps){
