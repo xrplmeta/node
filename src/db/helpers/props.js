@@ -237,14 +237,17 @@ export function readAccountProps({ ctx, account }){
 		}
 	}
 
-	account = ctx.db.core.accounts.readOne({
-		where: account
+	let { domain } = ctx.db.core.accounts.readOne({
+		where: account,
+		select: {
+			domain: true
+		}
 	})
 	
-	if(account?.domain)
+	if(domain)
 		props.push({
 			key: 'domain',
-			value: account.domain,
+			value: domain,
 			source: 'ledger'
 		})
 
