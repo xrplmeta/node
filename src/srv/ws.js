@@ -142,6 +142,10 @@ export function createManager({ ctx }){
 				log.debug(`client #${client.id} disconnected`)
 				logCount(-1)
 			})
+
+			socket.on('error', error => {
+				log.info(`client #${client.id} websocket error: ${error.message}`)
+			})
 	
 			clients.push(client)
 
