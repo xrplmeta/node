@@ -270,7 +270,13 @@
 						"TicketCreate",
 						"TrustSet",
 						"UNLReport",
-						"Clawback"
+						"Clawback",
+						"AMMBid",
+						"AMMCreate",
+						"AMMDelete",
+						"AMMDeposit",
+						"AMMVote",
+						"AMMWithdraw"
 					]
 				},
 				"count": {
