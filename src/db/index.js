@@ -73,6 +73,7 @@ export async function openCacheDB({ ctx, inMemory=false }){
 			)
 		),
 		journalMode: 'WAL',
-		debug: ctx.config.debug?.queries
+		debug: ctx.config.debug?.queries,
+		codecs
 	})
 }
