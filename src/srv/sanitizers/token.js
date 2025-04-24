@@ -1,4 +1,5 @@
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
+import { isValidClassicAddress } from 'ripple-address-codec'
 
 
 const sortKeymap = {
@@ -45,6 +46,13 @@ export function sanitizeToken({ key, array = false, allowXRP = false }){
 				throw {
 					type: `invalidParam`,
 					message: `XRP is not allowed as parameter.`,
+					expose: true
+				}
+		}else{
+			if(!isValidClassicAddress(issuer))
+				throw {
+					type: `invalidParam`,
+					message: `The issuing address "${key}.issuer" is malformed.`,
 					expose: true
 				}
 		}
