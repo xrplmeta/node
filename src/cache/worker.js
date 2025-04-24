@@ -120,8 +120,21 @@ export async function startMetaCacheWorker({ ctx }){
 				}
 			})
 
+			let remainingCount = ctx.db.cache.todos.count({
+				where: {
+					NOT: {
+						task: {
+							in: [
+								'account.icons',
+								'token.icons',
+							]
+						}
+					}
+				}
+			})
+
 			log.accumulate.info({
-				text: [`processed %cacheTasksProcessed cache updates in %time`],
+				text: [`processed %cacheTasksProcessed cache updates in %time (${remainingCount} remaining)`],
 				data: { cacheTasksProcessed: 1 }
 			})
 
@@ -184,8 +197,19 @@ export async function startIconCacheWorker({ ctx }){
 				}
 			})
 
+			let remainingCount = ctx.db.cache.todos.count({
+				where: {
+					task: {
+						in: [
+							'account.icons',
+							'token.icons',
+						]
+					}
+				}
+			})
+
 			log.accumulate.info({
-				text: [`processed %iconCacheTasksProcessed icon cache updates in %time`],
+				text: [`processed %iconCacheTasksProcessed icon cache updates in %time (${remainingCount} remaining)`],
 				data: { iconCacheTasksProcessed: 1 }
 			})
 
