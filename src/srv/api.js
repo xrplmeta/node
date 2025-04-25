@@ -15,7 +15,7 @@ export const ledger = compose([
 ])
 
 export const tokens = compose([
-	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
 	sanitizeTokenListSortBy(),
