@@ -26,12 +26,14 @@ export const tokens = compose([
 export const tokens_subscribe = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
 	sanitizeSourcePreferences(),
-	subscribeTokenList()
+	subscribeTokenList(),
+	tag({ mustRunMainThread: true })
 ])
 
 export const tokens_unsubscribe = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
-	unsubscribeTokenList()
+	unsubscribeTokenList(),
+	tag({ mustRunMainThread: true })
 ])
 
 export const token = compose([
@@ -66,4 +68,8 @@ function compose(functions){
 		(v, f) => f(v),
 		args	
 	)
+}
+
+function tag(properties){
+	return f => Object.assign(f, properties)
 }

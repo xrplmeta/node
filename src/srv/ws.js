@@ -1,6 +1,7 @@
 import log from '@mwni/log'
 import * as procedures from './api.js'
 import { formatTokenCache } from './procedures/token.js'
+import { executeProcedure } from './worker.js'
 
 
 const checkAliveInterval = 10000
@@ -93,15 +94,14 @@ export function createManager({ ctx }){
 					}
 
 					socket.send(
-						JSON.stringify({
-							result: await procedures[command]({
-								ctx: {
-									...ctx,
-									client
-								},
-								...params
-							}),
-							id
+						await executeProcedure({
+							ctx: {
+								...ctx,
+								client
+							},
+							procedure,
+							params,
+							requestId: id
 						})
 					)
 				}catch(error){

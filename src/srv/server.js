@@ -4,6 +4,7 @@ import websocket from 'koa-easy-ws'
 import json from 'koa-json'
 import { createRouter } from './http.js'
 import { createManager } from './ws.js'
+import { spawnWorkers } from './worker.js'
 
 
 export async function startServer({ ctx }){
@@ -22,6 +23,11 @@ export async function startServer({ ctx }){
 				}
 			}
 		}
+	}
+
+	ctx = {
+		...ctx,
+		workers: await spawnWorkers({ ctx })
 	}
 
 	let koa = new Koa()

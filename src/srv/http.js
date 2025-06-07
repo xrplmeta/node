@@ -5,6 +5,7 @@ import sendFile from 'koa-send'
 import log from '@mwni/log'
 import * as procedures from './api.js'
 import { getCachedIconPath, iconSizes } from '../cache/icons.js'
+import { executeProcedure } from './worker.js'
 
 
 export function createRouter({ ctx }){
@@ -28,7 +29,7 @@ export function createRouter({ ctx }){
 				ctx,
 				svc,
 				procedure: 'ledger',
-				args: {
+				params: {
 					...parsePoint(svc.query)
 				}
 			})
@@ -42,7 +43,7 @@ export function createRouter({ ctx }){
 				ctx,
 				svc,
 				procedure: 'tokens',
-				args: {
+				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
 					include_sources: svc.query.include_sources !== undefined,
@@ -68,7 +69,7 @@ export function createRouter({ ctx }){
 				ctx,
 				svc,
 				procedure: 'token_exchanges',
-				args: {
+				params: {
 					base: parseTokenURI(svc.params.base),
 					quote: parseTokenURI(svc.params.quote),
 					newestFirst: svc.query.newest_first !== undefined,
@@ -85,7 +86,7 @@ export function createRouter({ ctx }){
 				ctx,
 				svc,
 				procedure: 'token',
-				args: {
+				params: {
 					token: parseTokenURI(svc.params.token),
 					expand_meta: svc.query.expand_meta !== undefined,
 					include_sources: svc.query.include_sources !== undefined,
@@ -107,7 +108,7 @@ export function createRouter({ ctx }){
 				ctx,
 				svc,
 				procedure: 'token_series',
-				args: {
+				params: {
 					token: parseTokenURI(svc.params.token),
 					metric: svc.params.metric,
 					...parseRange(svc.query)
@@ -167,16 +168,18 @@ export function createRouter({ ctx }){
 }
 
 
-async function handle({ ctx, svc, procedure, args = {} }){
+async function handle({ ctx, svc, procedure, params = {} }){
 	if(!procedures[procedure]){
 		svc.throw(404)
 		return
 	}
 
 	try{
-		svc.body = await procedures[procedure]({
-			...args,
+		svc.type = 'json'
+		svc.body = await executeProcedure({
 			ctx,
+			procedure,
+			params
 		})
 	}catch(e){
 		if(e.expose){
@@ -189,7 +192,7 @@ async function handle({ ctx, svc, procedure, args = {} }){
 			svc.body = {
 				message: `Internal error while handling your request.`
 			}
-			log.warn(`internal error while handling procedure "${procedure}":\n${e.stack}\args:`, args)
+			log.warn(`internal error while handling procedure "${procedure}":\n${e.stack}\nparams:`, params)
 		}
 	}
 }
