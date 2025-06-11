@@ -280,7 +280,8 @@
 						"DIDSet",
 						"DIDDelete",
 						"OracleSet",
-						"OracleDelete"
+						"OracleDelete",
+						"NFTokenModify"
 					]
 				},
 				"count": {

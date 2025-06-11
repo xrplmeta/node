@@ -50,3 +50,24 @@ export function extractNFTokenExchanges({ ctx, ledger }){
 		})
 	}
 }
+
+export function extractNFTokenModifications({ ctx, ledger }){
+	for(let transaction of ledger.transactions){
+		if(transaction.TransactionType !== 'NFTokenModify')
+			continue
+
+		if(transaction.metaData.TransactionResult !== 'tesSUCCESS')
+			continue
+
+		ctx.db.core.nfts.updateOne({
+			data: {
+				uri: transaction.URI
+					? Buffer.from(transaction.URI, 'hex')
+					: null,
+			},
+			where: {
+				tokenId: transaction.NFTokenID
+			}
+		})
+	}
+}
