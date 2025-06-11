@@ -166,7 +166,9 @@ export async function fetchToml({ domain, fetch }){
 
 			return parseXLS26(data)
 		}catch(error){
-			if(tomlUrl === tomlUrls.at(-1))
+			log.debug(`failed ${tomlUrl}: ${error.message}`)
+
+			if(error.message === 'HTTP 404' || tomlUrl === tomlUrls.at(-1))
 				throw new Error(
 					error.message.includes(tomlUrl)
 						? error.message
