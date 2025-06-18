@@ -1,7 +1,7 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
 import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels } from './sanitizers/token.js'
 import { serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges } from './procedures/token.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 
 
@@ -10,7 +10,7 @@ export const server_info = compose([
 ])
 
 export const ledger = compose([
-	sanitizePoint({ clamp: false }),
+	sanitizePoint(),
 	serveLedger()
 ])
 
@@ -44,7 +44,7 @@ export const token = compose([
 
 export const token_metric = compose([
 	sanitizeToken({ key: 'token' }),
-	sanitizePoint({ clamp: false }),
+	sanitizePoint(),
 	serveTokenPoint()
 ])
 
@@ -60,6 +60,13 @@ export const token_exchanges = compose([
 	sanitizeRange({ defaultToFullRange: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges()
+])
+
+export const token_holders = compose([
+	sanitizeToken({ key: 'token' }),
+	sanitizePoint({ defaultToLatest: true }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	serveTokenHolders()
 ])
 
 

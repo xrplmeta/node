@@ -1,7 +1,9 @@
+import { div, mul } from '@xrplkit/xfl'
 import { isSameToken } from '@xrplkit/tokens'
 import { readTokenExchangeIntervalSeries, readTokenExchangesAligned } from '../../db/helpers/tokenexchanges.js'
-import { readTokenMetricIntervalSeries } from '../../db/helpers/tokenmetrics.js'
+import { readTokenMetricIntervalSeries, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
 import { sanitize as sanitizeUrl } from '../../lib/url.js'
+import { readTokenHolders } from '../../db/helpers/tokenholders.js'
 
 
 export function serveTokenList(){
@@ -270,6 +272,42 @@ export function serveTokenExchanges(){
 				})
 			),
 			marker: null
+		}
+	}
+}
+
+
+export function serveTokenHolders(){
+	return ({ ctx, token, sequence, offset, limit }) => {
+		let { supply, holders: totalHolders } = readTokenMetrics({
+			ctx,
+			token,
+			ledgerSequence: sequence,
+			metrics: {
+				supply: true,
+				holders: true
+			}
+		})
+
+		let holders = readTokenHolders({
+			ctx,
+			token,
+			ledgerSequence: sequence,
+			offset,
+			limit
+		})
+		
+		return {
+			totalSupply: supply.toString(),
+			totalHolders,
+			holders: holders.map(
+				({ account, balance }) => ({
+					account: account.address,
+					balance: balance.toString(),
+					percent: parseFloat(mul(div(balance, supply), 100).toString())
+				})
+			),
+			ledgerSequence: sequence
 		}
 	}
 }

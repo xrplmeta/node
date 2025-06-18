@@ -396,7 +396,7 @@
 			],
 			"index": [
 				["account", "ledgerSequence"],
-				["token", "ledgerSequence"]
+				["token", "ledgerSequence", "balance"]
 			]
 		},
 		"Token": {

@@ -118,6 +118,22 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
+		'/token/:token/holders',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_holders',
+				params: {
+					...svc.query,
+					token: parseTokenURI(svc.params.token),
+					...parsePoint(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
 		'/icon/:file',
 		async svc => {
 			try{
