@@ -99,7 +99,7 @@ export function createManager({ ctx }){
 								...ctx,
 								client
 							},
-							procedure,
+							procedure: command,
 							params,
 							requestId: id
 						})
