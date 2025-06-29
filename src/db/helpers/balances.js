@@ -6,8 +6,8 @@ export function readBalance({ ctx, account, token, ledgerSequence }){
 	return readPoint({
 		table: ctx.db.core.accountBalances,
 		selector: {
-			account,
-			token
+			token,
+			account
 		},
 		ledgerSequence
 	})
@@ -18,8 +18,8 @@ export function writeBalance({ ctx, account, token, ledgerSequence, balance }){
 	return writePoint({
 		table: ctx.db.core.accountBalances,
 		selector: {
-			account,
-			token
+			token,
+			account
 		},
 		ledgerSequence,
 		backwards: ctx.backwards,

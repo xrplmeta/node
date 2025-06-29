@@ -289,6 +289,14 @@ export function serveTokenHolders(){
 			}
 		})
 
+		if(!totalHolders)
+			return {
+				totalSupply: 0,
+				totalHolders: 0,
+				holders: [],
+				ledgerSequence: sequence
+			}
+
 		let holders = readTokenHolders({
 			ctx,
 			token,

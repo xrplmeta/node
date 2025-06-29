@@ -392,11 +392,7 @@
 				"ledgerSequence"
 			],
 			"unique": [
-				["account", "token", "ledgerSequence"]
-			],
-			"index": [
-				["account", "ledgerSequence"],
-				["token", "ledgerSequence", "balance"]
+				["token", "account", "ledgerSequence:desc"]
 			]
 		},
 		"Token": {
