@@ -26,7 +26,7 @@ export async function executeProcedure({ ctx, procedure, params, requestId }){
 
 	let now = Date.now()
 	let worker = ctx.workers
-		.map(worker => ({ worker, score: now - (worker.lastRequestTime || 0) - worker.busy * 1000000000 }))
+		.map(worker => ({ worker, score: now - (worker.lastRequestTime || 0) - (!!worker.busy) * 1000000000 }))
 		.sort((a, b) => b.score - a.score)
 		.at(0)
 		.worker
@@ -54,6 +54,8 @@ export async function runWorker({ ctx }){
 
 	return {
 		async execute({ procedure, params, requestId }){
+			if(params.slow)
+				await new Promise(resolve => setTimeout(resolve, 10000))
 			return json(await procedures[procedure]({ ...params, ctx }), requestId)
 		}
 	}
