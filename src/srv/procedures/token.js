@@ -425,7 +425,7 @@ export function formatTokenCache({
 export function reduceProps({ props, expand, sourceRanking }){
 	let data = {}
 	let sources = {}
-	let weblinks = []
+	let urls = []
 
 	for(let { key, value, source } of props){
 		if(expand){
@@ -441,8 +441,8 @@ export function reduceProps({ props, expand, sourceRanking }){
 			if(rank === -1)
 				rank = Infinity
 
-			if(key === 'weblinks'){
-				weblinks.push({ links: value, rank })
+			if(key === 'urls'){
+				urls.push({ links: value, rank })
 			}else{
 				if(!sources.hasOwnProperty(key) || sources[key] > rank){
 					data[key] = value
@@ -452,8 +452,8 @@ export function reduceProps({ props, expand, sourceRanking }){
 		}
 	}
 
-	if(weblinks.length > 0){
-		data.weblinks = weblinks
+	if(urls.length > 0){
+		data.urls = urls
 			.sort((a, b) => a.rank - b.rank)
 			.map(({ links }) => links)
 			.reduce((a, l) => [...a, ...l], [])

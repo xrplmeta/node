@@ -46,13 +46,13 @@ export default async function({ ctx }){
 
 				for(let service of services){
 					for(let { address } of service.addresses){
-						let weblinks = undefined
+						let urls = undefined
 
 						if(service.socialAccounts && service.socialAccounts.length > 0){
-							weblinks = Object.entries(service.socialAccounts).map(
+							urls = Object.entries(service.socialAccounts).map(
 								([key, handle]) => ({
 									url: socialMediaUrls[key].replace('%', handle),
-									type: 'socialmedia'
+									type: 'social'
 								})
 							)
 						}
@@ -62,7 +62,7 @@ export default async function({ ctx }){
 							props: {
 								name: service.name,
 								domain: service.domain,
-								weblinks,
+								urls,
 							},
 						})
 					}

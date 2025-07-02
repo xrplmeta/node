@@ -1,6 +1,6 @@
 {
 	"name": "xrplmeta",
-	"version": "2.13.1-alpha",
+	"version": "2.14.0-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
@@ -23,7 +23,7 @@
 		"@xrplkit/toml": "1.0.0",
 		"@xrplkit/txmeta": "1.4.1",
 		"@xrplkit/xfl": "2.1.1",
-		"@xrplkit/xls26": "2.4.0",
+		"@xrplkit/xls26": "2.5.0",
 		"@koa/router": "13.1.0",
 		"koa": "3.0.0",
 		"koa-easy-ws": "2.1.0",

@@ -30,13 +30,13 @@ export default async function({ ctx }){
 				OR: [
 					{
 						props: {
-							key: 'weblinks'
+							key: 'urls'
 						}
 					},
 					{
 						issuer: {
 							props: {
-								key: 'weblinks'
+								key: 'urls'
 							}
 						}
 					}
@@ -49,21 +49,21 @@ export default async function({ ctx }){
 				if(!token.issuer)
 					return
 
-				let issuerWeblinks = ctx.db.core.accountProps.readMany({
+				let issuerUrls = ctx.db.core.accountProps.readMany({
 					where: {
 						account: token.issuer,
-						key: 'weblinks'
+						key: 'urls'
 					}
 				})
 
-				let tokenWeblinks = ctx.db.core.tokenProps.readMany({
+				let tokenUrls = ctx.db.core.tokenProps.readMany({
 					where: {
 						token,
-						key: 'weblinks'
+						key: 'urls'
 					}
 				})
 
-				for(let prop of [...issuerWeblinks, ...tokenWeblinks]){
+				for(let prop of [...issuerUrls, ...tokenUrls]){
 					let link = prop.value
 						.filter(link => link.type !== 'support')
 						.find(link => link.url.includes('twitter.com'))

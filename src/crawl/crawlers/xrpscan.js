@@ -29,12 +29,12 @@ export default async function({ ctx }){
 				log.info(`got`, data.length, `well known`)
 
 				for(let { account, name, domain, twitter } of data){
-					let weblinks = undefined
+					let urls = undefined
 
 					if(twitter){
-						weblinks = [{
+						urls = [{
 							url: `https://twitter.com/${twitter}`,
-							type: `socialmedia`
+							type: `social`
 						}]
 					}
 
@@ -43,7 +43,7 @@ export default async function({ ctx }){
 						props: {
 							name,
 							domain,
-							weblinks
+							urls
 						},
 					})
 				}
