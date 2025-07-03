@@ -11,7 +11,7 @@ const props = [
 	{
 		key: 'name',
 		value: 'U.S. Dollar',
-		source: 'tokenlist'
+		source: 'trustlist'
 	},
 	{
 		key: 'name',
@@ -43,7 +43,7 @@ describe(
 					reduceProps({
 						props,
 						sourceRanking: [
-							'tokenlist',
+							'trustlist',
 							'xumm',
 							'bithomp'
 						]
@@ -55,7 +55,7 @@ describe(
 						props,
 						sourceRanking: [
 							'xumm/curated',
-							'tokenlist',
+							'trustlist',
 							'bithomp'
 						]
 					}).name
@@ -71,7 +71,7 @@ describe(
 						props,
 						sourceRanking: [
 							'xrpscan',
-							'tokenlist',
+							'trustlist',
 							'xumm'
 						]
 					}).name

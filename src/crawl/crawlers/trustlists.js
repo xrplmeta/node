@@ -7,7 +7,7 @@ import { currencyUTF8ToHex } from '@xrplkit/tokens'
 
 
 export default async function({ ctx }){
-	let configs = ctx.config.source.tokenlists
+	let configs = ctx.config.source.trustlists
 
 	if(!configs || configs.length == 0){
 		throw new Error(`disabled by config`)
@@ -28,7 +28,7 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 	while(true){
 		await scheduleGlobal({
 			ctx,
-			task: `tokenlist.${id}`,
+			task: `trustlist.${id}`,
 			interval: fetchInterval,
 			routine: async () => {
 				log.info(`reading ${url}`)
@@ -50,7 +50,7 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 				}
 
 				if(issues.length > 0){
-					log.debug(`tokenlist [${id}] has issues: ${
+					log.debug(`trustlist [${id}] has issues: ${
 						issues
 							.map(issue => `  - ${issue}`)
 							.join(`\n`)
@@ -106,16 +106,16 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 				diffMultiAccountProps({
 					ctx,
 					accounts,
-					source: `tokenlist/${id}`
+					source: `trustlist/${id}`
 				})
 
 				diffMultiTokenProps({
 					ctx,
 					tokens,
-					source: `tokenlist/${id}`
+					source: `trustlist/${id}`
 				})
 
-				log.info(`tokenlist [${id}] synced (issuers: ${issues.length} tokens: ${tokens.length} advisories: ${advisoryUpdates})`)
+				log.info(`trustlist [${id}] synced (issuers: ${issues.length} tokens: ${tokens.length} advisories: ${advisoryUpdates})`)
 			}
 		})
 	}

@@ -37,7 +37,7 @@ export default async function({ ctx }){
 						account: { id } 
 					}),
 					sourceRanking: [
-						'tokenlist',
+						'trustlist',
 						'ledger',
 						'issuer/domain',
 						'xumm',

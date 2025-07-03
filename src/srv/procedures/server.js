@@ -7,8 +7,8 @@ export function serveServerInfo(){
 		return {
 			server_version: version,
 			available_range: getAvailableRange({ ctx }),
-			tokenlists: ctx.config.source.tokenlists
-				? ctx.config.source.tokenlists.map(
+			trustlists: ctx.config.source.trustlists
+				? ctx.config.source.trustlists.map(
 					list => ({
 						id: list.id,
 						url: list.url,

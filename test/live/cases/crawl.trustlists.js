@@ -1,4 +1,4 @@
-import run from '../../../src/crawl/crawlers/tokenlists.js'
+import run from '../../../src/crawl/crawlers/trustlists.js'
 import { openDB } from '../../../src/db/index.js'
 
 
