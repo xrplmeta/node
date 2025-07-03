@@ -42,6 +42,12 @@ url = "https://unhosted.exchange/tokens.toml"
 fetch_interval = 60
 trust_level = 3
 
+[[SOURCE.TRUSTLISTS]]
+id = "ripple"
+url = "https://ripple.com/.well-known/ripple-partners.toml"
+fetch_interval = 60
+trust_level = 3
+
 
 [SOURCE.ISSUERDOMAIN]
 # All issuing accounts with the Domain field set are being automatically crawled for
