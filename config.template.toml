@@ -36,6 +36,12 @@ url = "https://xrplmeta.org/trusted.toml"
 fetch_interval = 30
 trust_level = 3
 
+[[SOURCE.TRUSTLISTS]]
+id = "xaman"
+url = "https://unhosted.exchange/tokens.toml"
+fetch_interval = 60
+trust_level = 3
+
 
 [SOURCE.ISSUERDOMAIN]
 # All issuing accounts with the Domain field set are being automatically crawled for
