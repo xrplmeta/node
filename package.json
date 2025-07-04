@@ -1,6 +1,6 @@
 {
 	"name": "xrplmeta",
-	"version": "2.14.0-alpha",
+	"version": "2.14.1-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
@@ -16,7 +16,7 @@
 		"@mwni/events": "3.0.0",
 		"@mwni/log": "3.2.0",
 		"@mwni/workers": "1.1.0",
-		"@structdb/sqlite": "1.7.0-alpha",
+		"@structdb/sqlite": "1.7.2-alpha",
 		"@xrplkit/socket": "2.1.0",
 		"@xrplkit/time": "1.0.0",
 		"@xrplkit/tokens": "1.0.1",
