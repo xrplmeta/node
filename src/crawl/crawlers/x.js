@@ -5,14 +5,14 @@ import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.twitter
+	let config = ctx.config.source.x
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 	
 	let fetch = new createFetch({
-		baseUrl: 'https://api.twitter.com/2',
+		baseUrl: 'https://api.x.com/2',
 		headers: {
 			authorization: `Bearer ${config.bearerToken}`
 		}, 
@@ -23,7 +23,7 @@ export default async function({ ctx }){
 		await scheduleBatchedIterator({
 			ctx,
 			type: 'token',
-			task: 'twitter',
+			task: 'x',
 			interval: config.fetchInterval,
 			batchSize: 100,
 			where: {
@@ -66,7 +66,7 @@ export default async function({ ctx }){
 				for(let prop of [...issuerUrls, ...tokenUrls]){
 					let link = prop.value
 						.filter(link => link.type !== 'support')
-						.find(link => link.url.includes('twitter.com'))
+						.find(link => link.url.includes('x.com'))
 
 					if(!link)
 						continue
@@ -102,7 +102,7 @@ export default async function({ ctx }){
 				return tasks
 			},
 			commit: async tasks => {
-				log.info(`got batch of`, tasks.length, `twitter profiles to fetch`)
+				log.info(`got batch of`, tasks.length, `x profiles to fetch`)
 
 				let usernamesQuery = tasks
 					.map(({ handle }) => handle)
@@ -165,7 +165,7 @@ export default async function({ ctx }){
 							ctx,
 							token,
 							props,
-							source: 'twitter/profile'
+							source: 'x/profile'
 						})
 
 						updatedTokens++
@@ -176,7 +176,7 @@ export default async function({ ctx }){
 							ctx,
 							account,
 							props,
-							source: 'twitter/profile'
+							source: 'x/profile'
 						})
 
 						updatedAccounts++

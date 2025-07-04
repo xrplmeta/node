@@ -1,4 +1,4 @@
-import run from '../../../src/crawl/crawlers/twitter.js'
+import run from '../../../src/crawl/crawlers/x.js'
 import { openDB } from '../../../src/db/index.js'
 
 

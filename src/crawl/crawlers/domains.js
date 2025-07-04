@@ -43,7 +43,7 @@ export default async function({ ctx }){
 						'xumm',
 						'bithomp',
 						'xrpscan',
-						'twitter'
+						'x'
 					]
 				})
 

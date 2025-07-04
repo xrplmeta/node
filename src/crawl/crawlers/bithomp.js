@@ -4,7 +4,7 @@ import { createFetch } from '../../lib/fetch.js'
 import { diffMultiAccountProps } from '../../db/helpers/props.js'
 
 const socialMediaUrls = {
-	twitter: `https://twitter.com/%`,
+	twitter: `https://x.com/%`,
 	facebook: `https://facebook.com/%`,
 	youtube: `https://youtube.com/c/%`,
 	instagram: `https://instagram.com/%`,

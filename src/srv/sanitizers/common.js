@@ -153,12 +153,11 @@ export function sanitizeSourcePreferences(){
 			for(let source of prefer_sources){
 				if([
 					'ledger',
-					'xrplmeta',
 					'xumm',
 					'domain',
 					'bithomp',
 					'xrpscan',
-					'twitter',
+					'x',
 					'gravatar'
 				].includes(source))
 					continue

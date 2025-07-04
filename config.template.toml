@@ -92,10 +92,10 @@ max_requests_per_minute = 60
 # api_key = "<key>"
 
 
-# [SOURCE.TWITTER]
-# twitter.com can provide icons, display names, website links and descriptions for both XRPL accounts and tokens.
+# [SOURCE.X]
+# x.com can provide icons, display names, website links and descriptions for both XRPL accounts and tokens.
 # It is required to obtain an API key for this service.
-# https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api
+# https://docs.x.com/x-api/getting-started/getting-access
 #
 # bearer_token = "paste_here"
 # fetch_interval = 3600
@@ -113,7 +113,7 @@ port = 4080
 
 # Multiple sources can give conflicting data for the same field. This array defines who's data has precedence,
 # from highest to lowest. Example for the values below: 
-# if XUMM, Bithomp and Twitter all define an icon for a token, the one from XUMM will be used.
+# if XUMM, Bithomp and X all define an icon for a token, the one from XUMM will be used.
 source_ranking = [
 	'ledger',			# on-chain values, such as the "Domain" field
 	'trustlist',		# .toml files published by trusted entities
@@ -123,5 +123,5 @@ source_ranking = [
 	'gravatar',
 	'bithomp',
 	'xrpscan',
-	'twitter'
+	'x'
 ]

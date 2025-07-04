@@ -33,7 +33,7 @@ export default async function({ ctx }){
 
 					if(twitter){
 						urls = [{
-							url: `https://twitter.com/${twitter}`,
+							url: `https://x.com/${twitter}`,
 							type: `social`
 						}]
 					}
