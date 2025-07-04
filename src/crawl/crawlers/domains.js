@@ -40,7 +40,7 @@ export default async function({ ctx }){
 						'trustlist',
 						'ledger',
 						'issuer/domain',
-						'xumm',
+						'xaman',
 						'bithomp',
 						'xrpscan',
 						'x'

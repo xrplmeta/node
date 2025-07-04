@@ -16,7 +16,7 @@ On the first launch
 From there on
 - It will sync itself with the live transaction stream
 - Backfill ledger history simultaneously
-- Scrape additional metadata sources, such as [Bithomp](https://bithomp.com), [XRP Scan](https://xrpscan.com) and [Xumm](https://xumm.dev)
+- Scrape additional metadata sources, such as [Bithomp](https://bithomp.com), [XRP Scan](https://xrpscan.com) and [Xaman](https://xaman.dev)
 
 
 

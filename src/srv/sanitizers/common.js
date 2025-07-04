@@ -153,7 +153,7 @@ export function sanitizeSourcePreferences(){
 			for(let source of prefer_sources){
 				if([
 					'ledger',
-					'xumm',
+					'xaman',
 					'domain',
 					'bithomp',
 					'xrpscan',

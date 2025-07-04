@@ -70,10 +70,10 @@ fetch_interval = 43200
 max_requests_per_minute = 60
 
 
-# [SOURCE.XUMM]
-# xumm.app provides a list of curated assets, KYC status and avatar images.
+# [SOURCE.XAMAN]
+# xaman.app provides a list of curated assets, KYC status and avatar images.
 # It is required to obtain an API key to use this service.
-# https://apps.xumm.dev
+# https://apps.xaman.dev
 #
 # api_key = "paste_here"
 # api_secret = "paste_here"
@@ -113,13 +113,13 @@ port = 4080
 
 # Multiple sources can give conflicting data for the same field. This array defines who's data has precedence,
 # from highest to lowest. Example for the values below: 
-# if XUMM, Bithomp and X all define an icon for a token, the one from XUMM will be used.
+# if XAMAN, Bithomp and X all define an icon for a token, the one from XAMAN will be used.
 source_ranking = [
 	'ledger',			# on-chain values, such as the "Domain" field
 	'trustlist',		# .toml files published by trusted entities
 	'issuer/domain',	# .toml files published by the token issuer, linked via the "Domain" field
-	'xumm/curated',		# names and icons, manually set by Xumm
-	'xumm/avatar',		# user defined icons from Xumm
+	'xaman/curated',		# names and icons, manually set by Xaman
+	'xaman/avatar',		# user defined icons from Xaman
 	'gravatar',
 	'bithomp',
 	'xrpscan',

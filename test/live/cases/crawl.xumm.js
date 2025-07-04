@@ -1,4 +1,4 @@
-import run from '../../../src/crawl/crawlers/xumm.js'
+import run from '../../../src/crawl/crawlers/xaman.js'
 import { openDB } from '../../../src/db/index.js'
 
 

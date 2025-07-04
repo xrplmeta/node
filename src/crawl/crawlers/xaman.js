@@ -5,14 +5,14 @@ import { diffMultiAccountProps, diffMultiTokenProps, writeAccountProps } from '.
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.xumm
+	let config = ctx.config.source.xaman
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
 	}
 	
 	let fetchApi = createFetch({
-		baseUrl: 'https://xumm.app/api/v1/platform/',
+		baseUrl: 'https://xaman.app/api/v1/platform/',
 		headers: {
 			'x-api-key': config.apiKey, 
 			'x-api-secret': config.apiSecret
@@ -21,7 +21,7 @@ export default async function({ ctx }){
 	})
 
 	let fetchAvatar = createFetch({
-		baseUrl: 'https://xumm.app/avatar/',
+		baseUrl: 'https://xaman.app/avatar/',
 		ratelimit: config.maxRequestsPerMinute 
 	})
 
@@ -48,7 +48,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 	while(true){
 		await scheduleGlobal({
 			ctx,
-			task: 'xumm.curated',
+			task: 'xaman.curated',
 			interval,
 			routine: async () => {
 				log.info(`fetching curated asset list...`)
@@ -59,7 +59,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 				let { data } = await fetch('curated-assets')
 
 				if(!data?.details){
-					log.warn(`got malformed XUMM curated asset list:`, data)
+					log.warn(`got malformed XAMAN curated asset list:`, data)
 					throw new Error(`malformed response`)
 				}
 
@@ -105,13 +105,13 @@ async function crawlAssets({ ctx, fetch, interval }){
 				diffMultiAccountProps({ 
 					ctx, 
 					accounts,
-					source: 'xumm/curated'
+					source: 'xaman/curated'
 				})
 
 				diffMultiTokenProps({
 					ctx, 
 					tokens,
-					source: 'xumm/curated'
+					source: 'xaman/curated'
 				})
 
 				log.info(`updated`, tokens.length, `tokens and`, accounts.length, `issuers`)
@@ -126,7 +126,7 @@ async function crawlKyc({ ctx, fetch, interval }){
 		await scheduleIterator({
 			ctx,
 			type: 'issuer',
-			task: 'xumm.kyc',
+			task: 'xaman.kyc',
 			interval,
 			routine: async ({ id, address }) => {
 				log.debug(`checking KYC for ${address}`)
@@ -139,7 +139,7 @@ async function crawlKyc({ ctx, fetch, interval }){
 					props: {
 						kyc: data.kycApproved
 					},
-					source: 'xumm/kyc'
+					source: 'xaman/kyc'
 				})
 
 				log.debug(`KYC for ${address}: ${data.kycApproved}`)
@@ -160,7 +160,7 @@ async function crawlAvatar({ ctx, fetch, interval }){
 		await scheduleIterator({
 			ctx,
 			type: 'issuer',
-			task: 'xumm.avatar',
+			task: 'xaman.avatar',
 			interval,
 			routine: async ({ id, address }) => {
 				log.debug(`checking avatar for ${address}`)
@@ -180,7 +180,7 @@ async function crawlAvatar({ ctx, fetch, interval }){
 					props: {
 						icon: avatar
 					},
-					source: 'xumm/avatar'
+					source: 'xaman/avatar'
 				})
 
 				log.debug(`avatar for ${address}: ${avatar}`)

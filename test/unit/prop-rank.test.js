@@ -6,7 +6,7 @@ const props = [
 	{
 		key: 'name',
 		value: 'US Dollar',
-		source: 'xumm/curated'
+		source: 'xaman/curated'
 	},
 	{
 		key: 'name',
@@ -44,7 +44,7 @@ describe(
 						props,
 						sourceRanking: [
 							'trustlist',
-							'xumm',
+							'xaman',
 							'bithomp'
 						]
 					}).name
@@ -54,7 +54,7 @@ describe(
 					reduceProps({
 						props,
 						sourceRanking: [
-							'xumm/curated',
+							'xaman/curated',
 							'trustlist',
 							'bithomp'
 						]
@@ -72,7 +72,7 @@ describe(
 						sourceRanking: [
 							'xrpscan',
 							'trustlist',
-							'xumm'
+							'xaman'
 						]
 					}).name
 				).to.be.equal(props[2].value)
