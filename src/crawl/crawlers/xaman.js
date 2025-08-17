@@ -1,7 +1,7 @@
 import log from '@mwni/log'
 import { scheduleGlobal, scheduleIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
-import { diffMultiAccountProps, diffMultiTokenProps, writeAccountProps } from '../../db/helpers/props.js'
+import { diffMultiAccountProps, diffMultiTokenProps, readAccountProps, writeAccountProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
@@ -130,6 +130,19 @@ async function crawlKyc({ ctx, fetch, interval }){
 			interval,
 			concurrency: 3,
 			routine: async ({ id, address }) => {
+				let currentKyc = ctx.db.core.accountProps.readOne({
+					where: {
+						account: { id },
+						key: 'kyc',
+						source: 'xaman/kyc'
+					}
+				})
+
+				if(currentKyc?.value === true){
+					log.debug(`skipping KYC check for ${address}: already approved`)
+					return
+				}
+
 				log.debug(`checking KYC for ${address}`)
 
 				let { data } = await fetch(`kyc-status/${address}`)
