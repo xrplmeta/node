@@ -128,6 +128,7 @@ async function crawlKyc({ ctx, fetch, interval }){
 			type: 'issuer',
 			task: 'xaman.kyc',
 			interval,
+			concurrency: 3,
 			routine: async ({ id, address }) => {
 				log.debug(`checking KYC for ${address}`)
 
