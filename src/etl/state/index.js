@@ -100,6 +100,9 @@ function applyDeltas({ ctx, deltas }){
 		if(!module)
 			continue
 
+		if(module.skip && module.skip({ ctx }))
+			continue
+
 		let parsedPrevious = previous 
 			? module.parse({ index, entry: previous }) 
 			: undefined
