@@ -7,8 +7,9 @@ import { markCacheDirtyForAccountProps } from '../../cache/todo.js'
 export function parse({ entry }){
 	return {
 		address: entry.Account,
-		emailHash: entry.EmailHash,
 		balance: div(entry.Balance, '1000000'),
+		sequence: entry.LedgerSequence,
+		emailHash: entry.EmailHash,
 		transferRate: entry.TransferRate,
 		blackholed: isBlackholed(entry),
 		domain: entry.Domain
@@ -21,7 +22,7 @@ export function diff({ ctx, previous, final }){
 	let address = final?.address || previous?.address
 
 	if(final){
-		let { balance, ...meta } = final
+		let { balance, sequence, ...meta } = final
 		var { id } = ctx.db.core.accounts.createOne({ 
 			data: ctx.backwards
 				? { address }
@@ -38,18 +39,31 @@ export function diff({ ctx, previous, final }){
 		})
 	}
 
+	if(ctx.backwards && !previous){
+		writeBalance({
+			ctx,
+			account: { id },
+			token: {
+				currency: 'XRP',
+				issuer: null
+			},
+			ledgerSequence: ctx.ledgerSequence,
+			balance: '0',
+		})
+	}
+
 	writeBalance({
 		ctx,
-		account: {
-			id
-		},
+		account: { id },
 		token: {
 			currency: 'XRP',
 			issuer: null
 		},
-		ledgerSequence: ctx.ledgerSequence,
+		ledgerSequence: final
+			? final.sequence 
+			: ctx.ledgerSequence,
 		balance: final
-			? final.balance
-			: '0'
+			? final.balance 
+			: '0',
 	})
 }

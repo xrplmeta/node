@@ -20,7 +20,10 @@ export function applyObjects({ ctx, objects }){
 		deltas: objects.map(entry => ({ 
 			type: entry.LedgerEntryType,
 			index: entry.index,
-			final: entry 
+			final: {
+				...entry,
+				LedgerSequence: entry.PreviousTxnLgrSeq
+			} 
 		}))
 	})
 }
@@ -38,7 +41,7 @@ export function applyTransactions({ ctx, ledger }){
 					index: CreatedNode.LedgerIndex,
 					final: {
 						...CreatedNode.NewFields,
-						PreviousTxnLgrSeq: ledger.sequence
+						LedgerSequence: ledger.sequence
 					}
 				})
 			}else if(ModifiedNode && ModifiedNode.FinalFields){
@@ -48,11 +51,11 @@ export function applyTransactions({ ctx, ledger }){
 					previous: {
 						...ModifiedNode.FinalFields,
 						...ModifiedNode.PreviousFields,
-						PreviousTxnLgrSeq: ModifiedNode.PreviousTxnLgrSeq
+						LedgerSequence: ModifiedNode.PreviousTxnLgrSeq
 					},
 					final: {
 						...ModifiedNode.FinalFields,
-						PreviousTxnLgrSeq: ledger.sequence
+						LedgerSequence: ledger.sequence
 					}
 				})
 			}else if(DeletedNode){
@@ -62,7 +65,7 @@ export function applyTransactions({ ctx, ledger }){
 					previous: {
 						...DeletedNode.FinalFields,
 						...DeletedNode.PreviousFields,
-						PreviousTxnLgrSeq: ledger.sequence
+						LedgerSequence: DeletedNode.PreviousTxnLgrSeq
 					}
 				})
 			}
@@ -71,20 +74,14 @@ export function applyTransactions({ ctx, ledger }){
 
 	if(ctx.backwards){
 		return applyDeltas({
-			ctx: {
-				...ctx,
-				ledgerSequence: ledger.sequence - 1
-			},
+			ctx,
 			deltas: deltas
 				.map(({ type, index, previous, final }) => ({ type, index, previous: final, final: previous }))
 				.reverse(),
 		})
 	}else{
 		return applyDeltas({
-			ctx: {
-				...ctx,
-				ledgerSequence: ledger.sequence,
-			},
+			ctx,
 			deltas
 		})
 	}

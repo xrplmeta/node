@@ -49,8 +49,7 @@ export function parse({ entry }){
 		size,
 		expirationTime: entry.Expiration
 			? rippleToUnix(entry.Expiration)
-			: null,
-		previousSequence: entry.PreviousTxnLgrSeq
+			: null
 	}
 }
 
