@@ -65,7 +65,7 @@ export function applyTransactions({ ctx, ledger }){
 					previous: {
 						...DeletedNode.FinalFields,
 						...DeletedNode.PreviousFields,
-						LedgerSequence: DeletedNode.PreviousTxnLgrSeq
+						LedgerSequence: DeletedNode.FinalFields.PreviousTxnLgrSeq
 					}
 				})
 			}
