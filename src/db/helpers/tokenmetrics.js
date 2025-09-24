@@ -56,18 +56,14 @@ export function readTokenMetricSeries({ ctx, token, metric, sequenceStart, seque
 	return ctx.db.core[metricTables[metric]].readMany({
 		where: {
 			token,
-			ledgerSequence: {
-				greaterOrEqual: sequenceStart
-			},
-			...(
-				sequenceEnd
-					? {
-						ledgerSequence: {
-							lessOrEqual: sequenceEnd
-						}
-					}
-					: {}
-			)
+            ledgerSequence: {
+                greaterOrEqual: sequenceStart,
+                ...(
+                    sequenceEnd
+                        ? { lessOrEqual: sequenceEnd }
+                        : {}
+                )
+            }
 		}
 	})
 }
