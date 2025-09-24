@@ -40,6 +40,7 @@ export function diff({ ctx, previous, final }){
 	}
 
 	if(ctx.backwards && !previous){
+		// edge case when backfilling AccountRoot deletions
 		writeBalance({
 			ctx,
 			account: { id },

@@ -120,6 +120,7 @@ export function diff({ ctx, token, deltas }){
 		}
 
 		if(ctx.backwards && !previous){
+			// edge case when backfilling RippleState deletions
 			writeBalance({
 				ctx,
 				account: final.account,
