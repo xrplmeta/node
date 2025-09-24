@@ -91,14 +91,6 @@ export function diff({ ctx, token, deltas }){
 		supply: supply || 0,
 	}
 
-	let metricsChanged = {}
-
-	if(ctx.backwards){
-		deltas = deltas
-			.map(delta => ({ ...delta, sequence: delta.final?.sequence || ctx.ledgerSequence }))
-			.sort((a, b) => b.sequence - a.sequence)
-	}
-
 	for(let { previous, final } of deltas){
 		if(previous && final){
 			metrics.supply = sum(
@@ -127,8 +119,6 @@ export function diff({ ctx, token, deltas }){
 			}
 		}
 
-		metricsChanged[final?.sequence || ctx.ledgerSequence] = metrics
-
 		if(ctx.backwards && !previous){
 			writeBalance({
 				ctx,
@@ -152,12 +142,10 @@ export function diff({ ctx, token, deltas }){
 		})
 	}
 
-	for(let [sequence, metrics] of Object.entries(metricsChanged)){
-		writeTokenMetrics({
-			ctx,
-			token,
-			metrics,
-			ledgerSequence: parseInt(sequence)
-		})
-	}
+	writeTokenMetrics({
+		ctx,
+		token,
+		metrics,
+		ledgerSequence: ctx.ledgerSequence
+	})
 }
