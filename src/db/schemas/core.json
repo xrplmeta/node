@@ -281,7 +281,10 @@
 						"DIDDelete",
 						"OracleSet",
 						"OracleDelete",
-						"NFTokenModify"
+						"NFTokenModify",
+						"CredentialCreate",
+						"CredentialAccept",
+						"CredentialDelete"
 					]
 				},
 				"count": {
