@@ -169,6 +169,7 @@ function collectItemIds({ ctx, type, where }){
 			})
 				.map(row => row.issuer?.id)
 				.filter(Boolean)
+				.reverse()
 		}
 	}else{
 		return {
@@ -178,6 +179,7 @@ function collectItemIds({ ctx, type, where }){
 				where
 			})
 				.map(row => row.id)
+				.reverse()
 		}
 	}
 }
