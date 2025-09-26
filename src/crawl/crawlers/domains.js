@@ -30,7 +30,7 @@ export default async function({ ctx }){
 			task: 'domains',
 			interval: config.fetchInterval,
 			concurrency: 3,
-			routine: async ({ id, address }) => {
+			routine: async ({ id, address }, remaining) => {
 				let { domain } = reduceProps({
 					props: readAccountProps({ 
 						ctx, 
@@ -55,7 +55,7 @@ export default async function({ ctx }){
 						return
 					}finally{
 						log.accumulate.info({
-							text: [`%xrplTomlLookups xrp-ledger.toml lookups in %time`],
+							text: [`%xrplTomlLookups xrp-ledger.toml lookups in %time (${remaining} remaining)`],
 							data: {
 								xrplTomlLookups: 1
 							}

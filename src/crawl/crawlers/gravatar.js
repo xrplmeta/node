@@ -22,7 +22,7 @@ export default async function({ ctx }){
 			type: 'issuer',
 			task: 'gravatar',
 			interval: config.fetchInterval,
-			routine: async ({ id, address, emailHash }) => {
+			routine: async ({ id, address, emailHash }, remaining) => {
 				let icon
 	
 				if(emailHash){
@@ -49,7 +49,7 @@ export default async function({ ctx }){
 				})
 	
 				log.accumulate.info({
-					text: [`%gravatarsChecked avatars checked in %time`],
+					text: [`%gravatarsChecked avatars checked in %time (${remaining} remaining)`],
 					data: {
 						gravatarsChecked: 1
 					}

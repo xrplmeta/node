@@ -129,7 +129,7 @@ async function crawlKyc({ ctx, fetch, interval }){
 			task: 'xaman.kyc',
 			interval,
 			concurrency: 3,
-			routine: async ({ id, address }) => {
+			routine: async ({ id, address }, remaining) => {
 				let currentKyc = ctx.db.core.accountProps.readOne({
 					where: {
 						account: { id },
@@ -159,7 +159,7 @@ async function crawlKyc({ ctx, fetch, interval }){
 				log.debug(`KYC for ${address}: ${data.kycApproved}`)
 	
 				log.accumulate.info({
-					text: [`%kycChecked KYC checked in %time`],
+					text: [`%kycChecked KYC checked in %time (${remaining} remaining)`],
 					data: {
 						kycChecked: 1
 					}
@@ -176,7 +176,7 @@ async function crawlAvatar({ ctx, fetch, interval }){
 			type: 'issuer',
 			task: 'xaman.avatar',
 			interval,
-			routine: async ({ id, address }) => {
+			routine: async ({ id, address }, remaining) => {
 				log.debug(`checking avatar for ${address}`)
 
 				let { headers } = await fetch(
@@ -200,7 +200,7 @@ async function crawlAvatar({ ctx, fetch, interval }){
 				log.debug(`avatar for ${address}: ${avatar}`)
 				
 				log.accumulate.info({
-					text: [`%avatarsChecked avatars checked in %time`],
+					text: [`%avatarsChecked avatars checked in %time (${remaining} remaining)`],
 					data: {
 						avatarsChecked: 1
 					}
