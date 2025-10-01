@@ -1,3 +1,4 @@
+import log from '@mwni/log'
 import * as accounts from './accounts.js'
 import * as tokens from './tokens.js'
 import * as tokenOffers from './tokenoffers.js'
@@ -45,6 +46,14 @@ export function applyTransactions({ ctx, ledger }){
 					}
 				})
 			}else if(ModifiedNode && ModifiedNode.FinalFields){
+				if(ModifiedNode.LedgerEntryType === 'DirectoryNode')
+					continue
+
+				if(ctx.backwards && !ModifiedNode.PreviousTxnLgrSeq){
+					log.warn(`transaction #${transaction.hash} is missing PreviousTxnLgrSeq - skipping`)
+					continue
+				}
+
 				deltas.push({
 					type: ModifiedNode.LedgerEntryType,
 					index: ModifiedNode.LedgerIndex,
