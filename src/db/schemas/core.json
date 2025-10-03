@@ -284,7 +284,11 @@
 						"NFTokenModify",
 						"CredentialCreate",
 						"CredentialAccept",
-						"CredentialDelete"
+						"CredentialDelete",
+						"MPTokenAuthorize",
+						"MPTokenIssuanceCreate",
+						"MPTokenIssuanceDestroy",
+						"MPTokenIssuanceSet"
 					]
 				},
 				"count": {
