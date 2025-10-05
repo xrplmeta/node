@@ -8,7 +8,7 @@ export function parse({ entry }){
 	return {
 		address: entry.Account,
 		balance: div(entry.Balance, '1000000'),
-		sequence: entry.LedgerSequence,
+		ledgerSequence: entry.LedgerSequence,
 		emailHash: entry.EmailHash,
 		transferRate: entry.TransferRate,
 		blackholed: isBlackholed(entry),
@@ -22,7 +22,7 @@ export function diff({ ctx, previous, final }){
 	let address = final?.address || previous?.address
 
 	if(final){
-		let { balance, sequence, ...meta } = final
+		let { balance, ledgerSequence, ...meta } = final
 		var { id } = ctx.db.core.accounts.createOne({ 
 			data: ctx.backwards
 				? { address }
@@ -61,7 +61,7 @@ export function diff({ ctx, previous, final }){
 			issuer: null
 		},
 		ledgerSequence: final
-			? final.sequence 
+			? final.ledgerSequence 
 			: ctx.ledgerSequence,
 		balance: final
 			? final.balance 

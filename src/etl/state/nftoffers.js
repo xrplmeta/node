@@ -45,7 +45,8 @@ export function parse({ index, entry }){
 		amountToken,
 		amountValue,
 		isSellOffer,
-		expirationTime
+		expirationTime,
+		ledgerSequence: entry.LedgerSequence
 	}
 }
 
@@ -63,8 +64,7 @@ export function diff({ ctx, previous, final }){
 	if(final){
 		writeNFTokenOffer({
 			...final,
-			ctx,
-			ledgerSequence: ctx.ledgerSequence,
+			ctx
 		})
 	}
 }

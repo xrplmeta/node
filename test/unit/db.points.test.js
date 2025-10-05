@@ -298,45 +298,5 @@ describe(
 				expect(o170).to.equal(undefined)
 			}
 		)
-
-		it(
-			'it should create a closed interval via backwards expirable write at 200',
-			() => {
-				writePoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 5, book },
-					ledgerSequence: 200,
-					backwards: true,
-					data: { quality: '3', size: '300' },
-					expirable: true
-				})
-			}
-		)
-
-		it(
-			'it should read inside the closed interval before 200',
-			() => {
-				let o100 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 5, book },
-					ledgerSequence: 100,
-					expirable: true
-				})
-				expect(o100.size.toString()).to.equal('300')
-			}
-		)
-
-		it(
-			'it should read undefined after the closed interval at 201',
-			() => {
-				let o201 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 5, book },
-					ledgerSequence: 201,
-					expirable: true
-				})
-				expect(o201).to.equal(undefined)
-			}
-		)
 	}
 )

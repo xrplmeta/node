@@ -20,7 +20,7 @@ export function parse({ entry }){
 				}
 			},
 			balance: max(0, neg(entry.Balance.value)),
-			sequence: entry.LedgerSequence
+			ledgerSequence: entry.LedgerSequence
 		}
 	}
 
@@ -36,7 +36,7 @@ export function parse({ entry }){
 				}
 			},
 			balance: max(0, entry.Balance.value),
-			sequence: entry.LedgerSequence
+			ledgerSequence: entry.LedgerSequence
 		}
 	}
 
@@ -135,7 +135,7 @@ export function diff({ ctx, token, deltas }){
 			account: final?.account || previous?.account,
 			token,
 			ledgerSequence: final
-				? final.sequence 
+				? final.ledgerSequence 
 				: ctx.ledgerSequence,
 			balance: final
 				? final.balance 

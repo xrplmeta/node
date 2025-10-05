@@ -31,6 +31,7 @@ export function parse({ entry }){
 	return {
 		account: { address: entry.Account },
 		accountSequence: entry.Sequence,
+		ledgerSequence: entry.LedgerSequence,
 		book: {
 			takerPays: {
 				currency: takerPays.currency,
@@ -69,7 +70,7 @@ export function diff({ ctx, previous, final }){
 			ctx,
 			account: final.account,
 			accountSequence: final.accountSequence,
-			ledgerSequence: ctx.ledgerSequence,
+			ledgerSequence: final.ledgerSequence,
 			book: final.book,
 			quality: final.quality,
 			size: final.size,
