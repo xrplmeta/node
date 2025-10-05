@@ -508,6 +508,7 @@
 				["txHash", "maker", "sequence"]
 			],
 			"index": [
+				["takerPaidToken", "takerGotToken", "ledgerSequence:asc"],
 				["takerPaidToken", "takerGotToken", "ledgerSequence:desc"]
 			]
 		},
@@ -535,7 +536,8 @@
 				"ledgerSequence"
 			],
 			"unique": [
-				["token", "ledgerSequence"]
+				["token", "ledgerSequence:asc"],
+				["token", "ledgerSequence:desc"]
 			]
 		},
 		"TokenTrustlines": {
@@ -561,7 +563,8 @@
 				"ledgerSequence"
 			],
 			"unique": [
-				["token", "ledgerSequence"]
+				["token", "ledgerSequence:asc"],
+				["token", "ledgerSequence:desc"]
 			]
 		},
 		"TokenHolders": {
@@ -587,7 +590,8 @@
 				"ledgerSequence"
 			],
 			"unique": [
-				["token", "ledgerSequence"]
+				["token", "ledgerSequence:asc"],
+				["token", "ledgerSequence:desc"]
 			]
 		},
 		"TokenMarketcap": {
@@ -614,7 +618,8 @@
 				"ledgerSequence"
 			],
 			"unique": [
-				["token", "ledgerSequence"]
+				["token", "ledgerSequence:asc"],
+				["token", "ledgerSequence:desc"]
 			]
 		},
 		"TokenBook": {
@@ -686,7 +691,7 @@
 				"lastLedgerSequence"
 			],
 			"unique": [
-				["account", "accountSequence", "ledgerSequence"]
+				["account", "accountSequence", "ledgerSequence:desc"]
 			],
 			"index": [
 				["book", "ledgerSequence", "lastLedgerSequence", "quality"]
@@ -772,7 +777,7 @@
 				"offerId"
 			],
 			"index": [
-				["nft", "ledgerSequence", "lastLedgerSequence"]
+				["nft", "ledgerSequence:desc", "lastLedgerSequence"]
 			]
 		},
 		"NFTokenExchange": {

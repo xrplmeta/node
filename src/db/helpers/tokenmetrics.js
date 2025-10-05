@@ -64,6 +64,9 @@ export function readTokenMetricSeries({ ctx, token, metric, sequenceStart, seque
                         : {}
                 )
             }
+		},
+		orderBy: {
+			ledgerSequence: 'asc'
 		}
 	})
 }
