@@ -34,7 +34,8 @@ export default async function({ ctx }){
 		crawlKyc({
 			ctx,
 			fetch: fetchApi,
-			interval: config.fetchIntervalKyc
+			interval: config.fetchIntervalKyc,
+			concurrency: config.concurrency || 3
 		}),
 		crawlAvatar({
 			ctx,
@@ -121,14 +122,14 @@ async function crawlAssets({ ctx, fetch, interval }){
 }
 
 
-async function crawlKyc({ ctx, fetch, interval }){
+async function crawlKyc({ ctx, fetch, interval, concurrency }){
 	while(true){
 		await scheduleIterator({
 			ctx,
 			type: 'issuer',
 			task: 'xaman.kyc',
 			interval,
-			concurrency: 3,
+			concurrency,
 			routine: async ({ id, address }, remaining) => {
 				let currentKyc = ctx.db.core.accountProps.readOne({
 					where: {
