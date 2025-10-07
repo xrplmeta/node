@@ -53,18 +53,27 @@ export function diff({ ctx, previous, final }){
 		})
 	}
 
-	writeBalance({
-		ctx,
-		account: { id },
-		token: {
-			currency: 'XRP',
-			issuer: null
-		},
-		ledgerSequence: final
-			? final.ledgerSequence 
-			: ctx.ledgerSequence,
-		balance: final
-			? final.balance 
-			: '0',
-	})
+	if(final){
+		writeBalance({
+			ctx,
+			account: { id },
+			token: {
+				currency: 'XRP',
+				issuer: null
+			},
+			ledgerSequence: final.ledgerSequence,
+			balance: final.balance,
+		})
+	}else{
+		writeBalance({
+			ctx,
+			account: { id },
+			token: {
+				currency: 'XRP',
+				issuer: null
+			},
+			ledgerSequence: ctx.ledgerSequence,
+			balance: '0',
+		})
+	}
 }

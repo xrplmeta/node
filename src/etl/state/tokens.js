@@ -130,17 +130,23 @@ export function diff({ ctx, token, deltas }){
 			})
 		}
 
-		writeBalance({
-			ctx,
-			account: final?.account || previous?.account,
-			token,
-			ledgerSequence: final
-				? final.ledgerSequence 
-				: ctx.ledgerSequence,
-			balance: final
-				? final.balance 
-				: '0',
-		})
+		if(final){
+			writeBalance({
+				ctx,
+				account: final.account,
+				token,
+				ledgerSequence: final.ledgerSequence,
+				balance: final.balance
+			})
+		}else{
+			writeBalance({
+				ctx,
+				account: previous.account,
+				token,
+				ledgerSequence: ctx.ledgerSequence,
+				balance: '0',
+			})
+		}
 	}
 
 	writeTokenMetrics({
