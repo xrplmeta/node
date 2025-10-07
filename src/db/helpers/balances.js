@@ -23,8 +23,6 @@ export function writeBalance({ ctx, account, token, ledgerSequence, balance }){
 		},
 		ledgerSequence,
 		backwards: ctx.backwards,
-		data: !eq(balance, 0)
-			? { balance }
-			: null
+		data: { balance }
 	})
 }
