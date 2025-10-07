@@ -32,7 +32,7 @@ export async function spawnCrawler({ ctx, name }){
 			crashed = true
 		})
 
-	await Promise.resolve()
+	await new Promise(resolve => setTimeout(resolve, 100))
 
 	if(!crashed){
 		log.info(`started crawler [${name}]`)
