@@ -1,8 +1,8 @@
 import log from '@mwni/log'
 import { spawn } from '@mwni/workers'
-import { extractEvents } from './events/index.js'
-import { applyTransactions } from './state/index.js'
-import { createDerivatives } from './derivatives/index.js'
+import { applyLedgerEvents } from './events/index.js'
+import { applyLedgerStateFromTransactions } from './state/index.js'
+import { updateDerived } from './derived/index.js'
 import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
 
 
@@ -42,9 +42,9 @@ export async function startSync({ ctx }){
 				try{
 					let heads = readTableHeads({ ctx })
 	
-					extractEvents({ ctx, ledger })
-					applyTransactions({ ctx, ledger })
-					createDerivatives({ 
+					applyLedgerEvents({ ctx, ledger })
+					applyLedgerStateFromTransactions({ ctx, ledger })
+					updateDerived({ 
 						ctx,
 						newItems: pullNewItems({ 
 							ctx, 

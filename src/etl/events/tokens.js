@@ -2,7 +2,7 @@ import { extractExchanges } from '@xrplkit/txmeta'
 import { markCacheDirtyForTokenExchanges } from '../../cache/todo.js'
 
 
-export function extractTokenExchanges({ ctx, ledger }){
+export function applyTokenExchanges({ ctx, ledger }){
 	let exchanges = []
 
 	for(let transaction of ledger.transactions){

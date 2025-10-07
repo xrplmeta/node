@@ -1,7 +1,7 @@
-import { updateMarketcapFromExchange, updateMarketcapFromSupply } from './marketcaps.js'
+import { updateMarketcapFromExchange, updateMarketcapFromSupply } from './marketcap.js'
 
 
-export function createDerivatives({ ctx, newItems }){
+export function updateDerived({ ctx, newItems }){
 	for(let exchange of newItems.tokenExchanges){
 		updateMarketcapFromExchange({ ctx, exchange })
 	}
@@ -11,7 +11,7 @@ export function createDerivatives({ ctx, newItems }){
 	}
 }
 
-export function createAllDerivatives({ ctx }){
+export function updateAllDerived({ ctx }){
 	let exchanges = ctx.db.core.tokenExchanges.iter()
 
 	for(let exchange of exchanges){

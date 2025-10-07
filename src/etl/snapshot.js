@@ -2,9 +2,9 @@ import log from '@mwni/log'
 import { unixNow } from '@xrplkit/time'
 import { spawn } from '@mwni/workers'
 import { fetch as fetchLedger } from '../xrpl/ledger.js'
-import { applyObjects } from './state/index.js'
-import { extractEvents } from './events/index.js'
-import { createAllDerivatives } from './derivatives/index.js'
+import { applyLedgerStateFromObjects } from './state/index.js'
+import { applyLedgerEvents } from './events/index.js'
+import { updateAllDerived } from './derived/index.js'
 
 
 export async function createSnapshot({ ctx }){
@@ -15,7 +15,7 @@ export async function createSnapshot({ ctx }){
 	}
 
 	if(!ctx.snapshotState){
-		await createSnapshotEntry({ ctx })
+		await createSnapshotState({ ctx })
 		log.info(`creating snapshot of ledger #${ctx.snapshotState.ledgerSequence} - this may take a long time`)
 	}
 
@@ -40,7 +40,7 @@ export async function createSnapshot({ ctx }){
 
 	if(!ctx.snapshotState.completionTime){
 		log.time.info(`snapshot.derivatives`, `creating derivative data ...`)
-		createAllDerivatives({ ctx })
+		updateAllDerived({ ctx })
 		log.time.info(`snapshot.derivatives`, `created derivative data in %`)
 
 		ctx.db.core.snapshots.updateOne({
@@ -57,13 +57,13 @@ export async function createSnapshot({ ctx }){
 	}
 }
 
-async function createSnapshotEntry({ ctx }){
+async function createSnapshotState({ ctx }){
 	let ledger = await fetchLedger({ 
 		ctx, 
 		sequence: 'validated'
 	})
 
-	extractEvents({ ctx, ledger })
+	applyLedgerEvents({ ctx, ledger })
 
 	ctx.currentLedger = ledger
 	ctx.snapshotState = ctx.db.core.snapshots.createOne({
@@ -86,7 +86,6 @@ async function createFeed({ ctx, ledgerSequence, marker, node }){
 	)
 }
 
-
 async function copyFromFeed({ ctx, feed }){
 	while(true){
 		let chunk = await feed.next()
@@ -95,7 +94,7 @@ async function copyFromFeed({ ctx, feed }){
 			break
 		
 		ctx.db.core.tx(() => {
-			applyObjects({
+			applyLedgerStateFromObjects({
 				ctx,
 				objects: chunk.objects
 			})

@@ -5,7 +5,7 @@ const pseudoTransactionTypes = [
 ]
 
 
-export function extractLedgerStats({ ctx, ledger }){
+export function applyLedgerStats({ ctx, ledger }){
 	let baseData = {
 		sequence: ledger.sequence,
 		hash: ledger.hash,

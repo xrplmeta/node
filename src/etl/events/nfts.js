@@ -2,7 +2,7 @@ import log from '@mwni/log'
 import { parse as parseOffer } from '../state/nftoffers.js'
 
 
-export function extractNFTokenExchanges({ ctx, ledger }){
+export function applyNFTokenExchanges({ ctx, ledger }){
 	for(let transaction of ledger.transactions){
 		if(transaction.TransactionType !== 'NFTokenAcceptOffer')
 			continue
@@ -51,7 +51,7 @@ export function extractNFTokenExchanges({ ctx, ledger }){
 	}
 }
 
-export function extractNFTokenModifications({ ctx, ledger }){
+export function applyNFTokenModifications({ ctx, ledger }){
 	for(let transaction of ledger.transactions){
 		if(transaction.TransactionType !== 'NFTokenModify')
 			continue

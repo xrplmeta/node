@@ -15,7 +15,7 @@ const ledgerEntryModules = {
 }
 
 
-export function applyObjects({ ctx, objects }){
+export function applyLedgerStateFromObjects({ ctx, objects }){
 	return applyDeltas({
 		ctx,
 		deltas: objects.map(entry => ({ 
@@ -29,7 +29,7 @@ export function applyObjects({ ctx, objects }){
 	})
 }
 
-export function applyTransactions({ ctx, ledger }){
+export function applyLedgerStateFromTransactions({ ctx, ledger }){
 	let deltas = []
 
 	for(let transaction of ledger.transactions){

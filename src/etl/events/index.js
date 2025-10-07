@@ -1,11 +1,11 @@
-import { extractLedgerStats } from './ledgers.js'
-import { extractTokenExchanges } from './tokens.js'
-import { extractNFTokenExchanges, extractNFTokenModifications } from './nfts.js'
+import { applyLedgerStats } from './ledgers.js'
+import { applyTokenExchanges } from './tokens.js'
+import { applyNFTokenExchanges, applyNFTokenModifications } from './nfts.js'
 
 
-export function extractEvents({ ctx, ledger }){
-	extractLedgerStats({ ctx, ledger })
-	extractTokenExchanges({ ctx, ledger })
-	extractNFTokenExchanges({ ctx, ledger })
-	extractNFTokenModifications({ ctx, ledger })
+export function applyLedgerEvents({ ctx, ledger }){
+	applyLedgerStats({ ctx, ledger })
+	applyTokenExchanges({ ctx, ledger })
+	applyNFTokenExchanges({ ctx, ledger })
+	applyNFTokenModifications({ ctx, ledger })
 }
