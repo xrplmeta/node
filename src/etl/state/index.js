@@ -4,7 +4,7 @@ import * as tokens from './tokens.js'
 import * as tokenOffers from './tokenoffers.js'
 import * as nfts from './nfts.js'
 import * as nftOffers from './nftoffers.js'
-
+import * as mptokenIssuance from './mptokenissuance.js'
 
 const ledgerEntryModules = {
 	AccountRoot: accounts,
@@ -12,6 +12,7 @@ const ledgerEntryModules = {
 	Offer: tokenOffers,
 	NFTokenPage: nfts,
 	NFTokenOffer: nftOffers,
+	MPTokenIssuance: mptokenIssuance,
 }
 
 

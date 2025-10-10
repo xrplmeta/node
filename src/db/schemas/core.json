@@ -44,6 +44,12 @@
 				"$ref": "#/definitions/Token"
 			}
 		},
+		"mptokentemps": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/MPTokenTemp"
+			}
+		},
 		"tokenProps": {
 			"type": "array",
 			"items": {
@@ -245,50 +251,77 @@
 				"type": {
 					"type": "string",
 					"enum": [
-						"AccountSet",
-						"AccountDelete",
-						"CheckCancel",
-						"CheckCash",
-						"CheckCreate",
-						"DepositPreauth",
-						"EscrowCancel",
-						"EscrowCreate",
-						"EscrowFinish",
-						"NFTokenAcceptOffer",
-						"NFTokenBurn",
-						"NFTokenCancelOffer",
-						"NFTokenCreateOffer",
-						"NFTokenMint",
-						"OfferCancel",
-						"OfferCreate",
-						"Payment",
-						"PaymentChannelClaim",
-						"PaymentChannelCreate",
-						"PaymentChannelFund",
-						"SetRegularKey",
-						"SignerListSet",
-						"TicketCreate",
-						"TrustSet",
-						"UNLReport",
-						"Clawback",
 						"AMMBid",
+						"AMMClawback",
 						"AMMCreate",
 						"AMMDelete",
 						"AMMDeposit",
 						"AMMVote",
 						"AMMWithdraw",
-						"DIDSet",
-						"DIDDelete",
-						"OracleSet",
-						"OracleDelete",
-						"NFTokenModify",
-						"CredentialCreate",
+						"AccountDelete",
+						"AccountSet",
+						"Batch",
+						"CheckCancel",
+						"CheckCash",
+						"CheckCreate",
+						"Clawback",
 						"CredentialAccept",
+						"CredentialCreate",
 						"CredentialDelete",
+						"DIDDelete",
+						"DIDSet",
+						"DelegateSet",
+						"DepositPreauth",
+						"EscrowCancel",
+						"EscrowCreate",
+						"EscrowFinish",
+						"LoanBrokerSet",
+						"LoanBrokerCoverClawback",
+						"LoanBrokerCoverDeposit",
+						"LoanBrokerCoverWithdraw",
+						"LoanBrokerDelete",
+						"LoanSet",
+						"LoanDelete",
+						"LoanManage",
+						"LoanPay",
 						"MPTokenAuthorize",
 						"MPTokenIssuanceCreate",
 						"MPTokenIssuanceDestroy",
-						"MPTokenIssuanceSet"
+						"MPTokenIssuanceSet",
+						"NFTokenAcceptOffer",
+						"NFTokenBurn",
+						"NFTokenCancelOffer",
+						"NFTokenCreateOffer",
+						"NFTokenMint",
+						"NFTokenModify",
+						"OfferCancel",
+						"OfferCreate",
+						"OracleDelete",
+						"OracleSet",
+						"Payment",
+						"PaymentChannelClaim",
+						"PaymentChannelCreate",
+						"PaymentChannelFund",
+						"PermissionedDomainSet",
+						"PermissionedDomainDelete",
+						"SetRegularKey",
+						"SignerListSet",
+						"TicketCreate",
+						"TrustSet",
+						"VaultClawback",
+						"VaultCreate",
+						"VaultDelete",
+						"VaultDeposit",
+						"VaultSet",
+						"VaultWithdraw",
+						"XChainAccountCreateCommit",
+						"XChainAddAccountCreateAttestation",
+						"XChainAddClaimAttestation",
+						"XChainClaim",
+						"XChainCommit",
+						"XChainCreateBridge",
+						"XChainCreateClaimID",
+						"XChainModifyBridge"
 					]
 				},
 				"count": {
@@ -416,25 +449,35 @@
 					"type": "string",
 					"format": "xrpl/currency"
 				},
-				"mpt_issuance_id": {
-                    "type": "string"
-                },
-                "token_type": {
-                    "type": "string",
-                    "enum": [
-                        "IOU",
-                        "MPT"
-                    ]
-                },
 				"props": {
 					"type": "array",
 					"items": {
 						"$ref": "#/definitions/TokenProp"
 					}
 				}
-			},			
+			},
+			"required": [
+				"currency"
+			],
 			"unique": [
-				["issuer", "currency"],
+				["issuer", "currency"]
+			]
+		},
+		"MPTokenTemp": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"issuer": {
+					"$ref": "#/definitions/Account"
+				},
+				"mpt_issuance_id": {
+                    "type": "string"
+                }				
+			},			
+			"unique": [				
 				["mpt_issuance_id"]
 			]
 		},
