@@ -416,18 +416,26 @@
 					"type": "string",
 					"format": "xrpl/currency"
 				},
+				"mpt_issuance_id": {
+                    "type": "string"
+                },
+                "token_type": {
+                    "type": "string",
+                    "enum": [
+                        "IOU",
+                        "MPT"
+                    ]
+                },
 				"props": {
 					"type": "array",
 					"items": {
 						"$ref": "#/definitions/TokenProp"
 					}
 				}
-			},
-			"required": [
-				"currency"
-			],
+			},			
 			"unique": [
-				["issuer", "currency"]
+				["issuer", "currency"],
+				["mpt_issuance_id"]
 			]
 		},
 		"TokenProp": {
