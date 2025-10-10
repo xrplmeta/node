@@ -1,6 +1,6 @@
 {
 	"name": "xrplmeta",
-	"version": "2.20.1-alpha",
+	"version": "2.21.0-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
@@ -25,21 +25,21 @@
 		"@xrplkit/xfl": "2.1.1",
 		"@xrplkit/xls26": "2.5.0",
 		"@koa/router": "13.1.0",
-		"koa": "3.0.0",
+		"koa": "3.0.1",
 		"koa-easy-ws": "2.1.0",
 		"koa-json": "2.0.2",
 		"koa-send": "5.0.1",
-		"better-sqlite3": "11.10.0",
+		"better-sqlite3": "12.4.1",
 		"limiter": "2.0.1",
 		"node-abort-controller": "3.1.1",
 		"node-fetch": "3.3.2",
 		"minimist": "1.2.8",
 		"ripple-address-codec": "5.0.0",
-		"sharp": "0.34.2",
-		"ws": "8.18.2"
+		"sharp": "0.34.4",
+		"ws": "8.18.3"
 	},
 	"devDependencies": {
-		"chai": "^5.1.1",
-		"mocha": "^10.7.3"
+		"chai": "6.2.0",
+		"mocha": "11.7.3"
 	}
 }
