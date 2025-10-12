@@ -10,7 +10,7 @@ import { startBackfill } from '../ledger/backfill.js'
 export async function run({ ctx }){
 	ctx = { 
 		...ctx,
-		xrpl: createPool(ctx.config.source.xrpls),
+		xrpl: createPool(ctx.config.ledger.source),
 	}
 
 	await spawn(':runSnapshot', { ctx })

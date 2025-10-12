@@ -162,9 +162,9 @@ export function sanitizeSourcePreferences(){
 				].includes(source))
 					continue
 
-				if(ctx.config.source.trustlists){
+				if(ctx.config.trustlist){
 					if(
-						ctx.config.source.trustlists.some(
+						ctx.config.trustlist.some(
 							list => list.id === source
 						)
 					)

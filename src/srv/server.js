@@ -8,8 +8,8 @@ import { spawnWorkers } from './worker.js'
 
 
 export async function startServer({ ctx }){
-	if(!ctx.config.api.publicUrl){
-		let fallbackUrl = `http://localhost:${ctx.config.api.port}`
+	if(!ctx.config.server.publicUrl){
+		let fallbackUrl = `http://localhost:${ctx.config.server.port}`
 
 		log.warn(`public URL not set in config - using fallback: ${fallbackUrl}\n >> consider setting "public_url" in the [API] stanza of your config.toml`)
 
@@ -51,7 +51,7 @@ export async function startServer({ ctx }){
 	koa.use(json({ pretty: true }))
 	koa.use(router.routes(), router.allowedMethods())
 
-	koa.listen(ctx.config.api.port)
+	koa.listen(ctx.config.server.port)
 		.on('clientError', (error, socket) => {
 			if(error.code === 'ERR_HTTP_REQUEST_TIMEOUT' && socket.ignoreTimeout)
 				return
@@ -64,7 +64,7 @@ export async function startServer({ ctx }){
 		})
 
 
-	log.info(`listening on port ${ctx.config.api.port}`)
+	log.info(`listening on port ${ctx.config.server.port}`)
 
 	await new Promise(resolve => {
 		koa.on('close', resolve)

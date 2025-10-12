@@ -5,7 +5,7 @@ import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.x
+	let config = ctx.config.x
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)

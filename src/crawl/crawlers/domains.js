@@ -13,7 +13,7 @@ const tomlStandardPath = '.well-known/xrp-ledger.toml'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.issuerdomain
+	let config = ctx.config.tomls
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)

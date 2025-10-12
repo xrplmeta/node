@@ -468,7 +468,7 @@ function applyIconCaches({ ctx, cache }){
 			prop => prop.key === 'icon'
 				? (
 					cache.cachedIcons?.[prop.value]
-					? {...prop, value: sanitizeUrl(`${ctx.config.api.publicUrl}/icon/${cache.cachedIcons?.[prop.value]}`)}
+					? {...prop, value: sanitizeUrl(`${ctx.config.server.publicUrl}/icon/${cache.cachedIcons?.[prop.value]}`)}
 					: null
 				)
 				: prop

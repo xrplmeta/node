@@ -4,7 +4,7 @@ import { rippleToUnix } from '@xrplkit/time'
 import { writeTokenOffer, expireTokenOffer } from '../../db/helpers/tokenoffers.js'
 
 export function skip({ ctx }){
-	return !ctx.config.node.captureOffers
+	return !ctx.config.ledger.captureOffers
 }
 
 export function parse({ entry }){

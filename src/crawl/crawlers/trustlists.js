@@ -7,7 +7,7 @@ import { currencyUTF8ToHex } from '@xrplkit/tokens'
 
 
 export default async function({ ctx }){
-	let configs = ctx.config.source.trustlists
+	let configs = ctx.config.trustlist
 
 	if(!configs || configs.length == 0){
 		throw new Error(`disabled by config`)
