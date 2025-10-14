@@ -36,7 +36,8 @@
 		"minimist": "1.2.8",
 		"ripple-address-codec": "5.0.0",
 		"sharp": "0.34.2",
-		"ws": "8.18.2"
+		"ws": "8.18.2",
+		"@xrplkit/xls89": "file:/Users/rajp/Documents/code/forks/xrplkit/xls89"
 	},
 	"devDependencies": {
 		"chai": "^5.1.1",

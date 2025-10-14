@@ -1,31 +1,20 @@
-import log from '@mwni/log'
+// This logic might be removed in future, and the MPTs will be stored in Tokens table based on objects created/modified as
 
-function hexToString(hex) {
-    return Buffer.from(hex, 'hex').toString('utf8');
-}
+import TokenType from "../../xrpl/tokentype.js"
 
-function parseMPTokenMetadata(hexInput) {
-    if (!hexInput)
-        return {}
-
-    try {
-        return JSON.parse(hexToString(hexInput))
-    } catch (err) {
-        log.warn(`Error parsing - hex: ${hexInput} - string: ${hexToString(hexInput)}`);    
-    }
-    
-    return {}
-}
-
+// a result of DEX trade.
 export function parse({entry}) {
     return {
-        issuer: entry.Issuer, 
+        issuer: {address: entry.Issuer}, 
         mptIssuanceId: entry.mpt_issuance_id,
-        metaData: parseMPTokenMetadata(entry.MPTokenMetadata)
     }
 }
 
-// TODO
-export function diff({ ctx, previous, final }){
+export function diff({ ctx, final }){
+    if (!final)
+        return
     
+    ctx.db.core.tokensTemp.createOne({
+        data: {...final, tokenType: TokenType.MPT}
+    })    
 }

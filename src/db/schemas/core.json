@@ -44,10 +44,10 @@
 				"$ref": "#/definitions/Token"
 			}
 		},
-		"mptokentemps": {
+		"tokensTemp": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/MPTokenTemp"
+				"$ref": "#/definitions/TokenTemp"
 			}
 		},
 		"tokenProps": {
@@ -449,6 +449,14 @@
 					"type": "string",
 					"format": "xrpl/currency"
 				},
+				"tokenType": {
+					"type": "string",
+					"enum": [
+						"XRP",
+						"IOU",
+						"MPT"
+					]				
+				},
 				"props": {
 					"type": "array",
 					"items": {
@@ -463,7 +471,7 @@
 				["issuer", "currency"]
 			]
 		},
-		"MPTokenTemp": {
+		"TokenTemp": {
 			"type": "object",
 			"properties": {
 				"id": {
@@ -473,13 +481,18 @@
 				"issuer": {
 					"$ref": "#/definitions/Account"
 				},
-				"mpt_issuance_id": {
+				"mptIssuanceId": {
                     "type": "string"
-                }				
-			},			
-			"unique": [				
-				["mpt_issuance_id"]
-			]
+				},
+				"tokenType": {
+					"type": "string",
+					"enum": [
+						"XRP",
+						"IOU",
+						"MPT"
+					]
+				}
+			}			
 		},
 		"TokenProp": {
 			"type": "object",
