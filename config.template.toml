@@ -36,12 +36,6 @@ fetch_interval = 30
 trust_level = 3
 
 [[TRUSTLIST]]
-id = "ripple"
-url = "https://ripple.com/.well-known/ripple-partners.toml"
-fetch_interval = 60
-trust_level = 3
-
-[[TRUSTLIST]]
 id = "xaman"
 url = "https://unhosted.exchange/tokens.toml"
 fetch_interval = 60
