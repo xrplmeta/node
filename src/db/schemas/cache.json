@@ -25,6 +25,12 @@
 			"items": {
 				"$ref": "#/definitions/Todo"
 			}
+		},
+		"todosTemp": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TodoTemp"
+			}
 		}
 	},
 	"definitions": {
@@ -311,6 +317,42 @@
 			]
 		},
 		"Todo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"task": {
+					"type": "string",
+					"enum": [
+						"account.props",
+						"account.icons",
+						"token.props",
+						"token.exchanges",
+						"token.metrics.trustlines",
+						"token.metrics.holders",
+						"token.metrics.supply",
+						"token.metrics.marketcap",
+						"token.icons"
+					]
+				},
+				"subject": {
+					"type": "integer"
+				}
+			},
+			"required": [
+				"task",
+				"subject"
+			],
+			"unique": [
+				["task", "subject"]
+			],
+			"index": [
+				"task"
+			]
+		},
+		"TodoTemp": {
 			"type": "object",
 			"properties": {
 				"id": {

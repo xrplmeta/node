@@ -1,4 +1,4 @@
-import { getAccountId, getTokenId } from '../db/helpers/common.js'
+import { getAccountId, getTokenId, getTokenIdTemp } from '../db/helpers/common.js'
 
 export function markCacheDirtyForAccountProps({ ctx, account }){
 	if(ctx.backwards)
@@ -20,6 +20,18 @@ export function markCacheDirtyForTokenProps({ ctx, token }){
 		data: {
 			task: 'token.props',
 			subject: getTokenId({ ctx, token })
+		}
+	})
+}
+
+export function markCacheDirtyForTokenPropsTemp({ ctx, token }){
+	if(ctx.backwards)
+		return
+
+	ctx.db.cache.todosTemp.createOne({
+		data: {
+			task: 'token.props',
+			subject: getTokenIdTemp({ ctx, token })
 		}
 	})
 }
@@ -60,6 +72,15 @@ export function markCacheDirtyForTokenIcons({ ctx, token }){
 		data: {
 			task: 'token.icons',
 			subject: getTokenId({ ctx, token })
+		}
+	})
+}
+
+export function markCacheDirtyForTokenIconsTemp({ ctx, token }){
+	ctx.db.cache.todosTemp.createOne({
+		data: {
+			task: 'token.icons',
+			subject: getTokenIdTemp({ ctx, token })
 		}
 	})
 }

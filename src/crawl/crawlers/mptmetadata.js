@@ -2,6 +2,7 @@ import { parse as parseXLS89 } from '@xrplkit/xls89'
 import { fetch as fetchMPTokenMetadata } from '../../xrpl/ledgerentry.js'
 import TokenType from '../../xrpl/tokentype.js'
 import { scheduleIteratorTemp } from '../schedule.js'
+import {  clearTokenPropsTemp, writeTokenPropsTemp } from '../../db/helpers/props.js'
 
 export default async function({ ctx }){
     let config = ctx.config.source.mptmetadata
@@ -28,11 +29,25 @@ export default async function({ ctx }){
                 if (!result.metadata)
                     return;
                 
-                try {
-                    let resp = parseXLS89(result.metadata)
-                    console.log(resp)
-                } catch(err) {
-                    console.log(err)
+                let {token: props} = parseXLS89(result.metadata)
+
+                if(Object.keys(props).length === 0) {
+                    clearTokenPropsTemp({
+                        ctx,
+                        token: {
+                            mptIssuanceId
+                        },
+                        source: `ledger/mptmetadata/${mptIssuanceId}`
+                    })
+                } else {
+                    writeTokenPropsTemp({
+                        ctx,
+                        token: {
+                            mptIssuanceId
+                        },
+                        props,
+                        source: `ledger/mptmetadata/${mptIssuanceId}`
+                    })
                 }
             }
         })

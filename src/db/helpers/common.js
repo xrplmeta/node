@@ -142,3 +142,15 @@ export function getTokenId({ ctx, token }){
 		}
 	}).id
 }
+
+export function getTokenIdTemp({ ctx, token }){
+	if(token.id)
+		return token.id
+
+	return ctx.db.core.tokensTemp.readOne({
+		where: token,
+		select: {
+			id: true
+		}
+	}).id
+}

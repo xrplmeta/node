@@ -56,6 +56,12 @@
 				"$ref": "#/definitions/TokenProp"
 			}
 		},
+		"tokenPropsTemp": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/TokenPropTemp"
+			}
+		},
 		"tokenExchanges": {
 			"type": "array",
 			"items": {
@@ -503,6 +509,35 @@
 				},
 				"token": {
 					"$ref": "#/definitions/Token"
+				},
+				"key": {
+					"type": "string"
+				},
+				"value": {
+					"type": "any"
+				},
+				"source": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"token",
+				"key",
+				"source"
+			],
+			"unique": [
+				["token", "key", "source"]
+			]
+		},
+		"TokenPropTemp": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/TokenTemp"
 				},
 				"key": {
 					"type": "string"
