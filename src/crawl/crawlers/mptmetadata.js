@@ -7,23 +7,23 @@ import {  clearTokenPropsTemp, writeTokenPropsTemp } from '../../db/helpers/prop
 export default async function({ ctx }){
     let config = ctx.config.source.mptmetadata
 
-    if (!config || config.disable) {
+    if (!config || config.disable){
         throw new Error(`disabled by config`)
     }
 
     while(true) {
         await scheduleIteratorTemp({
             ctx,
-            type: "token",
-            task: "mptmetadata",
+            type: 'token',
+            task: 'mptmetadata',
             where: {
                 tokenType: TokenType.MPT
             },
             interval: config.fetchInterval,
-            concurrency: ctx.config.source.mptmetadata.concurrency,
+            concurrency: config.concurrency,
             routine: async ({ mptIssuanceId }) => {
                 const result = await fetchMPTokenMetadata(
-                    {ctx, sequence: "validated", mptIssuanceId}
+                    {ctx, sequence: 'validated', mptIssuanceId}
                 )
 
                 if (!result.metadata)
@@ -31,7 +31,7 @@ export default async function({ ctx }){
                 
                 let {token: props} = parseXLS89(result.metadata)
 
-                if(Object.keys(props).length === 0) {
+                if(Object.keys(props).length === 0){
                     clearTokenPropsTemp({
                         ctx,
                         token: {
@@ -39,7 +39,7 @@ export default async function({ ctx }){
                         },
                         source: `ledger/mptmetadata/${mptIssuanceId}`
                     })
-                } else {
+                }else{
                     writeTokenPropsTemp({
                         ctx,
                         token: {
@@ -52,5 +52,4 @@ export default async function({ ctx }){
             }
         })
     }
-
 }

@@ -1,7 +1,7 @@
 const TokenType = Object.freeze({
       XRP: 'XRP',
       IOU: 'IOU',
-      MPT: 'MPT',
+      MPT: 'MPT'
 });
 
 export default TokenType;
