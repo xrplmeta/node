@@ -24,18 +24,6 @@ export function markCacheDirtyForTokenProps({ ctx, token }){
 	})
 }
 
-export function markCacheDirtyForTokenPropsTemp({ ctx, token }){
-	if(ctx.backwards)
-		return
-
-	ctx.db.cache.todosTemp.createOne({
-		data: {
-			task: 'token.props',
-			subject: getTokenIdTemp({ ctx, token })
-		}
-	})
-}
-
 export function markCacheDirtyForTokenMetrics({ ctx, token, metrics }){
 	if(ctx.backwards)
 		return
@@ -72,15 +60,6 @@ export function markCacheDirtyForTokenIcons({ ctx, token }){
 		data: {
 			task: 'token.icons',
 			subject: getTokenId({ ctx, token })
-		}
-	})
-}
-
-export function markCacheDirtyForTokenIconsTemp({ ctx, token }){
-	ctx.db.cache.todosTemp.createOne({
-		data: {
-			task: 'token.icons',
-			subject: getTokenIdTemp({ ctx, token })
 		}
 	})
 }

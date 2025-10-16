@@ -91,62 +91,6 @@ export async function scheduleIterator({ ctx, type, where, include, task, interv
 	await wait(1)
 }
 
-// TODO: remove it
-export async function scheduleIteratorTemp({ ctx, type, where, include, task, interval, concurrency = 1, routine }){
-	let { table, ids } = collectItemIdsTemp({ ctx, type, where })
-
-	log.debug(`${task}:`, ids.length, `items[${table}] to iterate`)
-
-	await Promise.all(
-		Array(concurrency)
-			.fill(0)
-			.map(async () => {
-				while(ids.length > 0){
-					let id = ids.shift()
-					let item = ctx.db.core[table].readOne({
-						where: {
-							id
-						},
-						include
-					})
-
-					let previousOperation = ctx.db.core.operations.readOne({
-						where: {
-							subjectType: type,
-							subjectId: item.id,
-							task,
-							time: {
-								greaterThan: unixNow() - interval
-							}
-						}
-					})
-
-					if(previousOperation)
-						continue
-
-					try{
-						await routine(item, ids.length)
-					}catch(error){
-						log.warn(`scheduled task "${task}" failed for item:\n`, error.stack || error.message || error)
-						await wait(3000)
-					}
-
-					ctx.db.core.operations.createOne({
-						data: {
-							subjectType: type,
-							subjectId: item.id,
-							task,
-							time: unixNow()
-						}
-					})
-				}
-			})
-	)
-
-	await wait(1)
-}
-
-
 export async function scheduleBatchedIterator({ ctx, type, where, include, task, interval, batchSize, accumulate, commit }){
 	let queue = []
 	let flush = async () => {
@@ -230,33 +174,6 @@ function collectItemIds({ ctx, type, where }){
 		return {
 			table: 'tokens',
 			ids: ctx.db.core.tokens.readMany({
-				select: { id: true },
-				where
-			})
-				.map(row => row.id)
-				.reverse()
-		}
-	}
-}
-
-// TODO: remove it
-function collectItemIdsTemp({ ctx, type, where }){
-	if(type === 'issuer'){
-		return {
-			table: 'accounts',
-			ids: ctx.db.core.tokens.readMany({ 
-				select: { issuer: true }, 
-				distinct: ['issuer'],
-				where
-			})
-				.map(row => row.issuer?.id)
-				.filter(Boolean)
-				.reverse()
-		}
-	}else{
-		return {
-			table: 'tokensTemp',
-			ids: ctx.db.core.tokensTemp.readMany({
 				select: { id: true },
 				where
 			})

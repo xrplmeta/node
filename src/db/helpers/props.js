@@ -4,9 +4,7 @@ import {
 	markCacheDirtyForAccountIcons, 
 	markCacheDirtyForAccountProps, 
 	markCacheDirtyForTokenIcons, 
-	markCacheDirtyForTokenIconsTemp, 
-	markCacheDirtyForTokenProps, 
-	markCacheDirtyForTokenPropsTemp
+	markCacheDirtyForTokenProps
 } from '../../cache/todo.js'
 
 
@@ -230,40 +228,6 @@ export function writeTokenProps({ ctx, token, props, source }){
 		markCacheDirtyForTokenIcons({ ctx, token })
 }
 
-export function writeTokenPropsTemp({ ctx, token, props, source }){
-	if(Object.keys(props).length === 0)
-		return
-
-	ctx.db.core.tx(() => {
-		for(let [key, value] of Object.entries(props)){
-			if(value == null){
-				ctx.db.core.tokenPropsTemp.deleteOne({
-					where: {
-						token,
-						key,
-						source
-					}
-				})
-			}else{
-				ctx.db.core.tokenPropsTemp.createOne({
-					data: {
-						token,
-						key,
-						value,
-						source
-					}
-				})
-			}
-		}
-	})
-
-	markCacheDirtyForTokenPropsTemp({ ctx, token })
-
-	if(props.hasOwnProperty('icon'))
-		markCacheDirtyForTokenIconsTemp({ ctx, token })
-}
-
-
 export function readAccountProps({ ctx, account }){
 	let props = ctx.db.core.accountProps.readMany({
 		where: {
@@ -351,20 +315,6 @@ export function clearTokenProps({ ctx, token, source }){
 	if(deletedNum > 0){
 		markCacheDirtyForTokenProps({ ctx, token })
 		markCacheDirtyForTokenIcons({ ctx, token })
-	}
-}
-
-export function clearTokenPropsTemp({ ctx, token, source }){
-	let deletedNum = ctx.db.core.tokenPropsTemp.deleteMany({
-		where: {
-			token,
-			source
-		}
-	})
-	
-	if(deletedNum > 0){
-		markCacheDirtyForTokenPropsTemp({ ctx, token })
-		markCacheDirtyForTokenIconsTemp({ ctx, token })
 	}
 }
 
