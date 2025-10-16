@@ -15,14 +15,14 @@ export default async function({ config, args }){
 
 
 	if(!args['only-server']){
-		// await runLedgerApp({ ctx })
-		// 	.catch(error => {
-		// 		log.error(`ledger app crashed due to fatal error:`)
-		// 		log.error(error)
-		// 		process.exit(1)
-		// 	})
+		await runLedgerApp({ ctx })
+			.catch(error => {
+				log.error(`ledger app crashed due to fatal error:`)
+				log.error(error)
+				process.exit(1)
+			})
 
-		// log.info(`bootstrap complete`)
+		log.info(`bootstrap complete`)
 		
 		runCrawlApp({ ctx })
 			.catch(error => {

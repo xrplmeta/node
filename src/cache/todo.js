@@ -1,4 +1,4 @@
-import { getAccountId, getTokenId, getTokenIdTemp } from '../db/helpers/common.js'
+import { getAccountId, getTokenId } from '../db/helpers/common.js'
 
 export function markCacheDirtyForAccountProps({ ctx, account }){
 	if(ctx.backwards)

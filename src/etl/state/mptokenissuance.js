@@ -14,7 +14,7 @@ export function diff({ ctx, final }){
     if (!final)
         return
     
-    ctx.db.core.tokensTemp.createOne({
+    ctx.db.core.tokens.createOne({
         data: {...final, tokenType: TokenType.MPT}
     })    
 }
