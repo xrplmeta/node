@@ -67,17 +67,24 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 					})
 				}
 
-				for(let { currency, issuer, ...props } of declaredTokens){
+				for(let { currency, issuer, mptIssuanceId, ...props } of declaredTokens){
 					if(props.hasOwnProperty('trust_level'))
 						props.trust_level = Math.min(props.trust_level, trustLevel)
 
-					tokens.push({
-						currency: currencyUTF8ToHex(currency),
-						issuer: {
-							address: issuer
-						},
-						props
-					})
+					if (mptIssuanceId != null){
+						tokens.push({
+							mptIssuanceId,
+							props
+						})
+					}else{
+						tokens.push({
+							currency: currencyUTF8ToHex(currency),
+							issuer: {
+								address: issuer
+							},
+							props
+						})
+					}
 				}
 
 				let advisoryUpdates = 0

@@ -31,24 +31,22 @@ export default async function({ ctx }){
                 
                 let {token: props} = parseXLS89(result.metadata)
 
-                if(Object.keys(props).length === 0){
-                    clearTokenPropsTemp({
-                        ctx,
-                        token: {
-                            mptIssuanceId
-                        },
-                        source: `ledger/mptmetadata/${mptIssuanceId}`
-                    })
-                }else{
-                    writeTokenPropsTemp({
-                        ctx,
-                        token: {
-                            mptIssuanceId
-                        },
-                        props,
-                        source: `ledger/mptmetadata/${mptIssuanceId}`
-                    })
-                }
+                clearTokenPropsTemp({
+                    ctx,
+                    token: {
+                        mptIssuanceId
+                    },
+                    source: `ledger/mptmetadata/${mptIssuanceId}`
+                })
+
+                writeTokenPropsTemp({
+                    ctx,
+                    token: {
+                        mptIssuanceId
+                    },
+                    props,
+                    source: `ledger/mptmetadata/${mptIssuanceId}`
+                })   
             }
         })
     }

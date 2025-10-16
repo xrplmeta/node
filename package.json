@@ -23,7 +23,7 @@
 		"@xrplkit/toml": "1.0.0",
 		"@xrplkit/txmeta": "1.4.1",
 		"@xrplkit/xfl": "2.1.1",
-		"@xrplkit/xls26": "2.5.0",
+		"@xrplkit/xls26": "file:/Users/rajp/Documents/code/forks/xrplkit/xls26",
 		"@koa/router": "13.1.0",
 		"koa": "3.0.0",
 		"koa-easy-ws": "2.1.0",
