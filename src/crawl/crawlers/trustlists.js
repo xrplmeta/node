@@ -4,8 +4,6 @@ import { scheduleGlobal } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { diffMultiAccountProps, diffMultiTokenProps } from '../../db/helpers/props.js'
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
-import TokenType from '../../xrpl/tokentype.js'
-
 
 export default async function({ ctx }){
 	let configs = ctx.config.trustlist
@@ -73,7 +71,7 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 						props.trust_level = Math.min(props.trust_level, trustLevel)
 
 					tokens.push({
-						currency: mpt_issuance_id == null ? currencyUTF8ToHex(currency) : undefined,
+						currency: mpt_issuance_id == null ? currencyUTF8ToHex(currency) : null,
 						issuer: {
 							address: issuer
 						},

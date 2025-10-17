@@ -1,4 +1,3 @@
-import { isSameToken } from '@xrplkit/tokens'
 import { readTokenMetrics } from './tokenmetrics.js'
 import { 
 	markCacheDirtyForAccountIcons, 
@@ -9,25 +8,17 @@ import {
 import TokenType from '../../xrpl/tokentype.js'
 
 
-
 export function diffMultiTokenProps({ ctx, tokens, source }){
-	let iouTokens = tokens.filter(token => token.mptIssuanceId == null)
-	let mptTokens = tokens.filter(token => token.mptIssuanceId != null)
-
-	diffMultiIOUTokenProps({ctx, tokens: iouTokens, source})
-	diffMultiMPTTokenProps({ctx, tokens: mptTokens, source})
-}
-
-function diffMultiMPTTokenProps({ ctx, tokens, source }){
 	let propIds = []
 
-	for(let { issuer, mptIssuanceId, props } of tokens){
+	for(let { currency, issuer, mptIssuanceId, props } of tokens){
 		writeTokenProps({
 			ctx,
 			token: {
+				currency,
 				issuer,
 				mptIssuanceId,
-				tokenType: TokenType.MPT,
+				tokenType: mptIssuanceId ? TokenType.MPT : TokenType.IOU
 			},
 			props,
 			source
@@ -37,7 +28,10 @@ function diffMultiMPTTokenProps({ ctx, tokens, source }){
 			let prop = ctx.db.core.tokenProps.readOne({
 				where: {
 					token: {
-						mptIssuanceId
+						currency,
+						issuer,
+						mptIssuanceId,
+						tokenType: mptIssuanceId ? TokenType.MPT : TokenType.IOU
 					},
 					key,
 					source
@@ -75,77 +69,6 @@ function diffMultiMPTTokenProps({ ctx, tokens, source }){
 
 	let deletionAffectedTokens = staleProps
 		.map(({ token }) => token)		
-	
-	for(let token of deletionAffectedTokens){
-		markCacheDirtyForTokenProps({ ctx, token })
-	}
-}
-
-
-function diffMultiIOUTokenProps({ ctx, tokens, source }){
-	let propIds = []
-
-	for(let { currency, issuer, props } of tokens){
-		writeTokenProps({
-			ctx,
-			token: {
-				currency,
-				issuer,
-				tokenType: TokenType.IOU
-			},
-			props,
-			source
-		})
-
-		for(let key of Object.keys(props)){
-			let prop = ctx.db.core.tokenProps.readOne({
-				where: {
-					token: {
-						currency,
-						issuer,
-						tokenType: TokenType.IOU
-					},
-					key,
-					source
-				}
-			})
-
-			if(prop)
-				propIds.push(prop.id)
-		}
-	}
-
-	let staleProps = ctx.db.core.tokenProps.readMany({
-		where: {
-			NOT: {
-				id: {
-					in: propIds
-				}
-			},
-			source
-		},
-		include: {
-			token: true
-		}
-	})
-
-	ctx.db.core.tokenProps.deleteMany({
-		where: {
-			id: {
-				in: staleProps.map(
-					({ id }) => id
-				)
-			}
-		}
-	})
-
-	let deletionAffectedTokens = staleProps
-		.map(({ token }) => token)
-		.filter(
-			(token, index, tokens) => index === tokens.findIndex(
-				({ currency, issuer }) => isSameToken(token, { currency, issuer })
-			)
-		)
 	
 	for(let token of deletionAffectedTokens){
 		markCacheDirtyForTokenProps({ ctx, token })
@@ -285,7 +208,7 @@ export function writeTokenProps({ ctx, token, props, source }){
 					}
 				})
 			}else{
-				const res = ctx.db.core.tokenProps.createOne({
+				ctx.db.core.tokenProps.createOne({
 					data: {
 						token,
 						key,
@@ -293,8 +216,6 @@ export function writeTokenProps({ ctx, token, props, source }){
 						source
 					}
 				})
-
-				console.log(res)
 			}
 		}
 	})
