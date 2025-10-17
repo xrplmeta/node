@@ -1,9 +1,0 @@
-{
-  "prettier.enable": false,
-  "editor.formatOnSave": false,
-  "editor.formatOnPaste": false,
-  "editor.formatOnType": false,
-  "eslint.format.enable": false,
-  "typescript.format.enable": false,
-  "json.format.enable": false
-}
