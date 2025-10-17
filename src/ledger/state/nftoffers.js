@@ -2,6 +2,7 @@ import { encodeAccountID } from 'ripple-address-codec'
 import { amountFromRippled } from '@xrplkit/tokens'
 import { rippleToUnix } from '@xrplkit/time'
 import { expireNFTokenOffer, writeNFTokenOffer } from '../../db/helpers/nftoffers.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 export function parse({ index, entry }){
@@ -24,7 +25,8 @@ export function parse({ index, entry }){
 				currency,
 				issuer: {
 					address: issuer
-				}
+				},
+				tokenType: TokenType.IOU
 			}
 	}
 

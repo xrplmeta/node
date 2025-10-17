@@ -5,7 +5,7 @@ import { scheduleIterator } from '../schedule.js'
 import {  clearTokenProps, writeTokenProps } from '../../db/helpers/props.js'
 
 export default async function({ ctx }){
-    let config = ctx.config.source.mptmetadata
+    let config = ctx.config.mptmetadata
 
     if (!config || config.disable){
         throw new Error(`disabled by config`)

@@ -6,10 +6,83 @@ import {
 	markCacheDirtyForTokenIcons, 
 	markCacheDirtyForTokenProps
 } from '../../cache/todo.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 
 export function diffMultiTokenProps({ ctx, tokens, source }){
+	let iouTokens = tokens.filter(token => token.mptIssuanceId == null)
+	let mptTokens = tokens.filter(token => token.mptIssuanceId != null)
+
+	diffMultiIOUTokenProps({ctx, tokens: iouTokens, source})
+	diffMultiMPTTokenProps({ctx, tokens: mptTokens, source})
+}
+
+function diffMultiMPTTokenProps({ ctx, tokens, source }){
+	let propIds = []
+
+	for(let { issuer, mptIssuanceId, props } of tokens){
+		writeTokenProps({
+			ctx,
+			token: {
+				issuer,
+				mptIssuanceId,
+				tokenType: TokenType.MPT,
+			},
+			props,
+			source
+		})
+
+		for(let key of Object.keys(props)){
+			let prop = ctx.db.core.tokenProps.readOne({
+				where: {
+					token: {
+						mptIssuanceId
+					},
+					key,
+					source
+				}
+			})
+
+			if(prop)
+				propIds.push(prop.id)
+		}
+	}
+
+	let staleProps = ctx.db.core.tokenProps.readMany({
+		where: {
+			NOT: {
+				id: {
+					in: propIds
+				}
+			},
+			source
+		},
+		include: {
+			token: true
+		}
+	})
+
+	ctx.db.core.tokenProps.deleteMany({
+		where: {
+			id: {
+				in: staleProps.map(
+					({ id }) => id
+				)
+			}
+		}
+	})
+
+	let deletionAffectedTokens = staleProps
+		.map(({ token }) => token)		
+	
+	for(let token of deletionAffectedTokens){
+		markCacheDirtyForTokenProps({ ctx, token })
+	}
+}
+
+
+function diffMultiIOUTokenProps({ ctx, tokens, source }){
 	let propIds = []
 
 	for(let { currency, issuer, props } of tokens){
@@ -17,7 +90,8 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 			ctx,
 			token: {
 				currency,
-				issuer
+				issuer,
+				tokenType: TokenType.IOU
 			},
 			props,
 			source
@@ -28,7 +102,8 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 				where: {
 					token: {
 						currency,
-						issuer
+						issuer,
+						tokenType: TokenType.IOU
 					},
 					key,
 					source
@@ -210,7 +285,7 @@ export function writeTokenProps({ ctx, token, props, source }){
 					}
 				})
 			}else{
-				ctx.db.core.tokenProps.createOne({
+				const res = ctx.db.core.tokenProps.createOne({
 					data: {
 						token,
 						key,
@@ -218,6 +293,8 @@ export function writeTokenProps({ ctx, token, props, source }){
 						source
 					}
 				})
+
+				console.log(res)
 			}
 		}
 	})
