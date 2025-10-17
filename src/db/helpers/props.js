@@ -228,6 +228,7 @@ export function writeTokenProps({ ctx, token, props, source }){
 		markCacheDirtyForTokenIcons({ ctx, token })
 }
 
+
 export function readAccountProps({ ctx, account }){
 	let props = ctx.db.core.accountProps.readMany({
 		where: {

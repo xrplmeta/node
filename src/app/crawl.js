@@ -3,6 +3,7 @@ import { spawn } from '@mwni/workers'
 import { openDB } from '../db/index.js'
 import { startCrawlers } from '../crawl/init.js'
 
+
 export async function run({ ctx }){
 	await spawn(':runCrawl', { ctx })
 }
