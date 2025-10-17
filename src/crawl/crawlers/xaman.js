@@ -5,7 +5,7 @@ import { diffMultiAccountProps, diffMultiTokenProps, readAccountProps, writeAcco
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.xaman
+	let config = ctx.config.xaman
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)

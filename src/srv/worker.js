@@ -5,7 +5,7 @@ import * as procedures from './api.js'
 
 
 export async function spawnWorkers({ ctx }){
-	let num = ctx.config.api.workers || 3
+	let num = ctx.config.server.workers || 3
 	let { db, ...workerCtx } = ctx
 
 	log.info(`spawning ${num} workers`)

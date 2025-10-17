@@ -16,7 +16,7 @@ const socialMediaUrls = {
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.bithomp
+	let config = ctx.config.bithomp
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)

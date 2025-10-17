@@ -5,7 +5,7 @@ import { writeAccountProps } from '../../db/helpers/props.js'
 
 
 export default async function({ ctx }){
-	let config = ctx.config.source.gravatar
+	let config = ctx.config.gravatar
 
 	if(!config || config.disabled){
 		throw new Error(`disabled by config`)
