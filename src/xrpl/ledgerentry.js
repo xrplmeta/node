@@ -1,4 +1,4 @@
-export async function fetch({ ctx,  sequence, mptIssuanceId}){
+export async function fetch({ ctx,  sequence, mptIssuanceId }){
     let { result } = await ctx.xrpl.request({ 
         command: 'ledger_entry', 
         ledger_index: sequence,

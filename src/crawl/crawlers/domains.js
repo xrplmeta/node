@@ -99,7 +99,8 @@ export default async function({ ctx }){
 								currency: currencyUTF8ToHex(currency),
 								issuer: {
 									address: issuer
-								}
+								},
+								tokenType: TokenType.IOU
 							},
 							props,
 							source: `issuer/domain/${address}`

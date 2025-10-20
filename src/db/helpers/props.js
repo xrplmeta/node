@@ -9,8 +9,6 @@ import TokenType from '../../xrpl/tokentype.js'
 
 
 export function diffMultiTokenProps({ ctx, tokens, source }){
-	let propIds = []
-
 	for(let { currency, issuer, mptIssuanceId, props } of tokens){
 		writeTokenProps({
 			ctx,
@@ -23,61 +21,10 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 			props,
 			source
 		})
-
-		for(let key of Object.keys(props)){
-			let prop = ctx.db.core.tokenProps.readOne({
-				where: {
-					token: {
-						currency,
-						issuer,
-						mptIssuanceId,
-						tokenType: mptIssuanceId ? TokenType.MPT : TokenType.IOU
-					},
-					key,
-					source
-				}
-			})
-
-			if(prop)
-				propIds.push(prop.id)
-		}
-	}
-
-	let staleProps = ctx.db.core.tokenProps.readMany({
-		where: {
-			NOT: {
-				id: {
-					in: propIds
-				}
-			},
-			source
-		},
-		include: {
-			token: true
-		}
-	})
-
-	ctx.db.core.tokenProps.deleteMany({
-		where: {
-			id: {
-				in: staleProps.map(
-					({ id }) => id
-				)
-			}
-		}
-	})
-
-	let deletionAffectedTokens = staleProps
-		.map(({ token }) => token)		
-	
-	for(let token of deletionAffectedTokens){
-		markCacheDirtyForTokenProps({ ctx, token })
 	}
 }
 
 export function diffMultiAccountProps({ ctx, accounts, source }){
-	let propIds = []
-
 	for(let { address, props } of accounts){
 		writeAccountProps({
 			ctx,
@@ -87,57 +34,6 @@ export function diffMultiAccountProps({ ctx, accounts, source }){
 			props,
 			source
 		})
-
-		for(let key of Object.keys(props)){
-			let prop = ctx.db.core.accountProps.readOne({
-				where: {
-					account: {
-						address
-					},
-					key,
-					source
-				}
-			})
-
-			if(prop)
-				propIds.push(prop.id)
-		}
-	}
-
-	let staleProps = ctx.db.core.accountProps.readMany({
-		where: {
-			NOT: {
-				id: {
-					in: propIds
-				}
-			},
-			source
-		},
-		include: {
-			account: true
-		}
-	})
-
-	ctx.db.core.accountProps.deleteMany({
-		where: {
-			id: {
-				in: staleProps.map(
-					({ id }) => id
-				)
-			}
-		}
-	})
-
-	let deletionAffectedAccounts = staleProps
-		.map(({ account }) => account)
-		.filter(
-			(account, index, accounts) => index === accounts.findIndex(
-				({ address }) => address === account.address
-			)
-		)
-	
-	for(let account of deletionAffectedAccounts){
-		markCacheDirtyForAccountProps({ ctx, account })
 	}
 }
 
@@ -194,29 +90,45 @@ export function readTokenProps({ ctx, token }){
 }
 
 export function writeTokenProps({ ctx, token, props, source }){
-	if(Object.keys(props).length === 0)
+	if(Object.keys(props).length === 0) {
+		clearTokenProps({
+			ctx,
+			token,
+			source
+		})
 		return
+	}
 
 	ctx.db.core.tx(() => {
-		for(let [key, value] of Object.entries(props)){
-			if(value == null){
-				ctx.db.core.tokenProps.deleteOne({
-					where: {
-						token,
-						key,
-						source
-					}
-				})
-			}else{
-				ctx.db.core.tokenProps.createOne({
-					data: {
-						token,
-						key,
-						value,
-						source
-					}
-				})
+		const keysToInsert = Object.keys(props)
+		
+		const keysToDelete = ctx.db.core.tokenProps.readMany({
+			select: {id: true, key: true},
+			where: {
+				token,
+				source
 			}
+		}).filter(({ key }) => !keysToInsert.includes(key))
+
+		ctx.db.core.tokenProps.deleteMany({
+			where: {
+				id: {
+					in: keysToDelete.map(
+						({ id }) => id
+					)
+				}
+			}
+		})
+
+		for(let [key, value] of Object.entries(props)){
+			ctx.db.core.tokenProps.createOne({
+				data: {
+					token,
+					key,
+					value,
+					source
+				}
+			})
 		}
 	})
 
@@ -273,26 +185,45 @@ export function readAccountProps({ ctx, account }){
 }
 
 export function writeAccountProps({ ctx, account, props, source }){
+	if(Object.keys(props).length === 0){
+		clearAccountProps({
+			ctx,
+			account,
+			source
+		})
+		return
+	}
+
 	ctx.db.core.tx(() => {
-		for(let [key, value] of Object.entries(props)){
-			if(value == null){
-				ctx.db.core.accountProps.deleteOne({
-					where: {
-						account,
-						key,
-						source
-					}
-				})
-			}else{
-				ctx.db.core.accountProps.createOne({
-					data: {
-						account,
-						key,
-						value,
-						source
-					}
-				})
+		const keysToInsert = Object.keys(props)
+		
+		const keysToDelete = ctx.db.core.accountProps.readMany({
+			select: {id: true, key: true},
+			where: {
+				account,
+				source
 			}
+		}).filter(({ key }) => !keysToInsert.includes(key))
+		
+		ctx.db.core.accountProps.deleteMany({
+			where: {
+				id: {
+					in: keysToDelete.map(
+						({ id }) => id
+					)
+				}
+			}
+		})
+
+		for(let [key, value] of Object.entries(props)){
+			ctx.db.core.accountProps.createOne({
+				data: {
+					account,
+					key,
+					value,
+					source
+				}
+			})
 		}
 	})
 

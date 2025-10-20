@@ -9,8 +9,8 @@ import mptmetadata from './mptmetadata.js'
 
 export default [
 	// { name: 'domains', start: domains },
-	// { name: 'trustlists', start: trustlists },
-	 { name: 'xaman', start: xaman },
+	 { name: 'trustlists', start: trustlists },
+	// { name: 'xaman', start: xaman },
 	// { name: 'bithomp', start: bithomp },
 	// { name: 'xrpscan', start: xrpscan },
 	// { name: 'gravatar', start: gravatar },

@@ -2,6 +2,7 @@ import log from '@mwni/log'
 import { scheduleGlobal, scheduleIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { diffMultiAccountProps, diffMultiTokenProps, readAccountProps, writeAccountProps } from '../../db/helpers/props.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 export default async function({ ctx }){
@@ -88,6 +89,7 @@ async function crawlAssets({ ctx, fetch, interval }){
 							issuer: {
 								address: currency.issuer
 							},
+							tokenType: TokenType.IOU,
 							props: {
 								name: currency.name > 0
 									? currency.name
