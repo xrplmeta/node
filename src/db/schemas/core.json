@@ -444,7 +444,8 @@
 					"format": "xrpl/currency"
 				},
 				"mptIssuanceId": {
-					"type": "string"
+					"type": "string",
+					"format": "hex"
 				},
 				"tokenType": {
 					"type": "string",

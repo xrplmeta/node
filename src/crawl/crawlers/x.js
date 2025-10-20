@@ -2,6 +2,7 @@ import log from '@mwni/log'
 import { scheduleBatchedIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 export default async function({ ctx }){
@@ -40,7 +41,8 @@ export default async function({ ctx }){
 							}
 						}
 					}
-				]
+				],
+				tokenType: TokenType.IOU
 			},
 			include: {
 				issuer: true
