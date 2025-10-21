@@ -2,7 +2,7 @@ import { parse as parseXLS89 } from '@xrplkit/xls89'
 import { fetch as fetchMPTokenMetadata } from '../../xrpl/ledgerentry.js'
 import TokenType from '../../xrpl/tokentype.js'
 import { scheduleIterator } from '../schedule.js'
-import {  writeTokenProps } from '../../db/helpers/props.js'
+import {  clearTokenProps, writeTokenProps } from '../../db/helpers/props.js'
 
 export default async function({ ctx }){
     let config = ctx.config.mptmetadata
@@ -21,7 +21,7 @@ export default async function({ ctx }){
             },
             interval: config.fetchInterval,
             concurrency: config.concurrency,
-            routine: async (token) => {
+            routine: async (token, remaining) => {
                 const result = await fetchMPTokenMetadata(
                     {ctx, sequence: 'validated', mptIssuanceId: token.mptIssuanceId}
                 )
@@ -31,12 +31,33 @@ export default async function({ ctx }){
                 
                 let {token: props} = parseXLS89(result.metadata)
 
-                writeTokenProps({
-                    ctx,
-                    token,
-                    props,
-                    source: `ledger/mptmetadata/${mptIssuanceId}`
-                })
+                if (Object.entries(props).length === 0){
+                    clearTokenProps({
+                        ctx,
+                        token,
+                        source: 'ledger'
+                    })
+                }else{
+                    const optionalProps = {
+                        asset_subclass: undefined,
+                        uris: undefined,
+                        additional_info: undefined
+                    }
+
+                    writeTokenProps({
+                        ctx,
+                        token,
+                        props: {...optionalProps, ...props},
+                        source: 'ledger'
+                    })
+
+                    log.accumulate.info({
+                        text: [`%mptmetadata checked in %time (${remaining} remaining)`],
+                        data: {
+                            mptmetadata: 1
+                        }
+                    })
+                }
             }
         })
     }

@@ -5,6 +5,7 @@ import { createFetch } from '../../lib/fetch.js'
 import { diffMultiAccountProps, diffMultiTokenProps } from '../../db/helpers/props.js'
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
 import { accountFromMPTIssuanceId } from '../../xrpl/mpt.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 export default async function({ ctx }){
 	let configs = ctx.config.trustlist
@@ -77,6 +78,7 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 							address: mpt_issuance_id == null ? issuer : accountFromMPTIssuanceId(mpt_issuance_id)
 						},
 						mptIssuanceId: mpt_issuance_id,
+						tokenType: mpt_issuance_id == null ? TokenType.IOU : TokenType.MPT,
 						props
 					})
 				}
