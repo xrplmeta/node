@@ -72,6 +72,7 @@ export async function scheduleIterator({ ctx, type, where, include, task, interv
 					try{
 						await routine(item, ids.length)
 					}catch(error){
+						log.warn(error)
 						log.warn(`scheduled task "${task}" failed for item:\n`, error.stack || error.message || error)
 						await wait(3000)
 					}

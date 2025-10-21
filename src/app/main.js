@@ -3,6 +3,7 @@ import { run as runLedgerApp } from './ledger.js'
 import { run as runCrawlApp } from './crawl.js'
 import { run as runCacheApp } from './cache.js'
 import { run as runServerApp } from './server.js'
+import { createPool } from '../xrpl/nodepool.js'
 import createIPC from '../lib/ipc.js'
 
 
@@ -11,18 +12,19 @@ export default async function({ config, args }){
 		ipc: createIPC(),
 		config,
 		log,
+		xrpl: createPool(config.ledger.source),
 	}
 
 
 	if(!args['only-server']){
-		// await runLedgerApp({ ctx })
-		// 	.catch(error => {
-		// 		log.error(`ledger app crashed due to fatal error:`)
-		// 		log.error(error)
-		// 		process.exit(1)
-		// 	})
+		await runLedgerApp({ ctx })
+			.catch(error => {
+				log.error(`ledger app crashed due to fatal error:`)
+				log.error(error)
+				process.exit(1)
+			})
 
-		// log.info(`bootstrap complete`)
+		log.info(`bootstrap complete`)
 		
 		runCrawlApp({ ctx })
 			.catch(error => {

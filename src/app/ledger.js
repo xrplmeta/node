@@ -1,6 +1,5 @@
 import log from '@mwni/log'
 import { spawn } from '@mwni/workers'
-import { createPool } from '../xrpl/nodepool.js'
 import { openDB } from '../db/index.js'
 import { createSnapshot } from '../ledger/snapshot.js'
 import { startSync } from '../ledger/sync.js'
@@ -8,11 +7,6 @@ import { startBackfill } from '../ledger/backfill.js'
 
 
 export async function run({ ctx }){
-	ctx = { 
-		...ctx,
-		xrpl: createPool(ctx.config.ledger.source),
-	}
-
 	await spawn(':runSnapshot', { ctx })
 
 	spawn(':runSync', { ctx })

@@ -8,12 +8,12 @@ import x from './x.js'
 import mptmetadata from './mptmetadata.js'
 
 export default [
-	// { name: 'domains', start: domains },
-	 { name: 'trustlists', start: trustlists },
-	// { name: 'xaman', start: xaman },
-	// { name: 'bithomp', start: bithomp },
-	// { name: 'xrpscan', start: xrpscan },
-	// { name: 'gravatar', start: gravatar },
-	// { name: 'x', start: x },
-	// { name: 'mptmetadata', start: mptmetadata },
+	{ name: 'domains', start: domains },
+	{ name: 'trustlists', start: trustlists },
+	{ name: 'xaman', start: xaman },
+	{ name: 'bithomp', start: bithomp },
+	{ name: 'xrpscan', start: xrpscan },
+	{ name: 'gravatar', start: gravatar },
+	{ name: 'x', start: x },
+	{ name: 'mptmetadata', start: mptmetadata },
 ]

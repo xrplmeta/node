@@ -1,5 +1,6 @@
 import { extractExchanges } from '@xrplkit/txmeta'
 import { markCacheDirtyForTokenExchanges } from '../../cache/todo.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 export function applyTokenExchanges({ ctx, ledger }){
@@ -17,14 +18,16 @@ export function applyTokenExchanges({ ctx, ledger }){
 			currency: takerPaid.currency,
 			issuer: takerPaid.issuer
 				? { address: takerPaid.issuer }
-				: undefined
+				: undefined,
+			tokenType: takerPaid.currency === 'XRP' ? TokenType.XRP : TokenType.IOU
 		}
 
 		let takerGotToken = {
 			currency: takerGot.currency,
 			issuer: takerGot.issuer
 				? { address: takerGot.issuer }
-				: undefined
+				: undefined,
+			tokenType: takerPaid.currency === 'XRP' ? TokenType.XRP : TokenType.IOU
 		}
 
 		ctx.db.core.tokenExchanges.createOne({
