@@ -1,9 +1,10 @@
+import { mptIssuanceIdFromIssuerAndSequence } from "../../xrpl/mpt.js"
 import TokenType from "../../xrpl/tokentype.js"
 
 export function parse({ entry }){
     return {
-        issuer: {address: entry.Issuer}, 
-        mptIssuanceId: entry.mpt_issuance_id,
+        issuer: entry.Issuer,
+        sequence: entry.Sequence
     }
 }
 
@@ -12,6 +13,12 @@ export function diff({ ctx, final }){
         return
     
     ctx.db.core.tokens.createOne({
-        data: {...final, tokenType: TokenType.MPT}
+        data: {
+            issuer: {
+                address: final.issuer
+            },
+            mptIssuanceId: mptIssuanceIdFromIssuerAndSequence(final.issuer, final.sequence),
+            tokenType: TokenType.MPT
+        }
     })
 }

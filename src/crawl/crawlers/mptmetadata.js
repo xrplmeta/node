@@ -1,3 +1,4 @@
+import log from '@mwni/log'
 import { parse as parseXLS89 } from '@xrplkit/xls89'
 import { fetch as fetchMPTokenMetadata } from '../../xrpl/ledgerentry.js'
 import TokenType from '../../xrpl/tokentype.js'
@@ -27,7 +28,7 @@ export default async function({ ctx }){
                 )
 
                 if (!result.metadata)
-                    return;
+                    return
                 
                 let {token: props} = parseXLS89(result.metadata)
 
@@ -52,7 +53,7 @@ export default async function({ ctx }){
                     })
 
                     log.accumulate.info({
-                        text: [`%mptmetadata checked in %time (${remaining} remaining)`],
+                        text: [`%mptmetadata mptmetadata checked in %time (${remaining} remaining)`],
                         data: {
                             mptmetadata: 1
                         }

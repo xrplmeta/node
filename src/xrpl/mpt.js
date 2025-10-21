@@ -1,6 +1,16 @@
-import { encodeAccountID } from "ripple-address-codec"
+import { decodeAccountID, encodeAccountID } from "ripple-address-codec"
 
-export function accountFromMPTIssuanceId(mptIssuanceId) {
+export function accountFromMPTIssuanceId(mptIssuanceId){
     const accountHex = mptIssuanceId.slice(8)
     return encodeAccountID(Buffer.from(accountHex, 'hex'))
+}
+
+export function mptIssuanceIdFromIssuerAndSequence(issuer, sequence){
+    const sequenceBuffer = new Uint8Array(4)
+    new DataView(sequenceBuffer.buffer).setUint32(0, sequence, false)
+
+    const issuerBuffer = decodeAccountID(issuer)
+    const combinedBuffer = Buffer.concat([Buffer.from(sequenceBuffer), issuerBuffer])
+
+    return combinedBuffer.toString('hex').toUpperCase()
 }
