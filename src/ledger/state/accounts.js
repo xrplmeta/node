@@ -2,6 +2,7 @@ import { div } from '@xrplkit/xfl'
 import { isBlackholed } from '../../xrpl/blackhole.js'
 import { writeBalance } from '../../db/helpers/balances.js'
 import { markCacheDirtyForAccountProps } from '../../cache/todo.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 export function parse({ entry }){
@@ -46,7 +47,8 @@ export function diff({ ctx, previous, final }){
 			account: { id },
 			token: {
 				currency: 'XRP',
-				issuer: null
+				issuer: null,
+				tokenType: TokenType.XRP
 			},
 			ledgerSequence: ctx.ledgerSequence,
 			balance: '0',
@@ -59,7 +61,8 @@ export function diff({ ctx, previous, final }){
 			account: { id },
 			token: {
 				currency: 'XRP',
-				issuer: null
+				issuer: null,
+				tokenType: TokenType.XRP
 			},
 			ledgerSequence: final.ledgerSequence,
 			balance: final.balance,
@@ -70,7 +73,8 @@ export function diff({ ctx, previous, final }){
 			account: { id },
 			token: {
 				currency: 'XRP',
-				issuer: null
+				issuer: null,
+				tokenType: TokenType.XRP
 			},
 			ledgerSequence: ctx.ledgerSequence,
 			balance: '0',
