@@ -3,7 +3,6 @@ import { run as runLedgerApp } from './ledger.js'
 import { run as runCrawlApp } from './crawl.js'
 import { run as runCacheApp } from './cache.js'
 import { run as runServerApp } from './server.js'
-import { createPool } from '../xrpl/nodepool.js'
 import createIPC from '../lib/ipc.js'
 
 
@@ -11,8 +10,7 @@ export default async function({ config, args }){
 	const ctx = {
 		ipc: createIPC(),
 		config,
-		log,
-		xrpl: createPool(config.ledger.source),
+		log
 	}
 
 
@@ -33,20 +31,20 @@ export default async function({ config, args }){
 				log.warn(`attempting to continue without it`)
 			})
 
-		// runCacheApp({ ctx })
-		// 	.catch(error => {
-		// 		log.error(`cache app crashed due to fatal error:`)
-		// 		log.error(error)
-		// 		log.warn(`attempting to continue without it`)
-		// 	})
+		runCacheApp({ ctx })
+			.catch(error => {
+				log.error(`cache app crashed due to fatal error:`)
+				log.error(error)
+				log.warn(`attempting to continue without it`)
+			})
 	}
 
-	// runServerApp({ ctx })
-	// 	.catch(error => {
-	// 		log.error(`server app crashed:`)
-	// 		log.error(error)
-	// 		log.warn(`attempting to continue without it`)
-	// 	})
+	runServerApp({ ctx })
+		.catch(error => {
+			log.error(`server app crashed:`)
+			log.error(error)
+			log.warn(`attempting to continue without it`)
+		})
 
 
 	return {

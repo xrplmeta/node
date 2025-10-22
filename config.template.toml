@@ -94,12 +94,6 @@ max_requests_per_minute = 60
 # fetch_interval = 3600
 # max_requests_per_minute = 60
 
-# We can keep fetch_interval really high until DynamicMPT amendment gets live.
-# Without DynamicMPT amendment, MPTokenMetadata is immutable.
-[MPTMETADATA]
-concurrency = 1
-fetch_interval = 600
-
 [SERVER]
 # The server listens on the specified port for incoming HTTP (REST + WebSocket) connections.
 port = 4080

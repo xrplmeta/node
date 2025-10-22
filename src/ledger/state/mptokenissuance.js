@@ -1,7 +1,7 @@
 import { parse as parseXLS89 } from '@xrplkit/xls89'
 import { mptIssuanceIdFromIssuerAndSequence } from "../../xrpl/mpt.js"
 import TokenType from "../../xrpl/tokentype.js"
-import { clearTokenProps, writeTokenProps } from '../../db/helpers/props.js'
+import { writeTokenProps } from '../../db/helpers/props.js'
 
 export function parse({ entry }){
     return {
@@ -11,8 +11,6 @@ export function parse({ entry }){
     }
 }
 
-// TODO: Need to optimize this logic since MPTokenMetadata is currently immutable.
-// Currently it works.
 export function diff({ ctx, previous, final }){
     let issuer = final?.issuer || previous?.issuer
     let sequence = final?.sequence || previous?.sequence
@@ -29,29 +27,15 @@ export function diff({ ctx, previous, final }){
         data: token
     })
 
-    if (!metadata)
+    // Since MPTokenMetadata is immutable, we only need to write props when the token is created
+    if (!metadata || (previous && final))
         return
 
     let {token: props} = parseXLS89(metadata)
-    
-    if (Object.entries(props).length === 0){
-        clearTokenProps({
-            ctx,
-            token,
-            source: 'ledger'
-        })
-    }else{
-        const optionalProps = {
-            asset_subclass: undefined,
-            uris: undefined,
-            additional_info: undefined
-        }
-
-        writeTokenProps({
-            ctx,
-            token,
-            props: {...optionalProps, ...props},
-            source: 'ledger'
-        })        
-    }
+    writeTokenProps({
+        ctx,
+        token,
+        props,
+        source: 'ledger'
+    })
 }
