@@ -35,6 +35,14 @@
 					"type": "integer",
 					"id": true
 				},
+				"tokenType": {
+					"type": "string",
+					"enum": [
+						"XRP",
+						"IOU",
+						"MPT"
+					]				
+				},
 				"token": {
 					"type": "integer"
 				},
@@ -42,6 +50,9 @@
 					"type": "string"
 				},
 				"tokenCurrencyUtf8": {
+					"type": "string"
+				},
+				"mptIssuanceId": {
 					"type": "string"
 				},
 				"tokenName": {
@@ -194,9 +205,8 @@
 			},
 			"required": [
 				"token",
-				"tokenCurrencyHex",
-				"tokenCurrencyUtf8",
-				"issuerAddress"
+				"issuerAddress",
+				"tokenType"
 			],
 			"unique": [
 				"token"

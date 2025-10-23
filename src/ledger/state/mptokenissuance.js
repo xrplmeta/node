@@ -1,7 +1,7 @@
 import { parse as parseXLS89 } from '@xrplkit/xls89'
 import { mptIssuanceIdFromIssuerAndSequence } from "../../xrpl/mpt.js"
 import TokenType from "../../xrpl/tokentype.js"
-import { writeTokenProps } from '../../db/helpers/props.js'
+import { writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 
 export function parse({ entry }){
     return {
@@ -32,10 +32,22 @@ export function diff({ ctx, previous, final }){
         return
 
     let {token: props} = parseXLS89(metadata)
+    
     writeTokenProps({
         ctx,
         token,
         props,
+        source: 'ledger'
+    })
+
+    writeAccountProps({
+        ctx,
+        account: {
+            address: token.issuer
+        },
+        props: {
+            name: props.issuer_name
+        },
         source: 'ledger'
     })
 }

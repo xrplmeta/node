@@ -5,6 +5,7 @@ import { readLedgerAt, readMostRecentLedger } from '../db/helpers/ledgers.js'
 import { readTokenMetrics } from '../db/helpers/tokenmetrics.js'
 import { readTokenExchangeAligned, readTokenExchangeCount, readTokenExchangeUniqueTakerCount, readTokenVolume } from '../db/helpers/tokenexchanges.js'
 import { readAccountProps, readTokenProps } from '../db/helpers/props.js'
+import TokenType from '../xrpl/tokentype.js'
 
 
 const maxChangePercent = 999999999
@@ -80,6 +81,19 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 	if(ctx.backwards)
 		return
 
+	// TODO: Handle these metrics for MPTs later.
+	const { tokenType } = ctx.db.core.tokens.readOne({
+		where: {
+			id: token.id
+		},
+		select: {
+			tokenType: true
+		}
+	})
+	
+	if(tokenType === TokenType.MPT)
+		return
+	
 	let cache = {}
 	let sequences = getCommonLedgerSequences({ ctx })
 
@@ -153,6 +167,19 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		return
 
 	if(token.currency === 'XRP')
+		return
+
+	// TODO: Handle these metrics for MPTs later.
+	const { tokenType } = ctx.db.core.tokens.readOne({
+		where: {
+			id: token.id
+		},
+		select: {
+			tokenType: true
+		}
+	})
+	
+	if(tokenType === TokenType.MPT)
 		return
 
 	let sequences = getCommonLedgerSequences({ ctx })
@@ -296,8 +323,10 @@ export function getCommonTokenCacheFields({ ctx, token }){
 
 	return {
 		token: token.id,
-		tokenCurrencyHex: token.currency,
-		tokenCurrencyUtf8: currencyHexToUTF8(token.currency),
+		tokenType: token.tokenType,
+		tokenCurrencyHex: token.tokenType === TokenType.IOU ? token.currency : undefined,
+		tokenCurrencyUtf8: token.tokenType === TokenType.IOU ? currencyHexToUTF8(token.currency) : undefined,
+		mptIssuanceId: token.mptIssuanceId,
 		issuerAddress: token.issuer.address
 	}
 }
