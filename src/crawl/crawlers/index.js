@@ -13,5 +13,5 @@ export default [
 	{ name: 'bithomp', start: bithomp },
 	{ name: 'xrpscan', start: xrpscan },
 	{ name: 'gravatar', start: gravatar },
-	{ name: 'x', start: x }
+	{ name: 'x', start: x },
 ]
