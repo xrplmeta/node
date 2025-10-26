@@ -157,14 +157,6 @@ export function serveTokenSummary(){
 	}
 }
 
-
-export function serveTokenPoint(){
-	return ({ ctx, token, sequence, time, metric }) => {
-
-	}
-}
-
-
 export function serveTokenSeries(){
 	return ({ ctx, token, sequence, time, metric, ...opts }) => {
 		let series

@@ -105,20 +105,20 @@ export function sanitizeToken({ key, array = false, allowXRP = false }){
 }
 
 export function sanitizeNameLike(){
-	return ({ ctx, name_by, ...args }) => {
-		if(name_by){
-			if(typeof name_by !== 'string'){
+	return ({ ctx, name_like, ...args }) => {
+		if(name_like != null){
+			if(typeof name_like !== 'string'){
 				throw {
 					type: `invalidParam`,
-					message: `The "name_by" term has to be a string.`,
+					message: `The name_like term has to be a string.`,
 					expose: true
 				}
 			}
 
-			if(name_by.length === 0){
+			if(name_like.length === 0){
 				throw {
 					type: `invalidParam`,
-					message: `The "name_by" term has to be at least one character long.`,
+					message: `The name_like term has to be at least one character long.`,
 					expose: true
 				}
 			}
@@ -127,7 +127,7 @@ export function sanitizeNameLike(){
 		return {
 			...args,
 			ctx,
-			name_by
+			name_like
 		}
 	}
 }

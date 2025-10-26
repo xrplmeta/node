@@ -42,9 +42,7 @@ export function diff({ ctx, previous, final }){
 
     writeAccountProps({
         ctx,
-        account: {
-            address: token.issuer
-        },
+        account: token.issuer,
         props: {
             name: props.issuer_name
         },

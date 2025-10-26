@@ -1,11 +1,16 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
 import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels } from './sanitizers/token.js'
-import { serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders } from './procedures/token.js'
+import { adjustServerInfoV1Response, serveServerInfo } from './procedures/server.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 
 
 export const server_info = compose([
+	serveServerInfo(),
+	adjustServerInfoV1Response()
+])
+
+export const server_info_v2 = compose([
 	serveServerInfo()
 ])
 
@@ -40,12 +45,6 @@ export const token = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizeSourcePreferences(),
 	serveTokenSummary()
-])
-
-export const token_metric = compose([
-	sanitizeToken({ key: 'token' }),
-	sanitizePoint(),
-	serveTokenPoint()
 ])
 
 export const token_series = compose([
