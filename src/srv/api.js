@@ -3,6 +3,7 @@ import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrust
 import { adjustServerInfoV1Response, serveServerInfo } from './procedures/server.js'
 import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
+import TokenType from '../xrpl/tokentype.js'
 
 
 export const server_info = compose([
@@ -19,7 +20,7 @@ export const ledger = compose([
 	serveLedger()
 ])
 
-export const tokens = compose([
+export const tokens_v2 = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
@@ -27,6 +28,26 @@ export const tokens = compose([
 	sanitizeSourcePreferences(),
 	serveTokenList()
 ])
+
+export const tokens_ious = compose([
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	sanitizeNameLike(),
+	sanitizeTrustLevels(),
+	sanitizeTokenListSortBy(),
+	sanitizeSourcePreferences(),
+	serveTokenList({ tokenType: TokenType.IOU })
+])
+
+export const tokens_mpts = compose([
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	sanitizeNameLike(),
+	sanitizeTrustLevels(),
+	sanitizeTokenListSortBy(),
+	sanitizeSourcePreferences(),
+	serveTokenList({ tokenType: TokenType.MPT })
+])
+
+export const tokens = tokens_ious
 
 export const tokens_subscribe = compose([
 	sanitizeToken({ key: 'tokens', array: true }),

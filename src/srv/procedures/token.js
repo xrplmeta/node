@@ -4,9 +4,10 @@ import { readTokenExchangeIntervalSeries, readTokenExchangesAligned } from '../.
 import { readTokenMetricIntervalSeries, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
 import { sanitize as sanitizeUrl } from '../../lib/url.js'
 import { readTokenHolders } from '../../db/helpers/tokenholders.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
-export function serveTokenList(){
+export function serveTokenList({ tokenType } = {}){
 	return ({
 		ctx,
 		sort_by,
@@ -23,7 +24,15 @@ export function serveTokenList(){
 	}) => {
 		let tokens = []
 		let where = {}
+		let default_sort_by = 'holders'
 
+		if (tokenType){
+			where.tokenType = tokenType
+			if(tokenType === TokenType.IOU){
+				default_sort_by = 'trustlines'
+			}
+		}
+		
 		if(trust_levels){
 			where.trustLevel = {
 				in: trust_levels
@@ -51,7 +60,7 @@ export function serveTokenList(){
 				}
 			},
 			orderBy: {
-				[sort_by || 'trustlines']: 'desc'
+				[sort_by || default_sort_by]: 'desc'
 			},
 			take: limit,
 			skip: offset
@@ -331,6 +340,8 @@ export function formatTokenCache({
 			? cache.tokenCurrencyUtf8
 			: cache.tokenCurrencyHex,
 		issuer: cache.issuerAddress,
+		mpt_issuance_id: cache.mptIssuanceId,
+		token_type: cache.tokenType,
 		meta: {
 			token: reduceProps({
 				props: cache.tokenProps || [],
@@ -408,6 +419,17 @@ export function formatTokenCache({
 					percent: cache.pricePercent7D,
 				}
 			}
+		}
+	}
+
+	if (token.token_type === TokenType.IOU){
+		delete token.mpt_issuance_id		
+	}else if(token.token_type === TokenType.MPT){
+		delete token.currency
+		delete token.metrics.trustlines
+		if (includeChanges){
+			delete token.metrics.changes['24h'].trustlines
+			delete token.metrics.changes['7d'].trustlines
 		}
 	}
 

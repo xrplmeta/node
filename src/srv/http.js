@@ -50,11 +50,88 @@ export function createRouter({ ctx }){
 	router.get(
 		'/tokens',
 		async svc => {
-			console.log(svc.query)
 			await handle({
 				ctx,
 				svc,
 				procedure: 'tokens',
+				params: {
+					...svc.query,
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					name_like: svc.query.name_like,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/tokens',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'tokens_v2',
+				params: {
+					...svc.query,
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					name_like: svc.query.name_like,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/tokens/ious',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'tokens_ious',
+				params: {
+					...svc.query,
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					name_like: svc.query.name_like,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/tokens/mpts',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'tokens_mpts',
 				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
