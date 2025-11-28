@@ -109,6 +109,12 @@
 			"items": {
 				"$ref": "#/definitions/NFTokenExchange"
 			}
+		},
+		"mptokenMetadataUpdates": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/MPTokenMetadataUpdate"
+			}
 		}
 	},
 	"definitions": {
@@ -855,6 +861,37 @@
 			],
 			"index": [
 				["nft", "ledgerSequence"]
+			]
+		},
+		"MPTokenMetadataUpdate": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerSequence": {
+					"type": "integer"
+				},
+				"transactionIndex": {
+					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
+				}
+			},
+			"required": [
+				"token"
+			],
+			"unique": [
+				"token"
+			],
+			"index": [
+				["deleted"]
 			]
 		}
 	}
