@@ -36,8 +36,8 @@ export function serveServerInfo(){
 	}
 }
 
-export function adjustServerInfoV1Response(){
-	return (response) => {
+export function adjustServerInfoResponse(){
+	return response => {
 		response.total_tokens = response.total_ious + 1
 		delete response.total_ious
 		delete response.total_mpts

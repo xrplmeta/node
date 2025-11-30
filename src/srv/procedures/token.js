@@ -348,7 +348,7 @@ export function formatTokenCache({
 				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
-					...(ctx.config.api?.sourceRanking || [])
+					...(ctx.config.server?.sourceRanking || [])
 				]
 			}),
 			issuer: reduceProps({
@@ -356,7 +356,7 @@ export function formatTokenCache({
 				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
-					...(ctx.config.api?.sourceRanking || [])
+					...(ctx.config.server?.sourceRanking || [])
 				]
 			})
 		},
@@ -474,6 +474,13 @@ export function reduceProps({ props, expand, sourceRanking }){
 	}
 
 	return data
+}
+
+export function adjustTokenResponse(){
+	return response => {
+		delete response.token_type
+		return response
+	}
 }
 
 function applyIconCaches({ ctx, cache }){

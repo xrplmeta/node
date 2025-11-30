@@ -11,14 +11,14 @@ export async function startServer({ ctx }){
 	if(!ctx.config.server.publicUrl){
 		let fallbackUrl = `http://localhost:${ctx.config.server.port}`
 
-		log.warn(`public URL not set in config - using fallback: ${fallbackUrl}\n >> consider setting "public_url" in the [API] stanza of your config.toml`)
+		log.warn(`public URL not set in config - using fallback: ${fallbackUrl}\n >> consider setting "public_url" in the [SERVER] stanza of your config.toml`)
 
 		ctx = {
 			...ctx,
 			config: {
 				...ctx.config,
-				api: {
-					...ctx.config.api,
+				server: {
+					...ctx.config.server,
 					publicUrl: fallbackUrl
 				}
 			}

@@ -1,14 +1,15 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
-import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels } from './sanitizers/token.js'
-import { adjustServerInfoV1Response, serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders } from './procedures/token.js'
+import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels, sanitizeIOUToken } from './sanitizers/token.js'
+import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 import TokenType from '../xrpl/tokentype.js'
+import { addTokenV1DeprecationWarning } from './warnings/token.js'
 
 
 export const server_info = compose([
 	serveServerInfo(),
-	adjustServerInfoV1Response()
+	adjustServerInfoResponse()
 ])
 
 export const server_info_v2 = compose([
@@ -62,10 +63,19 @@ export const tokens_unsubscribe = compose([
 	tag({ mustRunMainThread: true })
 ])
 
+export const iou_token = compose([
+	sanitizeIOUToken({ key: 'token' }),
+	sanitizeSourcePreferences(),
+	serveTokenSummary(),
+	adjustTokenResponse(),
+	addTokenV1DeprecationWarning()
+])
+
 export const token = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizeSourcePreferences(),
-	serveTokenSummary()
+	serveTokenSummary(),
+	adjustTokenResponse()
 ])
 
 export const token_series = compose([

@@ -1,5 +1,6 @@
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
 import { isValidClassicAddress } from 'ripple-address-codec'
+import { isValidMPTIssuanceId } from '../../xrpl/mpt.js'
 
 
 const sortKeymap = {
@@ -33,8 +34,66 @@ const sortKeymap = {
 	trustlines: 'trustlines',
 }
 
+function parseIOU({ ctx, currency, issuer }){
+	if(!isValidClassicAddress(issuer))
+		throw {
+			type: `invalidParam`,
+			message: `The issuing address ${issuer} is malformed.`,
+			expose: true
+		}
 
-export function sanitizeToken({ key, array = false, allowXRP = false }){
+	let iouToken = ctx.db.core.tokens.readOne({
+		where: {
+			currency: currencyUTF8ToHex(currency),
+			issuer: {
+				address: issuer
+			}
+		},
+		include: {
+			issuer: true
+		}
+	})
+	
+	if(!iouToken){
+		throw {
+			type: `entryNotFound`,
+			message: `The token '${currency}' issued by '${issuer}' does not exist.`,
+			expose: true
+		}
+	}
+
+	return iouToken
+}
+
+function parseMPT({ ctx, mptIssuanceId }){
+	if (!isValidMPTIssuanceId(mptIssuanceId))
+		throw {
+			type: `invalidParam`,
+			message: `The mpt_issuance_id - ${mptIssuanceId} malformed.`,
+			expose: true
+		}
+
+	let mpToken = ctx.db.core.tokens.readOne({
+		where: {
+			mptIssuanceId
+		},
+		include: {
+			issuer: true
+		}
+	})
+
+	if(!mpToken){
+		throw {
+			type: `entryNotFound`,
+			message: `The MPT token - ${mptIssuanceId} does not exist.`,
+			expose: true
+		}
+	}
+
+	return mpToken
+}
+
+export function sanitizeIOUToken({ key, array = false, allowXRP = false }){
 	function parse(ctx, { currency, issuer }){
 		if(currency === 'XRP'){
 			if(allowXRP)
@@ -48,36 +107,56 @@ export function sanitizeToken({ key, array = false, allowXRP = false }){
 					message: `XRP is not allowed as parameter.`,
 					expose: true
 				}
+		}
+		
+		return parseIOU({ ctx, currency, issuer })
+	}
+
+	return ({ ctx, ...args }) => {
+		if(!args.hasOwnProperty(key))
+			throw {
+				type: `missingParam`,
+				message: `No token specified.`,
+				expose: true
+			}
+
+		if(array){
+			return {
+				...args,
+				ctx,
+				[key]: args[key].map(token => parse(ctx, token)),
+			}
 		}else{
-			if(!isValidClassicAddress(issuer))
+			return {
+				...args,
+				ctx,
+				[key]: parse(ctx, args[key]),
+			}
+		}
+	}
+}
+
+export function sanitizeToken({ key, array = false, allowXRP = false }){
+	function parse(ctx, { currency, issuer, mptIssuanceId }){
+		if (mptIssuanceId != null){
+			return parseMPT({ ctx, mptIssuanceId })
+		}
+
+		if(currency === 'XRP'){
+			if(allowXRP)
+				return {
+					id: 1,
+					currency: 'XRP'
+				}
+			else
 				throw {
 					type: `invalidParam`,
-					message: `The issuing address "${key}.issuer" is malformed.`,
+					message: `XRP is not allowed as parameter.`,
 					expose: true
 				}
 		}
-
-		let token = ctx.db.core.tokens.readOne({
-			where: {
-				currency: currencyUTF8ToHex(currency),
-				issuer: {
-					address: issuer
-				}
-			},
-			include: {
-				issuer: true
-			}
-		})
-	
-		if(!token){
-			throw {
-				type: `entryNotFound`,
-				message: `The token '${currency}' issued by '${issuer}' does not exist.`,
-				expose: true
-			}
-		}
-
-		return token
+		
+		return parseIOU({ ctx, currency, issuer })
 	}
 
 	return ({ ctx, ...args }) => {

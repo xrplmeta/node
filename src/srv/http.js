@@ -174,6 +174,28 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
+				procedure: 'iou_token',
+				params: {
+					token: parseIOUTokenUri(svc.params.token),
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/token/:token',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
 				procedure: 'token',
 				params: {
 					token: parseTokenURI(svc.params.token),
@@ -302,13 +324,27 @@ async function handle({ ctx, svc, procedure, params = {} }){
 	}
 }
 
-
-function parseTokenURI(uri){
+function parseIOUTokenUri(uri){
 	let [currency, issuer] = uri.split(':')
 
 	return {
 		currency,
 		issuer
+	}
+}
+
+function parseTokenURI(uri){
+	if(uri.includes(':')){
+		let [currency, issuer] = uri.split(':')
+
+		return {
+			currency,
+			issuer
+		}
+	}
+
+	return {
+		mptIssuanceId: uri
 	}
 }
 
