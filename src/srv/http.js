@@ -212,7 +212,6 @@ export function createRouter({ ctx }){
 		}
 	)
 
-
 	router.get(
 		'/token/:token/series/:metric',
 		async svc => {
@@ -231,6 +230,22 @@ export function createRouter({ ctx }){
 
 	router.get(
 		'/token/:token/holders',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'iou_token_holders',
+				params: {
+					...svc.query,
+					token: parseIOUTokenUri(svc.params.token),
+					...parsePoint(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/token/:token/holders',
 		async svc => {
 			await handle({
 				ctx,

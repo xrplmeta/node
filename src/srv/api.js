@@ -4,7 +4,7 @@ import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.j
 import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse, adjustTokensResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 import TokenType from '../xrpl/tokentype.js'
-import { addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/token.js'
+import { addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/token.js'
 
 
 export const server_info = compose([
@@ -55,7 +55,7 @@ export const mpt_tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
-	sanitizeTokenListSortBy(),
+	sanitizeTokenListSortBy({ tokenType: TokenType.MPT }),
 	sanitizeSourcePreferences(),
 	serveTokenList({ tokenType: TokenType.MPT }),
 	adjustTokensResponse(),
@@ -102,13 +102,20 @@ export const token_exchanges = compose([
 	serveTokenExchanges()
 ])
 
+export const iou_token_holders = compose([
+	sanitizeToken({ key: 'token' }),
+	sanitizePoint({ defaultToLatest: true }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	serveTokenHolders(),
+	addTokenHoldersV1DeprecationWarning()
+])
+
 export const token_holders = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizePoint({ defaultToLatest: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	serveTokenHolders()
 ])
-
 
 function compose(functions){
 	return args => functions.reduce(
