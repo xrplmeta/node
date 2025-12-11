@@ -89,21 +89,21 @@ export const token = compose([
 ])
 
 export const token_series = compose([
-	sanitizeToken({ key: 'token' }),
+	sanitizeIOUToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
 ])
 
 export const token_exchanges = compose([
-	sanitizeToken({ key: 'base', allowXRP: true }),
-	sanitizeToken({ key: 'quote', allowXRP: true }),
+	sanitizeIOUToken({ key: 'base', allowXRP: true }),
+	sanitizeIOUToken({ key: 'quote', allowXRP: true }),
 	sanitizeRange({ defaultToFullRange: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges()
 ])
 
 export const iou_token_holders = compose([
-	sanitizeToken({ key: 'token' }),
+	sanitizeIOUToken({ key: 'token' }),
 	sanitizePoint({ defaultToLatest: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	serveTokenHolders(),

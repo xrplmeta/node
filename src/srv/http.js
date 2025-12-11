@@ -203,8 +203,8 @@ export function createRouter({ ctx }){
 				svc,
 				procedure: 'token_exchanges',
 				params: {
-					base: parseTokenURI(svc.params.base),
-					quote: parseTokenURI(svc.params.quote),
+					base: parseIOUTokenUri(svc.params.base),
+					quote: parseIOUTokenUri(svc.params.quote),
 					newestFirst: svc.query.newest_first !== undefined,
 					...parseRange(svc.query)
 				}
@@ -220,7 +220,7 @@ export function createRouter({ ctx }){
 				svc,
 				procedure: 'token_series',
 				params: {
-					token: parseTokenURI(svc.params.token),
+					token: parseIOUTokenUri(svc.params.token),
 					metric: svc.params.metric,
 					...parseRange(svc.query)
 				}
