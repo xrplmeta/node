@@ -30,7 +30,7 @@ export const tokens_v2 = compose([
 	serveTokenList()
 ])
 
-export const tokens_ious = compose([
+export const iou_tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
@@ -39,7 +39,7 @@ export const tokens_ious = compose([
 	serveTokenList({ tokenType: TokenType.IOU })
 ])
 
-export const tokens_mpts = compose([
+export const mpt_tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
@@ -48,7 +48,7 @@ export const tokens_mpts = compose([
 	serveTokenList({ tokenType: TokenType.MPT })
 ])
 
-export const tokens = tokens_ious
+export const tokens = iou_tokens
 
 export const tokens_subscribe = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
@@ -75,7 +75,6 @@ export const token = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizeSourcePreferences(),
 	serveTokenSummary(),
-	adjustTokenResponse()
 ])
 
 export const token_series = compose([

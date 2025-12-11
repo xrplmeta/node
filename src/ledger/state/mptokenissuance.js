@@ -96,6 +96,12 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
         let rowsWithKnownOrder = rows.filter(row => row.ledgerSequence != null)
         let rowsWithUnknownOrder = rows.filter(row => row.ledgerSequence == null)
         let issuerName = rowsWithKnownOrder.length > 0 ? rowsWithKnownOrder[0].value : (rowsWithUnknownOrder.length > 0 ? rowsWithUnknownOrder[0].value : null)
+
+        // Remove surrounding quotes
+        if (issuerName && typeof issuerName === 'string') {
+            issuerName = issuerName.substring(1, issuerName.length - 1)
+        }
+
         writeAccountProps({ctx, account: token.issuer, props: {name: issuerName}, source: 'ledger'})
     }
 }

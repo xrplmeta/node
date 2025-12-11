@@ -53,7 +53,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'tokens',
+				procedure: 'v1_tokens',
 				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
@@ -105,7 +105,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'tokens_ious',
+				procedure: 'iou_tokens',
 				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
@@ -131,7 +131,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'tokens_mpts',
+				procedure: 'mpt_tokens',
 				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
@@ -146,23 +146,6 @@ export function createRouter({ ctx }){
 					prefer_sources: svc.query.prefer_sources
 						? svc.query.prefer_sources.split(',')
 						: undefined
-				}
-			})
-		}
-	)
-
-	router.get(
-		'/tokens/exchanges/:base/:quote',
-		async svc => {
-			await handle({
-				ctx,
-				svc,
-				procedure: 'token_exchanges',
-				params: {
-					base: parseTokenURI(svc.params.base),
-					quote: parseTokenURI(svc.params.quote),
-					newestFirst: svc.query.newest_first !== undefined,
-					...parseRange(svc.query)
 				}
 			})
 		}
@@ -211,6 +194,24 @@ export function createRouter({ ctx }){
 			})
 		}
 	)
+
+	router.get(
+		'/tokens/exchanges/:base/:quote',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_exchanges',
+				params: {
+					base: parseTokenURI(svc.params.base),
+					quote: parseTokenURI(svc.params.quote),
+					newestFirst: svc.query.newest_first !== undefined,
+					...parseRange(svc.query)
+				}
+			})
+		}
+	)
+
 
 	router.get(
 		'/token/:token/series/:metric',
