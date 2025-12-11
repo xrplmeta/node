@@ -1,9 +1,10 @@
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
 import { isValidClassicAddress } from 'ripple-address-codec'
 import { isValidMPTIssuanceId } from '../../xrpl/mpt.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
-const sortKeymap = {
+const iouSortKeymap = {
 	trustlines_delta_24h: 'trustlinesDelta24H',
 	trustlines_percent_24h: 'trustlinesPercent24H',
 	trustlines_delta_7d: 'trustlinesDelta7D',
@@ -33,6 +34,11 @@ const sortKeymap = {
 	takers_7d: 'takers7D',
 	trustlines: 'trustlines',
 }
+
+const mptSortKeymap = Object.fromEntries(
+	Object.entries(iouSortKeymap)
+		.filter(([key]) => !key.includes('trustlines'))
+)
 
 function parseIOU({ ctx, currency, issuer }){
 	if(!isValidClassicAddress(issuer))
@@ -243,7 +249,9 @@ export function sanitizeTrustLevels(){
 	}
 }
 
-export function sanitizeTokenListSortBy(){
+export function sanitizeTokenListSortBy({ tokenType } = {}){
+	const sortKeymap = tokenType === TokenType.IOU ? iouSortKeymap : mptSortKeymap
+
 	return ({ ctx, sort_by, ...args }) => {
 		if(sort_by){
 			sort_by = sortKeymap[sort_by]

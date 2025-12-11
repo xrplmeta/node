@@ -53,7 +53,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'v1_tokens',
+				procedure: 'tokens_v1',
 				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
@@ -79,7 +79,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'tokens_v2',
+				procedure: 'tokens',
 				params: {
 					...svc.query,
 					expand_meta: svc.query.expand_meta !== undefined,
@@ -100,7 +100,7 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
-		'/v2/tokens/ious',
+		'/v2/tokens/iou',
 		async svc => {
 			await handle({
 				ctx,
@@ -126,7 +126,7 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
-		'/v2/tokens/mpts',
+		'/v2/tokens/mpt',
 		async svc => {
 			await handle({
 				ctx,

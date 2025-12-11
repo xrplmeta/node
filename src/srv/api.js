@@ -1,10 +1,10 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
 import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels, sanitizeIOUToken } from './sanitizers/token.js'
 import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse } from './procedures/token.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse, adjustTokensResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 import TokenType from '../xrpl/tokentype.js'
-import { addTokenV1DeprecationWarning } from './warnings/token.js'
+import { addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/token.js'
 
 
 export const server_info = compose([
@@ -21,7 +21,18 @@ export const ledger = compose([
 	serveLedger()
 ])
 
-export const tokens_v2 = compose([
+export const tokens_v1 = compose([
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	sanitizeNameLike(),
+	sanitizeTrustLevels(),
+	sanitizeTokenListSortBy({ tokenType: TokenType.IOU }),
+	sanitizeSourcePreferences(),
+	serveTokenList({ tokenType: TokenType.IOU }),
+	adjustTokensResponse(),
+	addTokensV1DeprecationWarning()
+])
+
+export const tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
@@ -34,9 +45,10 @@ export const iou_tokens = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	sanitizeNameLike(),
 	sanitizeTrustLevels(),
-	sanitizeTokenListSortBy(),
+	sanitizeTokenListSortBy({ tokenType: TokenType.IOU }),
 	sanitizeSourcePreferences(),
-	serveTokenList({ tokenType: TokenType.IOU })
+	serveTokenList({ tokenType: TokenType.IOU }),
+	adjustTokensResponse(),
 ])
 
 export const mpt_tokens = compose([
@@ -45,10 +57,9 @@ export const mpt_tokens = compose([
 	sanitizeTrustLevels(),
 	sanitizeTokenListSortBy(),
 	sanitizeSourcePreferences(),
-	serveTokenList({ tokenType: TokenType.MPT })
+	serveTokenList({ tokenType: TokenType.MPT }),
+	adjustTokensResponse(),
 ])
-
-export const tokens = iou_tokens
 
 export const tokens_subscribe = compose([
 	sanitizeToken({ key: 'tokens', array: true }),

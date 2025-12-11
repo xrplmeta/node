@@ -486,6 +486,16 @@ export function reduceProps({ props, expand, sourceRanking }){
 	return data
 }
 
+export function adjustTokensResponse(){
+	return response => {
+		for(let token of response.tokens){
+			delete token.token_type
+		}
+
+		return response
+	}
+}
+
 export function adjustTokenResponse(){
 	return response => {
 		delete response.token_type
