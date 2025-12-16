@@ -81,7 +81,7 @@ export const tokens_unsubscribe = compose([
 	tag({ mustRunMainThread: true })
 ])
 
-export const iou_token = compose([
+export const token_v1 = compose([
 	sanitizeIOUToken({ key: 'token' }),
 	sanitizeSourcePreferences(),
 	serveTokenSummary(),
@@ -109,7 +109,7 @@ export const token_exchanges = compose([
 	serveTokenExchanges()
 ])
 
-export const iou_token_holders = compose([
+export const token_holders_v1 = compose([
 	sanitizeIOUToken({ key: 'token' }),
 	sanitizePoint({ defaultToLatest: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),

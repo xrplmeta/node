@@ -79,16 +79,18 @@ export function createManager({ ctx }){
 	
 			socket.on('message', async message => {
 				try{
-					var { id, command, ...params } = JSON.parse(message)
+					var { id, command, api_version, ...params } = JSON.parse(message)
 				}catch{
 					log.debug(`client #${client.id} sent malformed request - dropping them`)
 					socket.close()
 				}
 	
 				try{
-					if(!procedures[command]){
+					let procedure = resolveProcedureByAPIVersion(command, api_version)
+
+					if(!procedures[procedure]){
 						throw {
-							message: 'unknown command', 
+							message: 'unknown command',
 							expose: true
 						}
 					}
@@ -99,7 +101,7 @@ export function createManager({ ctx }){
 								...ctx,
 								client
 							},
-							procedure: command,
+							procedure,
 							params,
 							requestId: id
 						})
@@ -185,4 +187,18 @@ function pushTokenUpdate({ ctx, token, recipients }){
 			})
 		)
 	}
+}
+
+function resolveProcedureByAPIVersion(command, apiVersion){
+	const version = apiVersion || 1
+
+	if (version && (version > 2 || version < 1)){
+		throw {
+			type: `invalidAPIVersion`,
+			message: `The api_version must be 1 or 2.`,
+			expose: true
+		}
+	}
+
+	return version === 1 ? `${command}_v1` : command
 }

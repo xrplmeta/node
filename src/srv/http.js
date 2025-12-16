@@ -171,7 +171,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'iou_token',
+				procedure: 'token_v1',
 				params: {
 					token: parseIOUTokenUri(svc.params.token),
 					expand_meta: svc.query.expand_meta !== undefined,
@@ -248,7 +248,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'iou_token_holders',
+				procedure: 'token_holders_v1',
 				params: {
 					...svc.query,
 					token: parseIOUTokenUri(svc.params.token),
