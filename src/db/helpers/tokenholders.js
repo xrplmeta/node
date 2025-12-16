@@ -14,6 +14,7 @@ export function readTokenHolders({ ctx, token, ledgerSequence, offset = 0, limit
 				ON AccountBalance.account = latest.account
 				AND AccountBalance.ledgerSequence = latest.maxSequence 	
 			WHERE token = ?
+			AND AccountBalance.balance > 0
 			ORDER BY AccountBalance.balance DESC
 			LIMIT ?, ?`,
 		params: [

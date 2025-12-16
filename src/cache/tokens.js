@@ -81,19 +81,6 @@ export function updateCacheForTokenMetrics({ ctx, token, metrics }){
 	if(ctx.backwards)
 		return
 
-	// TODO: Handle these metrics for MPTs later.
-	const { tokenType } = ctx.db.core.tokens.readOne({
-		where: {
-			id: token.id
-		},
-		select: {
-			tokenType: true
-		}
-	})
-	
-	if(tokenType === TokenType.MPT)
-		return
-	
 	let cache = {}
 	let sequences = getCommonLedgerSequences({ ctx })
 
@@ -167,19 +154,6 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		return
 
 	if(token.currency === 'XRP')
-		return
-
-	// TODO: Handle these metrics for MPTs later.
-	const { tokenType } = ctx.db.core.tokens.readOne({
-		where: {
-			id: token.id
-		},
-		select: {
-			tokenType: true
-		}
-	})
-	
-	if(tokenType === TokenType.MPT)
 		return
 
 	let sequences = getCommonLedgerSequences({ ctx })
