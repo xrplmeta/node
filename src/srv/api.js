@@ -68,14 +68,14 @@ export const mpt_tokens = compose([
 	adjustTokensResponse(),
 ])
 
-export const tokens_subscribe = compose([
+export const tokens_subscribe_v1 = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
 	sanitizeSourcePreferences(),
 	subscribeTokenList(),
 	tag({ mustRunMainThread: true })
 ])
 
-export const tokens_unsubscribe = compose([
+export const tokens_unsubscribe_v1 = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
 	unsubscribeTokenList(),
 	tag({ mustRunMainThread: true })
@@ -95,13 +95,13 @@ export const token = compose([
 	serveTokenSummary(),
 ])
 
-export const token_series = compose([
+export const token_series_v1 = compose([
 	sanitizeIOUToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
 ])
 
-export const token_exchanges = compose([
+export const token_exchanges_v1 = compose([
 	sanitizeIOUToken({ key: 'base', allowXRP: true }),
 	sanitizeIOUToken({ key: 'quote', allowXRP: true }),
 	sanitizeRange({ defaultToFullRange: true }),
