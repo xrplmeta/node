@@ -4,16 +4,23 @@ import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.j
 import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse, adjustTokensResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 import TokenType from '../xrpl/tokentype.js'
-import { addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/token.js'
+import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/warning.js'
 
 
-export const server_info = compose([
+export const server_info_v1 = compose([
 	serveServerInfo(),
-	adjustServerInfoResponse()
+	adjustServerInfoResponse(),
+	addServerInfoV1DeprecationWarning()
 ])
 
-export const server_info_v2 = compose([
+export const server_info = compose([
 	serveServerInfo()
+])
+
+export const ledger_v1 = compose([
+	sanitizePoint(),
+	serveLedger(),
+	addLedgerV1DeprecationWarning()
 ])
 
 export const ledger = compose([

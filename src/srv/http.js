@@ -17,7 +17,7 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'server_info'
+				procedure: 'server_info_v1'
 			})
 		}
 	)
@@ -28,13 +28,27 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'server_info_v2'
+				procedure: 'server_info'
 			})
 		}
 	)
 
 	router.get(
-		['/ledger', '/v2/ledger'],
+		['/ledger'],
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'ledger_v1',
+				params: {
+					...parsePoint(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
+		['/v2/ledger'],
 		async svc => {
 			await handle({
 				ctx,

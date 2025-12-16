@@ -39,7 +39,7 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
     }
 
     let isDeleted = ctx.backwards ? final && !previous : previous && !final
-    let adjustIssuerNameProp = isDeleted;
+    let adjustIssuerNameProp = isDeleted
     if (!isDeleted && final?.mptokenMetadata != previous?.mptokenMetadata){
         if (!ctx.backwards) {
             updateTokenAndAccountProps({ctx, token, mptokenMetadata: final.mptokenMetadata, overwriteAccountProps: false})
