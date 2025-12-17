@@ -24,6 +24,14 @@ const accounts = [
 			icon: 'https://static.xrplmeta.org/icons/bitstamp.png',
 			trust_level: 3
 		}
+	},
+	{
+		address: 'rJMe5LJDEPZjJD5zubetbZ2UJP2gEoHEAv',
+		props: {
+			name: 'MPT Test',
+			icon: 'https://static.xrplmeta.org/icons/ripple.png',
+			trust_level: 3
+		}
 	}
 ]
 
@@ -51,6 +59,18 @@ const tokens = [
 			icon: 'https://static.xrplmeta.org/icons/USD.png',
 			asset_class: 'fiat'
 		}
+	},
+	{
+		mptIssuanceId: '000525D8BE61F040420DB5A4CBA0577A70E6BD013E75E00D',
+		issuer: {
+			address: accounts[2].address
+		},
+		tokenType: TokenType.MPT,
+		props: {
+			name: 'MPT US Dollar',
+			icon: 'https://static.xrplmeta.org/icons/USD.png',
+			asset_class: 'rwa'
+		}
 	}
 ]
 
@@ -65,12 +85,13 @@ for(let { address, props } of accounts){
 	})
 }
 
-for(let { currency, issuer, tokenType, props } of tokens){
+for(let { currency, issuer, mptIssuanceId, tokenType, props } of tokens){
 	writeTokenProps({
 		ctx,
 		token: {
 			currency,
 			issuer,
+			mptIssuanceId,
 			tokenType
 		},
 		props,
@@ -117,12 +138,22 @@ describe(
 					}
 				})
 
+				let tokenCache3 = ctx.db.cache.tokens.readOne({
+					where: {
+						token: 4
+					}
+				})
+
 				expect(tokenCache1.cachedIcons).to.be.deep.equal({
 					[tokens[0].props.icon]: 'C676A0DE05.png'
 				})
 
 				expect(tokenCache2.cachedIcons).to.be.deep.equal({
 					[tokens[1].props.icon]: 'C676A0DE05.png'
+				})
+
+				expect(tokenCache3.cachedIcons).to.be.deep.equal({
+					[tokens[2].props.icon]: 'C676A0DE05.png'
 				})
 			}
 		)
@@ -182,6 +213,25 @@ describe(
 					token: {
 						currency: tokens[1].currency,
 						issuer: tokens[1].issuer
+					}
+				})
+
+				writeTokenProps({
+					ctx,
+					token: {
+						mptIssuanceId: tokens[2].mptIssuanceId
+					},
+					props: {
+						...tokens[2].props,
+						icon: undefined
+					},
+					source: 'manual'
+				})
+
+				await updateIconCacheFor({ 
+					ctx, 
+					token: {
+						mptIssuanceId: tokens[2].mptIssuanceId
 					}
 				})
 

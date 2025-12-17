@@ -287,7 +287,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 }
 
 export function getCommonTokenCacheFields({ ctx, token }){
-	if(!token.id || !token.issuer || !token.issuer.address)
+	if(!token.id || !token.issuer || !token.issuer.address || !token.tokenType)
 		token = ctx.db.core.tokens.readOne({
 			where: token,
 			include: {
