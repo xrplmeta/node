@@ -9,7 +9,8 @@ export function parse({ entry }){
         account: entry.Account,
         mptAmount: entry.MPTAmount || 0,
         mptIssuanceId: entry.MPTokenIssuanceID,
-        ledgerSequence: entry.LedgerSequence
+        ledgerSequence: entry.LedgerSequence,
+        flags: entry.Flags || 0
     }
 }
 
@@ -47,7 +48,7 @@ export function diff({ ctx, previous, final }){
     // Update metrics based on MPTAmount changes
     if(previous && final){
         // Modified: update supply, check holder status changes
-        if (previous.mptAmount === final.mptAmount) {
+        if (previous.mptAmount === final.mptAmount && previous.flags === final.flags) {
             previous.mptAmount = 0
         }
         metrics.supply = sum(
