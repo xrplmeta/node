@@ -3,6 +3,7 @@ import { XFL } from '@xrplkit/xfl'
 import { createContext } from './env.js'
 import { readBalance, writeBalance } from '../../src/db/helpers/balances.js'
 import { readTokenMetricSeries, writeTokenMetrics } from '../../src/db/helpers/tokenmetrics.js'
+import TokenType from '../../src/xrpl/tokentype.js'
 
 
 const ctx = await createContext()
@@ -12,7 +13,7 @@ describe(
 	'Database Helpers',
 	() => {
 		it(
-			'write and read token balance of account',
+			'write and read IOU token balance of account',
 			() => {
 				let account = {
 					address: 'rMwNibdiFaEzsTaFCG1NnmAM3Rv3vHUy5L'
@@ -22,7 +23,8 @@ describe(
 					currency: 'PSC',
 					issuer: {
 						address: 'rwekfW4MiS5yZjXASRBDzzPPWYKuHvKP7E'
-					}
+					},
+					tokenType: TokenType.IOU
 				}
 	
 				writeBalance({
@@ -45,13 +47,48 @@ describe(
 		)
 
 		it(
-			'write and read token metric series',
+			'write and read MPT token balance of account',
+			() => {
+				let account = {
+					address: 'rMwNibdiFaEzsTaFCG1NnmAM3Rv3vHUy5L'
+				}
+
+				let token = {
+					issuer: {
+						address: 'rJMe5LJDEPZjJD5zubetbZ2UJP2gEoHEAv'
+					},
+					mptIssuanceId: '000525D8BE61F040420DB5A4CBA0577A70E6BD013E75E00D',
+					tokenType: TokenType.MPT
+				}
+	
+				writeBalance({
+					ctx,
+					account,
+					token,
+					ledgerSequence: 100000000,
+					balance: '1000000'
+				})
+
+				let balance = readBalance({
+					ctx,
+					account,
+					token,
+					ledgerSequence: 100000000
+				})
+
+				expect(balance.toString()).to.be.equal('1000000')
+			}
+		)
+
+		it(
+			'write and read IOU token metric series',
 			() => {
 				let token = {
 					currency: 'PSC',
 					issuer: {
 						address: 'rwekfW4MiS5yZjXASRBDzzPPWYKuHvKP7E'
-					}
+					},
+					tokenType: TokenType.IOU
 				}
 
 				for(let i=0; i<3; i++){
@@ -82,6 +119,49 @@ describe(
 				})
 
 				expect(trustlineSeries.map(e => e.value)).to.be.deep.equal([1, 2, 3])
+				expect(supplySeries.map(e => e.value.toString())).to.be.deep.equal(['100', '200', '300'])
+			}
+		)
+
+		it(
+			'write and read MPT token metric series',
+			() => {
+				let token = {
+					issuer: {
+						address: 'rJMe5LJDEPZjJD5zubetbZ2UJP2gEoHEAv'
+					},
+					mptIssuanceId: '000525D8BE61F040420DB5A4CBA0577A70E6BD013E75E00D',
+					tokenType: TokenType.MPT
+				}
+
+				for(let i=0; i<3; i++){
+					writeTokenMetrics({
+						ctx,
+						token,
+						ledgerSequence: 1000000 + i * 1000,
+						metrics: {
+							holders: 1 + i,
+							supply: XFL(100 + i * 100)
+						},
+						updateCache: false
+					})
+				}
+
+				let holdersSeries = readTokenMetricSeries({
+					ctx,
+					token,
+					sequenceStart: 0,
+					metric: 'holders'
+				})
+
+				let supplySeries = readTokenMetricSeries({
+					ctx,
+					token,
+					sequenceStart: 999999,
+					metric: 'supply'
+				})
+
+				expect(holdersSeries.map(e => e.value)).to.be.deep.equal([1, 2, 3])
 				expect(supplySeries.map(e => e.value.toString())).to.be.deep.equal(['100', '200', '300'])
 			}
 		)

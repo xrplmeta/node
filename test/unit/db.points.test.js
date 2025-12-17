@@ -1,17 +1,19 @@
 import { expect } from 'chai'
 import { createContext } from './env.js'
 import { readPoint, writePoint } from '../../src/db/helpers/common.js'
+import TokenType from '../../src/xrpl/tokentype.js'
 
 
 const ctx = await createContext()
 const account = { address: 'rMwNibdiFaEzsTaFCG1NnmAM3Rv3vHUy5L' }
 const token = {
 	currency: 'RLUSD', 
-	issuer: { address: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' }
+	issuer: { address: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' },
+	tokenType: TokenType.IOU
 }
 const book = {
 	takerPays: token,
-	takerGets: { currency: 'XRP', issuer: null }
+	takerGets: { currency: 'XRP', issuer: null, tokenType: TokenType.XRP },
 }
 
 

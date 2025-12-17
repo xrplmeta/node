@@ -3,6 +3,7 @@ import { createContext } from './env.js'
 import { diffMultiAccountProps, diffMultiTokenProps } from '../../src/db/helpers/props.js'
 import { reduceProps } from '../../src/srv/procedures/token.js'
 import { updateCacheForTokenProps } from '../../src/cache/tokens.js'
+import TokenType from '../../src/xrpl/tokentype.js'
 
 
 const ctx = await createContext()
@@ -37,6 +38,7 @@ const tokens = [
 		issuer: {
 			address: accounts[0].address
 		},
+		tokenType: TokenType.IOU,
 		props: {
 			name: 'Gold',
 			asset_class: 'commodity'
@@ -47,6 +49,7 @@ const tokens = [
 		issuer: {
 			address: accounts[1].address
 		},
+		tokenType: TokenType.IOU,
 		props: {
 			name: 'Silver',
 			asset_class: 'commodity'
@@ -57,6 +60,7 @@ const tokens = [
 		issuer: {
 			address: accounts[2].address
 		},
+		tokenType: TokenType.IOU,
 		props: {
 			name: 'US Dollar',
 			asset_class: 'fiat'
