@@ -34,15 +34,16 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
 
     // Parse and persist metadata when applying ledger state
     if (ledgerSequence == null || transactionIndex == null) {
-        updateTokenAndAccountProps({ctx, token, mptokenMetadata: final.mptokenMetadata, overwriteAccountProps: true})
+        updateTokenAndAccountProps({ctx, token, mptokenMetadata: final.mptokenMetadata, overwriteIssuerNameProp: true})
         return
     }
 
     let isDeleted = ctx.backwards ? final && !previous : previous && !final
     let adjustIssuerNameProp = isDeleted
+
     if (!isDeleted && final?.mptokenMetadata != previous?.mptokenMetadata){
         if (!ctx.backwards) {
-            updateTokenAndAccountProps({ctx, token, mptokenMetadata: final.mptokenMetadata, overwriteAccountProps: false})
+            updateTokenAndAccountProps({ctx, token, mptokenMetadata: final.mptokenMetadata, overwriteIssuerNameProp: false})
             adjustIssuerNameProp = true
         }
         
@@ -50,13 +51,16 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
         if (ctx.backwards && row.ledgerSequence == null && row.transactionIndex == null){
             adjustIssuerNameProp = true
         }
+
         if (ledgerSequence >= row.ledgerSequence && transactionIndex > row.transactionIndex){
             row.ledgerSequence = ledgerSequence
             row.transactionIndex = transactionIndex
         }
+        
         row.ledgerSequence = row.ledgerSequence ?? ledgerSequence
         row.transactionIndex = row.transactionIndex ?? transactionIndex
     }
+
     ctx.db.core.mptokenMetadataUpdates.updateOne({
         data: {
             ledgerSequence: row.ledgerSequence,
@@ -68,6 +72,9 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
         }
     })
 
+    // issuer_name is an account property, however, it is present in token metadata as per XLS-89
+    // when an account issues multiple MPTs we use the issuer_name property from the last
+    // created/updated MPT and store it as an account property
     if (adjustIssuerNameProp) {
         let rows = ctx.db.core.mptokenMetadataUpdates.readManyRaw({
 			query: 
@@ -75,15 +82,12 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
                     tp.value, mmu.ledgerSequence
                 from
                     MPTokenMetadataUpdate mmu
-                inner join Token t
-                inner join Account a
-                inner join TokenProp tp
+                inner join Token t on t.id = mmu.token
+                inner join Account a on a.id = t.issuer
+                inner join TokenProp tp on tp.token = t.id
                 where
-                    t.issuer = a.id
-                    and t.id = mmu.token
-                    and t.id = tp.token
-                    and tp.key = 'issuer_name'
-                    and tp."source" = 'ledger'
+                    tp.key = 'issuer_name'
+                    and tp.source = 'ledger'
                     and mmu.deleted = false
                     and a.id = ?
                 order by
@@ -93,9 +97,9 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
 				token.issuer.id
 			]
 		})
-        let rowsWithKnownOrder = rows.filter(row => row.ledgerSequence != null)
-        let rowsWithUnknownOrder = rows.filter(row => row.ledgerSequence == null)
-        let issuerName = rowsWithKnownOrder.length > 0 ? rowsWithKnownOrder[0].value : (rowsWithUnknownOrder.length > 0 ? rowsWithUnknownOrder[0].value : null)
+        let metadataWithKnownOrder = rows.filter(row => row.ledgerSequence != null)
+        let metadataWithUnknownOrder = rows.filter(row => row.ledgerSequence == null)
+        let issuerName = metadataWithKnownOrder.length > 0 ? metadataWithKnownOrder[0].value : (metadataWithUnknownOrder.length > 0 ? metadataWithUnknownOrder[0].value : null)
 
         // Remove surrounding quotes
         if (issuerName && typeof issuerName === 'string') {
@@ -106,7 +110,7 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
     }
 }
 
-function updateTokenAndAccountProps({ctx, token, mptokenMetadata, overwriteAccountProps}) {
+function updateTokenAndAccountProps({ctx, token, mptokenMetadata, overwriteIssuerNameProp}) {
     let {token: props} = parseXLS89(mptokenMetadata)
     clearTokenProps({
         ctx,
@@ -119,6 +123,6 @@ function updateTokenAndAccountProps({ctx, token, mptokenMetadata, overwriteAccou
         props,
         source: 'ledger'
     })
-    if (overwriteAccountProps && Object.keys(props) != 0)
+    if (overwriteIssuerNameProp && Object.keys(props) != 0)
         writeAccountProps({ctx, account: token.issuer, props: {name: props.issuer_name}, source: 'ledger'})
 }
