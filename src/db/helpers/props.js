@@ -74,7 +74,7 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 		.filter(
 			(token, index, tokens) => index === tokens.findIndex(
 				({ currency, issuer, mptIssuanceId, tokenType }) => 
-					tokenType === TokenType.IOU ? isSameToken(token, { currency, issuer }) : token.mptIssuanceId === mptIssuanceId // Refactor isSameToken once we get to metrics calc 
+					tokenType === TokenType.IOU ? isSameToken(token, { currency, issuer }) : token.mptIssuanceId === mptIssuanceId
 			)
 		)
 

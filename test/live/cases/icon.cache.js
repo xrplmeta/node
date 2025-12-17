@@ -3,6 +3,7 @@ import log from '@mwni/log'
 import { createContext } from '../../unit/env.js'
 import { writeTokenProps } from '../../../src/db/helpers/props.js'
 import { updateIconCacheFor } from '../../../src/cache/icons.js'
+import TokenType from '../../../src/xrpl/tokentype.js'
 
 
 
@@ -18,6 +19,7 @@ export default async ({ config, args }) => {
 		issuer: {
 			address: 'rrrrrrrrrrrrrrrrrrrrrhoLvTp',
 		},
+		tokenType: TokenType.IOU,
 		props: {
 			icon: iconUrl
 		}
@@ -27,7 +29,8 @@ export default async ({ config, args }) => {
 		ctx,
 		token: {
 			currency: token.currency,
-			issuer: token.issuer
+			issuer: token.issuer,
+			tokenType: token.tokenType,
 		},
 		props: token.props,
 		source: 'test'
