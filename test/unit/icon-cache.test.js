@@ -3,6 +3,7 @@ import { expect } from 'chai'
 import { createContext } from './env.js'
 import { writeAccountProps, writeTokenProps } from '../../src/db/helpers/props.js'
 import { updateIconCacheFor } from '../../src/cache/icons.js'
+import TokenType from '../../src/xrpl/tokentype.js'
 
 
 const ctx = await createContext()
@@ -32,6 +33,7 @@ const tokens = [
 		issuer: {
 			address: accounts[0].address
 		},
+		tokenType: TokenType.IOU,
 		props: {
 			name: 'US Dollar',
 			icon: 'https://static.xrplmeta.org/icons/USD.png',
@@ -43,6 +45,7 @@ const tokens = [
 		issuer: {
 			address: accounts[1].address
 		},
+		tokenType: TokenType.IOU,
 		props: {
 			name: 'US Dollar',
 			icon: 'https://static.xrplmeta.org/icons/USD.png',
@@ -62,12 +65,13 @@ for(let { address, props } of accounts){
 	})
 }
 
-for(let { currency, issuer, props } of tokens){
+for(let { currency, issuer, tokenType, props } of tokens){
 	writeTokenProps({
 		ctx,
 		token: {
 			currency,
-			issuer
+			issuer,
+			tokenType
 		},
 		props,
 		source: 'manual'

@@ -1,14 +1,14 @@
 import { expect } from 'chai'
-import { accountFromMPTIssuanceId, mptIssuanceIdFromIssuerAndSequence } from '../../src/xrpl/mpt.js'
+import { issuerFromMPTIssuanceId, mptIssuanceIdFromIssuerAndSequence } from '../../src/xrpl/mpt.js'
 
 describe("MPT parsing tests",
     () => {
         it(
-            "extract address from mptIssuanceId",
+            "extract issuer from mptIssuanceId",
             () => {
                 const mptIssuanceId = '000525D8BE61F040420DB5A4CBA0577A70E6BD013E75E00D'
-                const accountId = accountFromMPTIssuanceId(mptIssuanceId)
-                expect(accountId).to.be.equal('rJMe5LJDEPZjJD5zubetbZ2UJP2gEoHEAv')
+                const issuerId = issuerFromMPTIssuanceId(mptIssuanceId)
+                expect(issuerId).to.be.equal('rJMe5LJDEPZjJD5zubetbZ2UJP2gEoHEAv')
             }
         )
 

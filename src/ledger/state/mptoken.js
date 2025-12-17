@@ -1,7 +1,7 @@
 import { writeBalance } from "../../db/helpers/balances.js"
 import { readTokenMetrics, writeTokenMetrics } from "../../db/helpers/tokenmetrics.js"
 import { eq, gt, sum, sub } from "@xrplkit/xfl"
-import { accountFromMPTIssuanceId } from "../../xrpl/mpt.js"
+import { issuerFromMPTIssuanceId } from "../../xrpl/mpt.js"
 import TokenType from "../../xrpl/tokentype.js"
 
 export function parse({ entry }){
@@ -20,7 +20,7 @@ export function diff({ ctx, previous, final }){
 
     let account = final?.account || previous?.account
     let mptIssuanceId = final?.mptIssuanceId || previous?.mptIssuanceId
-    let issuer = accountFromMPTIssuanceId(mptIssuanceId)
+    let issuer = issuerFromMPTIssuanceId(mptIssuanceId)
 
     let token = ctx.db.core.tokens.createOne({
         data: {

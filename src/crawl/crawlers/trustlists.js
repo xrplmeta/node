@@ -4,7 +4,7 @@ import { scheduleGlobal } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
 import { diffMultiAccountProps, diffMultiTokenProps } from '../../db/helpers/props.js'
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
-import { accountFromMPTIssuanceId } from '../../xrpl/mpt.js'
+import { issuerFromMPTIssuanceId } from '../../xrpl/mpt.js'
 import TokenType from '../../xrpl/tokentype.js'
 
 export default async function({ ctx }){
@@ -75,7 +75,7 @@ async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ig
 					tokens.push({
 						currency: mpt_issuance_id == null ? currencyUTF8ToHex(currency) : null,
 						issuer: {
-							address: mpt_issuance_id == null ? issuer : accountFromMPTIssuanceId(mpt_issuance_id)
+							address: mpt_issuance_id == null ? issuer : issuerFromMPTIssuanceId(mpt_issuance_id)
 						},
 						mptIssuanceId: mpt_issuance_id,
 						tokenType: mpt_issuance_id == null ? TokenType.IOU : TokenType.MPT,

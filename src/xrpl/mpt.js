@@ -4,9 +4,9 @@ export function isValidMPTIssuanceId(mptIssuanceId){
     return /^[A-Z0-9]{48}$/.test(mptIssuanceId)
 }
 
-export function accountFromMPTIssuanceId(mptIssuanceId){
-    const accountHex = mptIssuanceId.slice(8)
-    return encodeAccountID(Buffer.from(accountHex, 'hex'))
+export function issuerFromMPTIssuanceId(mptIssuanceId){
+    const issuerHex = mptIssuanceId.slice(8)
+    return encodeAccountID(Buffer.from(issuerHex, 'hex'))
 }
 
 export function mptIssuanceIdFromIssuerAndSequence(issuer, sequence){
