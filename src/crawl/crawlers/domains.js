@@ -7,6 +7,7 @@ import { createFetch } from '../../lib/fetch.js'
 import { clearAccountProps, clearTokenProps, readAccountProps, writeAccountProps, writeTokenProps } from '../../db/helpers/props.js'
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
 import { reduceProps } from '../../srv/procedures/token.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 const tomlStandardPath = '.well-known/xrp-ledger.toml'
@@ -28,6 +29,9 @@ export default async function({ ctx }){
 			ctx,
 			type: 'issuer',
 			task: 'domains',
+			where: {
+                tokenType: TokenType.IOU
+            },
 			interval: config.fetchInterval,
 			concurrency: 3,
 			routine: async ({ id, address }, remaining) => {
@@ -95,7 +99,8 @@ export default async function({ ctx }){
 								currency: currencyUTF8ToHex(currency),
 								issuer: {
 									address: issuer
-								}
+								},
+								tokenType: TokenType.IOU
 							},
 							props,
 							source: `issuer/domain/${address}`

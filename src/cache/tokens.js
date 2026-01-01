@@ -5,6 +5,7 @@ import { readLedgerAt, readMostRecentLedger } from '../db/helpers/ledgers.js'
 import { readTokenMetrics } from '../db/helpers/tokenmetrics.js'
 import { readTokenExchangeAligned, readTokenExchangeCount, readTokenExchangeUniqueTakerCount, readTokenVolume } from '../db/helpers/tokenexchanges.js'
 import { readAccountProps, readTokenProps } from '../db/helpers/props.js'
+import TokenType from '../xrpl/tokentype.js'
 
 
 const maxChangePercent = 999999999
@@ -286,7 +287,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 }
 
 export function getCommonTokenCacheFields({ ctx, token }){
-	if(!token.id || !token.issuer || !token.issuer.address)
+	if(!token.id || !token.issuer || !token.issuer.address || !token.tokenType)
 		token = ctx.db.core.tokens.readOne({
 			where: token,
 			include: {
@@ -296,8 +297,10 @@ export function getCommonTokenCacheFields({ ctx, token }){
 
 	return {
 		token: token.id,
-		tokenCurrencyHex: token.currency,
-		tokenCurrencyUtf8: currencyHexToUTF8(token.currency),
+		tokenType: token.tokenType,
+		tokenCurrencyHex: token.tokenType === TokenType.IOU ? token.currency : undefined,
+		tokenCurrencyUtf8: token.tokenType === TokenType.IOU ? currencyHexToUTF8(token.currency) : undefined,
+		mptIssuanceId: token.mptIssuanceId,
 		issuerAddress: token.issuer.address
 	}
 }

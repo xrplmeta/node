@@ -3,6 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import createStructDB from '@structdb/sqlite'
 import codecs from './codecs/index.js'
+import TokenType from '../xrpl/tokentype.js'
 
 
 const __filename = fileURLToPath(import.meta.url)
@@ -55,7 +56,8 @@ export async function openCoreDB({ ctx, readOnly=false, inMemory=false }){
 	db.tokens.createOne({
 		data: {
 			currency: 'XRP',
-			issuer: null
+			issuer: null,
+			tokenType: TokenType.XRP
 		}
 	})
 

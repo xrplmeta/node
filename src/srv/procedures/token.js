@@ -4,9 +4,10 @@ import { readTokenExchangeIntervalSeries, readTokenExchangesAligned } from '../.
 import { readTokenMetricIntervalSeries, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
 import { sanitize as sanitizeUrl } from '../../lib/url.js'
 import { readTokenHolders } from '../../db/helpers/tokenholders.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
-export function serveTokenList(){
+export function serveTokenList({ tokenType } = {}){
 	return ({
 		ctx,
 		sort_by,
@@ -23,7 +24,15 @@ export function serveTokenList(){
 	}) => {
 		let tokens = []
 		let where = {}
+		let default_sort_by = 'holders'
 
+		if (tokenType){
+			where.tokenType = tokenType
+			if(tokenType === TokenType.IOU){
+				default_sort_by = 'trustlines'
+			}
+		}
+		
 		if(trust_levels){
 			where.trustLevel = {
 				in: trust_levels
@@ -51,7 +60,7 @@ export function serveTokenList(){
 				}
 			},
 			orderBy: {
-				[sort_by || 'trustlines']: 'desc'
+				[sort_by || default_sort_by]: 'desc'
 			},
 			take: limit,
 			skip: offset
@@ -156,14 +165,6 @@ export function serveTokenSummary(){
 		})
 	}
 }
-
-
-export function serveTokenPoint(){
-	return ({ ctx, token, sequence, time, metric }) => {
-
-	}
-}
-
 
 export function serveTokenSeries(){
 	return ({ ctx, token, sequence, time, metric, ...opts }) => {
@@ -339,13 +340,15 @@ export function formatTokenCache({
 			? cache.tokenCurrencyUtf8
 			: cache.tokenCurrencyHex,
 		issuer: cache.issuerAddress,
+		mpt_issuance_id: cache.mptIssuanceId,
+		token_type: cache.tokenType,
 		meta: {
 			token: reduceProps({
 				props: cache.tokenProps || [],
 				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
-					...(ctx.config.api?.sourceRanking || [])
+					...(ctx.config.server?.sourceRanking || [])
 				]
 			}),
 			issuer: reduceProps({
@@ -353,7 +356,7 @@ export function formatTokenCache({
 				expand: expandMeta,
 				sourceRanking: [
 					...(preferSources || []),
-					...(ctx.config.api?.sourceRanking || [])
+					...(ctx.config.server?.sourceRanking || [])
 				]
 			})
 		},
@@ -419,6 +422,17 @@ export function formatTokenCache({
 		}
 	}
 
+	if (token.token_type === TokenType.IOU){
+		delete token.mpt_issuance_id		
+	}else if(token.token_type === TokenType.MPT){
+		delete token.currency
+		delete token.metrics.trustlines
+		if (includeChanges){
+			delete token.metrics.changes['24h'].trustlines
+			delete token.metrics.changes['7d'].trustlines
+		}
+	}
+
 	return token
 }
 
@@ -426,6 +440,7 @@ export function reduceProps({ props, expand, sourceRanking }){
 	let data = {}
 	let sources = {}
 	let urls = []
+	let uris = [] // uris are used in XLS-89 instead of urls
 
 	for(let { key, value, source } of props){
 		if(expand){
@@ -443,6 +458,8 @@ export function reduceProps({ props, expand, sourceRanking }){
 
 			if(key === 'urls'){
 				urls.push({ links: value, rank })
+			}else if(key === 'uris'){
+				uris.push({ links: value, rank })
 			}else{
 				if(!sources.hasOwnProperty(key) || sources[key] > rank){
 					data[key] = value
@@ -459,7 +476,31 @@ export function reduceProps({ props, expand, sourceRanking }){
 			.reduce((a, l) => [...a, ...l], [])
 	}
 
+	if(uris.length > 0){
+		data.uris = uris
+			.sort((a, b) => a.rank - b.rank)
+			.map(({ links }) => links)
+			.reduce((a, l) => [...a, ...l], [])
+	}
+
 	return data
+}
+
+export function adjustTokensResponse(){
+	return response => {
+		for(let token of response.tokens){
+			delete token.token_type
+		}
+
+		return response
+	}
+}
+
+export function adjustTokenResponse(){
+	return response => {
+		delete response.token_type
+		return response
+	}
 }
 
 function applyIconCaches({ ctx, cache }){

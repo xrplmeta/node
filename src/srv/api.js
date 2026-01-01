@@ -1,17 +1,42 @@
 import { sanitizeRange, sanitizePoint, sanitizeLimitOffset, sanitizeSourcePreferences } from './sanitizers/common.js'
-import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels } from './sanitizers/token.js'
-import { serveServerInfo } from './procedures/server.js'
-import { serveTokenSummary, serveTokenSeries, serveTokenPoint, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders } from './procedures/token.js'
+import { sanitizeToken, sanitizeTokenListSortBy, sanitizeNameLike, sanitizeTrustLevels, sanitizeIOUToken } from './sanitizers/token.js'
+import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.js'
+import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse, adjustTokensResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
+import TokenType from '../xrpl/tokentype.js'
+import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/warning.js'
 
+
+export const server_info_v1 = compose([
+	serveServerInfo(),
+	adjustServerInfoResponse(),
+	addServerInfoV1DeprecationWarning()
+])
 
 export const server_info = compose([
 	serveServerInfo()
 ])
 
+export const ledger_v1 = compose([
+	sanitizePoint(),
+	serveLedger(),
+	addLedgerV1DeprecationWarning()
+])
+
 export const ledger = compose([
 	sanitizePoint(),
 	serveLedger()
+])
+
+export const tokens_v1 = compose([
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	sanitizeNameLike(),
+	sanitizeTrustLevels(),
+	sanitizeTokenListSortBy({ tokenType: TokenType.IOU }),
+	sanitizeSourcePreferences(),
+	serveTokenList({ tokenType: TokenType.IOU }),
+	adjustTokensResponse(),
+	addTokensV1DeprecationWarning()
 ])
 
 export const tokens = compose([
@@ -23,43 +48,73 @@ export const tokens = compose([
 	serveTokenList()
 ])
 
-export const tokens_subscribe = compose([
+export const iou_tokens = compose([
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	sanitizeNameLike(),
+	sanitizeTrustLevels(),
+	sanitizeTokenListSortBy({ tokenType: TokenType.IOU }),
+	sanitizeSourcePreferences(),
+	serveTokenList({ tokenType: TokenType.IOU }),
+	adjustTokensResponse(),
+])
+
+export const mpt_tokens = compose([
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	sanitizeNameLike(),
+	sanitizeTrustLevels(),
+	sanitizeTokenListSortBy({ tokenType: TokenType.MPT }),
+	sanitizeSourcePreferences(),
+	serveTokenList({ tokenType: TokenType.MPT }),
+	adjustTokensResponse(),
+])
+
+export const tokens_subscribe_v1 = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
 	sanitizeSourcePreferences(),
 	subscribeTokenList(),
 	tag({ mustRunMainThread: true })
 ])
 
-export const tokens_unsubscribe = compose([
+export const tokens_unsubscribe_v1 = compose([
 	sanitizeToken({ key: 'tokens', array: true }),
 	unsubscribeTokenList(),
 	tag({ mustRunMainThread: true })
 ])
 
+export const token_v1 = compose([
+	sanitizeIOUToken({ key: 'token' }),
+	sanitizeSourcePreferences(),
+	serveTokenSummary(),
+	adjustTokenResponse(),
+	addTokenV1DeprecationWarning()
+])
+
 export const token = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizeSourcePreferences(),
-	serveTokenSummary()
+	serveTokenSummary(),
 ])
 
-export const token_metric = compose([
-	sanitizeToken({ key: 'token' }),
-	sanitizePoint(),
-	serveTokenPoint()
-])
-
-export const token_series = compose([
-	sanitizeToken({ key: 'token' }),
+export const token_series_v1 = compose([
+	sanitizeIOUToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
 ])
 
-export const token_exchanges = compose([
-	sanitizeToken({ key: 'base', allowXRP: true }),
-	sanitizeToken({ key: 'quote', allowXRP: true }),
+export const token_exchanges_v1 = compose([
+	sanitizeIOUToken({ key: 'base', allowXRP: true }),
+	sanitizeIOUToken({ key: 'quote', allowXRP: true }),
 	sanitizeRange({ defaultToFullRange: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges()
+])
+
+export const token_holders_v1 = compose([
+	sanitizeIOUToken({ key: 'token' }),
+	sanitizePoint({ defaultToLatest: true }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
+	serveTokenHolders(),
+	addTokenHoldersV1DeprecationWarning()
 ])
 
 export const token_holders = compose([
@@ -68,7 +123,6 @@ export const token_holders = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	serveTokenHolders()
 ])
-
 
 function compose(functions){
 	return args => functions.reduce(

@@ -1,6 +1,7 @@
 import { sum, sub, eq, lt, gt, neg, max } from '@xrplkit/xfl'
 import { writeBalance } from '../../db/helpers/balances.js'
 import { writeTokenMetrics, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 export function parse({ entry }){
@@ -71,7 +72,7 @@ export function group({ previous, final }){
 
 export function diff({ ctx, token, deltas }){
 	token = ctx.db.core.tokens.createOne({
-		data: token
+		data: {...token, tokenType: TokenType.IOU}
 	})
 
 	let { trustlines, holders, supply } = readTokenMetrics({ 

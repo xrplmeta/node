@@ -4,20 +4,23 @@ import {
 	markCacheDirtyForAccountIcons, 
 	markCacheDirtyForAccountProps, 
 	markCacheDirtyForTokenIcons, 
-	markCacheDirtyForTokenProps 
+	markCacheDirtyForTokenProps
 } from '../../cache/todo.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
 
 export function diffMultiTokenProps({ ctx, tokens, source }){
 	let propIds = []
 
-	for(let { currency, issuer, props } of tokens){
+	for(let { currency, issuer, mptIssuanceId, tokenType, props } of tokens){
 		writeTokenProps({
 			ctx,
 			token: {
 				currency,
-				issuer
+				issuer,
+				mptIssuanceId,
+				tokenType
 			},
 			props,
 			source
@@ -28,7 +31,9 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 				where: {
 					token: {
 						currency,
-						issuer
+						issuer,
+						mptIssuanceId,
+						tokenType
 					},
 					key,
 					source
@@ -68,10 +73,11 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 		.map(({ token }) => token)
 		.filter(
 			(token, index, tokens) => index === tokens.findIndex(
-				({ currency, issuer }) => isSameToken(token, { currency, issuer })
+				({ currency, issuer, mptIssuanceId, tokenType }) => 
+					tokenType === TokenType.IOU ? isSameToken(token, { currency, issuer }) : token.mptIssuanceId === mptIssuanceId
 			)
 		)
-	
+
 	for(let token of deletionAffectedTokens){
 		markCacheDirtyForTokenProps({ ctx, token })
 	}
@@ -137,7 +143,7 @@ export function diffMultiAccountProps({ ctx, accounts, source }){
 				({ address }) => address === account.address
 			)
 		)
-	
+
 	for(let account of deletionAffectedAccounts){
 		markCacheDirtyForAccountProps({ ctx, account })
 	}

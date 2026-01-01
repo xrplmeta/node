@@ -1,8 +1,10 @@
 import { currencyUTF8ToHex } from '@xrplkit/tokens'
 import { isValidClassicAddress } from 'ripple-address-codec'
+import { isValidMPTIssuanceId } from '../../xrpl/mpt.js'
+import TokenType from '../../xrpl/tokentype.js'
 
 
-const sortKeymap = {
+const iouSortKeymap = {
 	trustlines_delta_24h: 'trustlinesDelta24H',
 	trustlines_percent_24h: 'trustlinesPercent24H',
 	trustlines_delta_7d: 'trustlinesDelta7D',
@@ -33,8 +35,71 @@ const sortKeymap = {
 	trustlines: 'trustlines',
 }
 
+const mptSortKeymap = Object.fromEntries(
+	Object.entries(iouSortKeymap)
+		.filter(([key]) => !key.includes('trustlines'))
+)
 
-export function sanitizeToken({ key, array = false, allowXRP = false }){
+function parseIOU({ ctx, currency, issuer }){
+	if(!isValidClassicAddress(issuer))
+		throw {
+			type: `invalidParam`,
+			message: `The issuing address ${issuer} is malformed.`,
+			expose: true
+		}
+
+	let iouToken = ctx.db.core.tokens.readOne({
+		where: {
+			currency: currencyUTF8ToHex(currency),
+			issuer: {
+				address: issuer
+			}
+		},
+		include: {
+			issuer: true
+		}
+	})
+	
+	if(!iouToken){
+		throw {
+			type: `entryNotFound`,
+			message: `The token '${currency}' issued by '${issuer}' does not exist.`,
+			expose: true
+		}
+	}
+
+	return iouToken
+}
+
+function parseMPT({ ctx, mptIssuanceId }){
+	if (!isValidMPTIssuanceId(mptIssuanceId))
+		throw {
+			type: `invalidParam`,
+			message: `The mpt_issuance_id - ${mptIssuanceId} malformed.`,
+			expose: true
+		}
+
+	let mpToken = ctx.db.core.tokens.readOne({
+		where: {
+			mptIssuanceId
+		},
+		include: {
+			issuer: true
+		}
+	})
+
+	if(!mpToken){
+		throw {
+			type: `entryNotFound`,
+			message: `The MPT token - ${mptIssuanceId} does not exist.`,
+			expose: true
+		}
+	}
+
+	return mpToken
+}
+
+export function sanitizeIOUToken({ key, array = false, allowXRP = false }){
 	function parse(ctx, { currency, issuer }){
 		if(currency === 'XRP'){
 			if(allowXRP)
@@ -48,36 +113,56 @@ export function sanitizeToken({ key, array = false, allowXRP = false }){
 					message: `XRP is not allowed as parameter.`,
 					expose: true
 				}
+		}
+		
+		return parseIOU({ ctx, currency, issuer })
+	}
+
+	return ({ ctx, ...args }) => {
+		if(!args.hasOwnProperty(key))
+			throw {
+				type: `missingParam`,
+				message: `No token specified.`,
+				expose: true
+			}
+
+		if(array){
+			return {
+				...args,
+				ctx,
+				[key]: args[key].map(token => parse(ctx, token)),
+			}
 		}else{
-			if(!isValidClassicAddress(issuer))
+			return {
+				...args,
+				ctx,
+				[key]: parse(ctx, args[key]),
+			}
+		}
+	}
+}
+
+export function sanitizeToken({ key, array = false, allowXRP = false }){
+	function parse(ctx, { currency, issuer, mptIssuanceId }){
+		if (mptIssuanceId != null){
+			return parseMPT({ ctx, mptIssuanceId })
+		}
+
+		if(currency === 'XRP'){
+			if(allowXRP)
+				return {
+					id: 1,
+					currency: 'XRP'
+				}
+			else
 				throw {
 					type: `invalidParam`,
-					message: `The issuing address "${key}.issuer" is malformed.`,
+					message: `XRP is not allowed as parameter.`,
 					expose: true
 				}
 		}
-
-		let token = ctx.db.core.tokens.readOne({
-			where: {
-				currency: currencyUTF8ToHex(currency),
-				issuer: {
-					address: issuer
-				}
-			},
-			include: {
-				issuer: true
-			}
-		})
-	
-		if(!token){
-			throw {
-				type: `entryNotFound`,
-				message: `The token '${currency}' issued by '${issuer}' does not exist.`,
-				expose: true
-			}
-		}
-
-		return token
+		
+		return parseIOU({ ctx, currency, issuer })
 	}
 
 	return ({ ctx, ...args }) => {
@@ -105,20 +190,20 @@ export function sanitizeToken({ key, array = false, allowXRP = false }){
 }
 
 export function sanitizeNameLike(){
-	return ({ ctx, name_by, ...args }) => {
-		if(name_by){
-			if(typeof name_by !== 'string'){
+	return ({ ctx, name_like, ...args }) => {
+		if(name_like != null){
+			if(typeof name_like !== 'string'){
 				throw {
 					type: `invalidParam`,
-					message: `The "name_by" term has to be a string.`,
+					message: `The name_like term has to be a string.`,
 					expose: true
 				}
 			}
 
-			if(name_by.length === 0){
+			if(name_like.length === 0){
 				throw {
 					type: `invalidParam`,
-					message: `The "name_by" term has to be at least one character long.`,
+					message: `The name_like term has to be at least one character long.`,
 					expose: true
 				}
 			}
@@ -127,7 +212,7 @@ export function sanitizeNameLike(){
 		return {
 			...args,
 			ctx,
-			name_by
+			name_like
 		}
 	}
 }
@@ -164,7 +249,9 @@ export function sanitizeTrustLevels(){
 	}
 }
 
-export function sanitizeTokenListSortBy(){
+export function sanitizeTokenListSortBy({ tokenType } = {}){
+	const sortKeymap = tokenType === TokenType.IOU ? iouSortKeymap : mptSortKeymap
+
 	return ({ ctx, sort_by, ...args }) => {
 		if(sort_by){
 			sort_by = sortKeymap[sort_by]

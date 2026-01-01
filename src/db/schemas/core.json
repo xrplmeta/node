@@ -109,6 +109,12 @@
 			"items": {
 				"$ref": "#/definitions/NFTokenExchange"
 			}
+		},
+		"mptokenMetadataUpdates": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/MPTokenMetadataUpdate"
+			}
 		}
 	},
 	"definitions": {
@@ -416,6 +422,17 @@
 					"type": "string",
 					"format": "xrpl/currency"
 				},
+				"mptIssuanceId": {
+					"type": "string"
+				},
+				"tokenType": {
+					"type": "string",
+					"enum": [
+						"XRP",
+						"IOU",
+						"MPT"
+					]				
+				},
 				"props": {
 					"type": "array",
 					"items": {
@@ -424,10 +441,11 @@
 				}
 			},
 			"required": [
-				"currency"
+				"tokenType"
 			],
 			"unique": [
-				["issuer", "currency"]
+				["issuer", "currency"],
+				["mptIssuanceId"]
 			]
 		},
 		"TokenProp": {
@@ -816,6 +834,37 @@
 			],
 			"index": [
 				["nft", "ledgerSequence"]
+			]
+		},
+		"MPTokenMetadataUpdate": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"id": true
+				},
+				"token": {
+					"$ref": "#/definitions/Token"
+				},
+				"ledgerSequence": {
+					"type": "integer"
+				},
+				"transactionIndex": {
+					"type": "integer"
+				},
+				"deleted": {
+					"type": "boolean",
+					"default": false
+				}
+			},
+			"required": [
+				"token"
+			],
+			"unique": [
+				"token"
+			],
+			"index": [
+				["deleted"]
 			]
 		}
 	}

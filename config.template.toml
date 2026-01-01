@@ -81,7 +81,7 @@ max_requests_per_minute = 60
 # It is required to obtain an API key for this service.
 # https://bithomp.com/developer
 #
-# refresh_interval = 600
+# fetch_interval = 600
 # api_key = "<key>"
 
 
@@ -93,8 +93,6 @@ max_requests_per_minute = 60
 # bearer_token = "paste_here"
 # fetch_interval = 3600
 # max_requests_per_minute = 60
-
-
 
 [SERVER]
 # The server listens on the specified port for incoming HTTP (REST + WebSocket) connections.

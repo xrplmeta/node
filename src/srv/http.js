@@ -17,13 +17,38 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
+				procedure: 'server_info_v1'
+			})
+		}
+	)
+
+	router.get(
+		['/v2', '/v2/info', '/v2/server'],
+		async svc => {
+			await handle({
+				ctx,
+				svc,
 				procedure: 'server_info'
 			})
 		}
 	)
 
 	router.get(
-		'/ledger',
+		['/ledger'],
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'ledger_v1',
+				params: {
+					...parsePoint(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
+		['/v2/ledger'],
 		async svc => {
 			await handle({
 				ctx,
@@ -38,6 +63,32 @@ export function createRouter({ ctx }){
 
 	router.get(
 		'/tokens',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'tokens_v1',
+				params: {
+					...svc.query,
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					name_like: svc.query.name_like,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/tokens',
 		async svc => {
 			await handle({
 				ctx,
@@ -63,17 +114,52 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
-		'/tokens/exchanges/:base/:quote',
+		'/v2/tokens/iou',
 		async svc => {
 			await handle({
 				ctx,
 				svc,
-				procedure: 'token_exchanges',
+				procedure: 'iou_tokens',
 				params: {
-					base: parseTokenURI(svc.params.base),
-					quote: parseTokenURI(svc.params.quote),
-					newestFirst: svc.query.newest_first !== undefined,
-					...parseRange(svc.query)
+					...svc.query,
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					name_like: svc.query.name_like,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/tokens/mpt',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'mpt_tokens',
+				params: {
+					...svc.query,
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					name_like: svc.query.name_like,
+					trust_levels: svc.query.trust_levels
+						? svc.query.trust_levels.split(',')
+						: undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
 				}
 			})
 		}
@@ -81,6 +167,28 @@ export function createRouter({ ctx }){
 
 	router.get(
 		'/token/:token',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_v1',
+				params: {
+					token: parseIOUTokenUri(svc.params.token),
+					expand_meta: svc.query.expand_meta !== undefined,
+					include_sources: svc.query.include_sources !== undefined,
+					include_changes: svc.query.include_changes !== undefined,
+					decode_currency: svc.query.decode_currency !== undefined,
+					original_icons: svc.query.original_icons !== undefined,
+					prefer_sources: svc.query.prefer_sources
+						? svc.query.prefer_sources.split(',')
+						: undefined
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/token/:token',
 		async svc => {
 			await handle({
 				ctx,
@@ -102,6 +210,23 @@ export function createRouter({ ctx }){
 	)
 
 	router.get(
+		'/tokens/exchanges/:base/:quote',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_exchanges',
+				params: {
+					base: parseIOUTokenUri(svc.params.base),
+					quote: parseIOUTokenUri(svc.params.quote),
+					newestFirst: svc.query.newest_first !== undefined,
+					...parseRange(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
 		'/token/:token/series/:metric',
 		async svc => {
 			await handle({
@@ -109,7 +234,7 @@ export function createRouter({ ctx }){
 				svc,
 				procedure: 'token_series',
 				params: {
-					token: parseTokenURI(svc.params.token),
+					token: parseIOUTokenUri(svc.params.token),
 					metric: svc.params.metric,
 					...parseRange(svc.query)
 				}
@@ -119,6 +244,22 @@ export function createRouter({ ctx }){
 
 	router.get(
 		'/token/:token/holders',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_holders_v1',
+				params: {
+					...svc.query,
+					token: parseIOUTokenUri(svc.params.token),
+					...parsePoint(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/token/:token/holders',
 		async svc => {
 			await handle({
 				ctx,
@@ -213,13 +354,27 @@ async function handle({ ctx, svc, procedure, params = {} }){
 	}
 }
 
-
-function parseTokenURI(uri){
+function parseIOUTokenUri(uri){
 	let [currency, issuer] = uri.split(':')
 
 	return {
 		currency,
 		issuer
+	}
+}
+
+function parseTokenURI(uri){
+	if(uri.includes(':')){
+		let [currency, issuer] = uri.split(':')
+
+		return {
+			currency,
+			issuer
+		}
+	}
+
+	return {
+		mptIssuanceId: uri
 	}
 }
 

@@ -4,7 +4,8 @@ import * as tokens from './tokens.js'
 import * as tokenOffers from './tokenoffers.js'
 import * as nfts from './nfts.js'
 import * as nftOffers from './nftoffers.js'
-
+import * as mptokenIssuance from './mptokenissuance.js'
+import * as mptoken from './mptoken.js'
 
 const ledgerEntryModules = {
 	AccountRoot: accounts,
@@ -12,6 +13,8 @@ const ledgerEntryModules = {
 	Offer: tokenOffers,
 	NFTokenPage: nfts,
 	NFTokenOffer: nftOffers,
+	MPTokenIssuance: mptokenIssuance,
+	MPToken: mptoken
 }
 
 
@@ -32,7 +35,8 @@ export function applyLedgerStateFromObjects({ ctx, objects }){
 export function applyLedgerStateFromTransactions({ ctx, ledger }){
 	let deltas = []
 
-	for(let transaction of ledger.transactions){
+	for(let i = 0; i < ledger.transactions.length; i++){
+		let transaction = ledger.transactions[i]
 		let meta = transaction.meta || transaction.metaData
 
 		for(let { CreatedNode, ModifiedNode, DeletedNode } of meta.AffectedNodes){
@@ -40,6 +44,8 @@ export function applyLedgerStateFromTransactions({ ctx, ledger }){
 				deltas.push({
 					type: CreatedNode.LedgerEntryType,
 					index: CreatedNode.LedgerIndex,
+					ledgerSequence: ledger.sequence,
+					transactionIndex: i,
 					final: {
 						...CreatedNode.NewFields,
 						LedgerSequence: ledger.sequence
@@ -57,6 +63,8 @@ export function applyLedgerStateFromTransactions({ ctx, ledger }){
 				deltas.push({
 					type: ModifiedNode.LedgerEntryType,
 					index: ModifiedNode.LedgerIndex,
+					ledgerSequence: ledger.sequence,
+					transactionIndex: i,
 					previous: {
 						...ModifiedNode.FinalFields,
 						...ModifiedNode.PreviousFields,
@@ -71,6 +79,8 @@ export function applyLedgerStateFromTransactions({ ctx, ledger }){
 				deltas.push({
 					type: DeletedNode.LedgerEntryType,
 					index: DeletedNode.LedgerIndex,
+					ledgerSequence: ledger.sequence,
+					transactionIndex: i,
 					previous: {
 						...DeletedNode.FinalFields,
 						...DeletedNode.PreviousFields,
@@ -85,7 +95,7 @@ export function applyLedgerStateFromTransactions({ ctx, ledger }){
 		return applyDeltas({
 			ctx,
 			deltas: deltas
-				.map(({ type, index, previous, final }) => ({ type, index, previous: final, final: previous }))
+				.map(({ type, index, ledgerSequence, transactionIndex, previous, final }) => ({ type, index, ledgerSequence, transactionIndex, previous: final, final: previous }))
 				.reverse(),
 		})
 	}else{
@@ -100,7 +110,7 @@ function applyDeltas({ ctx, deltas }){
 	let groups = {}
 	let solos = []
 
-	for(let { type, index, previous, final } of deltas){
+	for(let { type, index, ledgerSequence, transactionIndex, previous, final } of deltas){
 		let module = ledgerEntryModules[type]
 
 		if(!module)
@@ -142,6 +152,8 @@ function applyDeltas({ ctx, deltas }){
 		}else{
 			solos.push({
 				type,
+				ledgerSequence,
+				transactionIndex,
 				previous: parsedPrevious, 
 				final: parsedFinal 
 			})
