@@ -4,10 +4,15 @@ export function markCacheDirtyForAccountProps({ ctx, account }){
 	if(ctx.backwards)
 		return
 
+	let subject = getAccountId({ ctx, account })
+
+	if(!subject)
+		return
+
 	ctx.db.cache.todos.createOne({
 		data: {
 			task: 'account.props',
-			subject: getAccountId({ ctx, account })
+			subject
 		}
 	})
 }
@@ -16,10 +21,15 @@ export function markCacheDirtyForTokenProps({ ctx, token }){
 	if(ctx.backwards)
 		return
 
+	let subject = getTokenId({ ctx, token })
+
+	if(!subject)
+		return
+
 	ctx.db.cache.todos.createOne({
 		data: {
 			task: 'token.props',
-			subject: getTokenId({ ctx, token })
+			subject
 		}
 	})
 }
@@ -29,6 +39,9 @@ export function markCacheDirtyForTokenMetrics({ ctx, token, metrics }){
 		return
 
 	let subject = getTokenId({ ctx, token })
+
+	if(!subject)
+		return
 
 	for(let metric of Object.keys(metrics)){
 		ctx.db.cache.todos.createOne({
@@ -47,28 +60,43 @@ export function markCacheDirtyForTokenExchanges({ ctx, token }){
 	if(token.currency === 'XRP')
 		return
 
+	let subject = getTokenId({ ctx, token })
+
+	if(!subject)
+		return
+
 	ctx.db.cache.todos.createOne({
 		data: {
 			task: 'token.exchanges',
-			subject: getTokenId({ ctx, token })
+			subject
 		}
 	})
 }
 
 export function markCacheDirtyForTokenIcons({ ctx, token }){
+	let subject = getTokenId({ ctx, token })
+
+	if(!subject)
+		return
+
 	ctx.db.cache.todos.createOne({
 		data: {
 			task: 'token.icons',
-			subject: getTokenId({ ctx, token })
+			subject
 		}
 	})
 }
 
 export function markCacheDirtyForAccountIcons({ ctx, account }){
+	let subject = getAccountId({ ctx, account })
+
+	if(!subject)
+		return
+
 	ctx.db.cache.todos.createOne({
 		data: {
 			task: 'account.icons',
-			subject: getAccountId({ ctx, account })
+			subject
 		}
 	})
 }

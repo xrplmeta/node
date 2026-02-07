@@ -128,7 +128,7 @@ export function getAccountId({ ctx, account }){
 		select: {
 			id: true
 		}
-	}).id
+	})?.id
 }
 
 export function getTokenId({ ctx, token }){
@@ -140,5 +140,5 @@ export function getTokenId({ ctx, token }){
 		select: {
 			id: true
 		}
-	}).id
+	})?.id
 }
