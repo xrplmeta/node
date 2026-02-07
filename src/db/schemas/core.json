@@ -294,7 +294,9 @@
 						"MPTokenAuthorize",
 						"MPTokenIssuanceCreate",
 						"MPTokenIssuanceDestroy",
-						"MPTokenIssuanceSet"
+						"MPTokenIssuanceSet",
+						"PermissionedDomainSet",
+						"PermissionedDomainDelete"
 					]
 				},
 				"count": {
