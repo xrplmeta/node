@@ -4,3 +4,4 @@ deps/build
 config.toml
 .vscode
 .idea
+scripts/
