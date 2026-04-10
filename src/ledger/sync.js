@@ -1,6 +1,7 @@
 import log from '@mwni/log'
 import { spawn } from '@mwni/workers'
 import { applyLedgerEvents } from './events/index.js'
+import { createMissingMPTokenIssuanceFromTransactions } from '../xrpl/mpt.js'
 import { applyLedgerStateFromTransactions } from './state/index.js'
 import { updateDerived } from './derived/index.js'
 import { pullNewItems, readTableHeads } from '../db/helpers/heads.js'
@@ -31,7 +32,9 @@ export async function startSync({ ctx }){
 			log.time.debug(`sync.cycle`)
 
 			let { ledger, ledgersBehind } = await stream.next()
-	
+
+			await createMissingMPTokenIssuanceFromTransactions({ ctx, ledger })
+
 			ctx.db.core.tx(() => {
 				ctx = {
 					...ctx,

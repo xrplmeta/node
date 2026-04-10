@@ -427,13 +427,16 @@
 				"mptIssuanceId": {
 					"type": "string"
 				},
+				"scale": {
+					"type": "integer"
+				},
 				"tokenType": {
 					"type": "string",
 					"enum": [
 						"XRP",
 						"IOU",
 						"MPT"
-					]				
+					]
 				},
 				"props": {
 					"type": "array",

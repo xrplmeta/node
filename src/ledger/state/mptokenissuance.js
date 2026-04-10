@@ -7,6 +7,7 @@ export function parse({ entry }){
     return {
         issuer: entry.Issuer,
         sequence: entry.Sequence,
+        assetScale: entry.AssetScale,
         mptokenMetadata: entry.MPTokenMetadata
     }
 }
@@ -20,7 +21,8 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
             address: issuer
         },
         mptIssuanceId: mptIssuanceIdFromIssuerAndSequence(issuer, sequence),
-        tokenType: TokenType.MPT
+        tokenType: TokenType.MPT,
+        scale: final?.assetScale ?? previous?.assetScale ?? 0
     }
     token = ctx.db.core.tokens.createOne({
         data: token
