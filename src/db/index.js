@@ -57,6 +57,7 @@ export async function openCoreDB({ ctx, readOnly=false, inMemory=false }){
 		data: {
 			currency: 'XRP',
 			issuer: null,
+			scale: 6,
 			tokenType: TokenType.XRP
 		}
 	})
