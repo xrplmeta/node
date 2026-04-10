@@ -1,7 +1,6 @@
 import { writeBalance } from "../../db/helpers/balances.js"
 import { readTokenMetrics, writeTokenMetrics } from "../../db/helpers/tokenmetrics.js"
-import { eq, gt, sum, sub } from "@xrplkit/xfl"
-import { issuerFromMPTIssuanceId } from "../../xrpl/mpt.js"
+import { eq, gt, sum, sub, div } from "@xrplkit/xfl"
 import TokenType from "../../xrpl/tokentype.js"
 
 export function parse({ entry }){
@@ -20,17 +19,15 @@ export function diff({ ctx, previous, final }){
 
     let account = final?.account || previous?.account
     let mptIssuanceId = final?.mptIssuanceId || previous?.mptIssuanceId
-    let issuer = issuerFromMPTIssuanceId(mptIssuanceId)
 
-    let token = ctx.db.core.tokens.createOne({
-        data: {
-            issuer: {
-                address: issuer
-            },
+    let token = ctx.db.core.tokens.readOne({
+        where: {
             mptIssuanceId,
             tokenType: TokenType.MPT
         }
     })
+
+    let applyScale = (amount) => div(amount,  Math.pow(10, token.scale || 0).toString())
 
     // Read current metrics
     let { holders, supply } = readTokenMetrics({
@@ -53,7 +50,7 @@ export function diff({ ctx, previous, final }){
         }
         metrics.supply = sum(
             metrics.supply,
-            sub(final.mptAmount, previous.mptAmount)
+            sub(applyScale(final.mptAmount), applyScale(previous.mptAmount))
         )
 
         if(eq(previous.mptAmount, 0) && gt(final.mptAmount, 0)){
@@ -63,14 +60,14 @@ export function diff({ ctx, previous, final }){
         }
     }else if(final){
         // Created: increment holders if MPTAmount > 0
-        metrics.supply = sum(metrics.supply, final.mptAmount)
+        metrics.supply = sum(metrics.supply, applyScale(final.mptAmount))
 
         if(gt(final.mptAmount, 0)){
             metrics.holders++
         }
     }else{
         // Deleted: decrement holders if MPTAmount was > 0
-        metrics.supply = sub(metrics.supply, previous.mptAmount)
+        metrics.supply = sub(metrics.supply, applyScale(previous.mptAmount))
 
         if(gt(previous.mptAmount, 0)){
             metrics.holders--
@@ -84,7 +81,7 @@ export function diff({ ctx, previous, final }){
             account: { address: account },
             token,
             ledgerSequence: final.ledgerSequence,
-            balance: final.mptAmount,
+            balance: applyScale(final.mptAmount),
         })
     }else{
         writeBalance({
