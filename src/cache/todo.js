@@ -88,7 +88,7 @@ export function markCacheDirtyForTokenIcons({ ctx, token }){
 }
 
 export function markCacheDirtyForAccountIcons({ ctx, account }){
-	let subject = getTokenId({ ctx, account })
+	let subject = getAccountId({ ctx, account })
 
 	if(!subject)
 		return

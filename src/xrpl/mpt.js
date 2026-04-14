@@ -21,59 +21,26 @@ export function mptIssuanceIdFromIssuerAndSequence(issuer, sequence){
     return combinedBuffer.toString('hex').toUpperCase()
 }
 
-export async function createMissingMPTokenIssuanceFromTransactions({ ctx, ledger }){
-    // Step 1: create Token entries from AffectedNodes
-    let issuances = extractMPTIssuanceFromTransactions(ledger.transactions)
+export function createMPTokenIssuancesFromTransactions({ ctx, ledger }){
+    for(let tx of ledger.transactions){
+        let meta = tx.meta || tx.metaData
+        if(!meta?.AffectedNodes)
+            continue
 
-    for(let { issuer, mptIssuanceId, scale, tokenType } of issuances){
-        ctx.db.core.tokens.createOne({
-            data: {
-                issuer: { address: issuer },
-                mptIssuanceId,
-                scale,
-                tokenType
-            }
-        })
-    }
+        for(let node of meta.AffectedNodes){
+            let entry = node.CreatedNode || node.ModifiedNode || node.DeletedNode
+            if(!entry || entry.LedgerEntryType !== 'MPTokenIssuance')
+                continue
 
-    // Step 2: collect MPToken references whose issuance is missing in Token table
-    let mptIssuanceIds = collectMPTIssuanceIdsFromMPTokenObjects(ledger.transactions)
-    let missing = []
-
-    for(let mptIssuanceId of mptIssuanceIds){
-        let token = ctx.db.core.tokens.readOne({
-            where: {
-                mptIssuanceId,
-                tokenType: TokenType.MPT
-            }
-        })
-
-        if(!token){
-            missing.push(mptIssuanceId)
-        }
-    }
-
-    // Step 3: fetch missing issuances from ledger and store
-    for(let mptIssuanceId of missing){
-        try{
-            console.log('fetching', mptIssuanceId)
-            let { result } = await ctx.xrpl.request({
-                command: 'ledger_entry',
-                mpt_issuance_id: mptIssuanceId,
-                ledger_index: ledger.sequence
-            })
-
+            let fields = entry.NewFields || entry.FinalFields
             ctx.db.core.tokens.createOne({
                 data: {
-                    issuer: { address: issuerFromMPTIssuanceId(mptIssuanceId) },
-                    mptIssuanceId,
-                    scale: result.node?.AssetScale ?? 0,
+                    issuer: { address: fields.Issuer },
+                    mptIssuanceId: mptIssuanceIdFromIssuerAndSequence(fields.Issuer, fields.Sequence),
+                    scale: fields.AssetScale ?? 0,
                     tokenType: TokenType.MPT
                 }
             })
-        }catch(error){
-            // Step 4: log error, will revisit retry logic later
-            log.error(`failed to fetch MPT issuance ${mptIssuanceId}: ${error.error || error.message}`)
         }
     }
 }
@@ -95,7 +62,7 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
     }
 
     // Step 2: collect MPToken references whose issuance is missing in Token table
-    let missing = []
+    let missing = new Set()
 
     for(let obj of objects){
         if(obj.LedgerEntryType !== 'MPToken')
@@ -109,7 +76,7 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
         })
 
         if(!token){
-            missing.push(obj.MPTokenIssuanceID)
+            missing.add(obj.MPTokenIssuanceID)
         }
     }
 
@@ -121,6 +88,7 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
                 mpt_issuance_id: mptIssuanceId,
                 ledger_index: ledgerSequence
             })
+            log.warn(`fetched MPT issuance ${mptIssuanceId} from ledger #${ledgerSequence}`)
 
             ctx.db.core.tokens.createOne({
                 data: {
@@ -136,54 +104,3 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
     }
 }
 
-function extractMPTIssuanceFromTransactions(transactions){
-    let issuances = new Map()
-
-    for(let tx of transactions){
-        let meta = tx.meta || tx.metaData
-        if(!meta?.AffectedNodes)
-            continue
-
-        for(let node of meta.AffectedNodes){
-            let entry = node.CreatedNode || node.ModifiedNode || node.DeletedNode
-            if(!entry || entry.LedgerEntryType !== 'MPTokenIssuance')
-                continue
-
-            let fields = entry.NewFields || entry.FinalFields
-            let mptIssuanceId = mptIssuanceIdFromIssuerAndSequence(fields.Issuer, fields.Sequence)
-
-            issuances.set(mptIssuanceId, {
-                issuer: fields.Issuer,
-                mptIssuanceId,
-                scale: fields.AssetScale ?? 0,
-                tokenType: TokenType.MPT
-            })
-        }
-    }
-
-    return [...issuances.values()]
-}
-
-
-function collectMPTIssuanceIdsFromMPTokenObjects(transactions){
-    let ids = new Set()
-
-    for(let tx of transactions){
-        let meta = tx.meta || tx.metaData
-        if(!meta?.AffectedNodes)
-            continue
-
-        for(let node of meta.AffectedNodes){
-            let entry = node.CreatedNode || node.ModifiedNode || node.DeletedNode
-            if(!entry)
-                continue
-
-            let fields = entry.NewFields || entry.FinalFields
-            if(entry.LedgerEntryType === 'MPToken'){
-                ids.add(fields.MPTokenIssuanceID)
-            }
-        }
-    }
-
-    return [...ids]
-}
