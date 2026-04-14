@@ -5,7 +5,7 @@ import { fetch as fetchLedger } from '../xrpl/ledger.js'
 import { applyLedgerStateFromObjects } from './state/index.js'
 import { applyLedgerEvents } from './events/index.js'
 import { updateAllDerived } from './derived/index.js'
-import { createMissingMPTokenIssuanceFromTransactions, createMissingMPTokenIssuanceFromObjects } from '../xrpl/mpt.js'
+import { createMPTokenIssuancesFromTransactions, createMissingMPTokenIssuanceFromObjects } from '../xrpl/mpt.js'
 
 
 export async function createSnapshot({ ctx }){
@@ -64,7 +64,7 @@ async function createSnapshotState({ ctx }){
 		sequence: 'validated'
 	})
 
-	await createMissingMPTokenIssuanceFromTransactions({ ctx, ledger })
+	createMPTokenIssuancesFromTransactions({ ctx, ledger })
 	applyLedgerEvents({ ctx, ledger })
 
 	ctx.currentLedger = ledger
