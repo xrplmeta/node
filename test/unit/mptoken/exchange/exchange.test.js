@@ -190,3 +190,33 @@ describe('Exact Offer Match', () => {
 		await runAndAssert('mpt-mpt-offer')
 	})
 })
+
+
+// ─── AMM Offer Consumption ───
+
+describe('AMM Offer Consumption', () => {
+	it('IOU/XRP AMM: Alice creates 500 USD + 100 XRP pool, Bob offer crosses AMM', async () => {
+		await runAndAssert('iou-xrp-amm-offer')
+	})
+
+	it('MPT/XRP AMM: Alice creates 500000 MPT (scale=2) + 100 XRP pool, Bob offer crosses AMM', async () => {
+		await runAndAssert('mpt-xrp-amm-offer')
+	})
+})
+
+
+// ─── AMM Non-Consumption (offer sits on book, 0 exchanges) ───
+
+describe('AMM Non-Consumption', () => {
+	it('IOU/IOU AMM: Alice creates 500 USD + 500 EUR pool, Bob offer does NOT cross', async () => {
+		await runAndAssert('iou-iou-amm-offer')
+	})
+
+	it('IOU/MPT AMM: Alice creates 500 USD + 500000 MPT (scale=2) pool, Bob offer does NOT cross', async () => {
+		await runAndAssert('iou-mpt-amm-offer')
+	})
+
+	it('MPT/MPT AMM: Alice creates 500000 MPT-A (scale=2) + 100000 MPT-B (scale=4) pool, Bob offer does NOT cross', async () => {
+		await runAndAssert('mpt-mpt-amm-offer')
+	})
+})
