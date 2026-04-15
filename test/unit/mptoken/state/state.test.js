@@ -2,17 +2,17 @@ import { expect } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createContext } from '../env.js'
-import { applyLedgerStateFromTransactions, applyLedgerStateFromObjects } from '../../../src/ledger/state/index.js'
-import { readBalance } from '../../../src/db/helpers/balances.js'
-import { readTokenMetrics } from '../../../src/db/helpers/tokenmetrics.js'
-import TokenType from '../../../src/xrpl/tokentype.js'
+import { createContext } from '../../env.js'
+import { applyLedgerStateFromTransactions, applyLedgerStateFromObjects } from '../../../../src/ledger/state/index.js'
+import { readBalance } from '../../../../src/db/helpers/balances.js'
+import { readTokenMetrics } from '../../../../src/db/helpers/tokenmetrics.js'
+import TokenType from '../../../../src/xrpl/tokentype.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-function loadScenario(type, name) {
+function loadScenario(name) {
 	return JSON.parse(
-		fs.readFileSync(path.join(__dirname, 'scenarios', type, `${name}.json`), 'utf-8')
+		fs.readFileSync(path.join(__dirname, 'scenarios', `${name}.json`), 'utf-8')
 	)
 }
 
@@ -67,7 +67,7 @@ function assertExpected(ctx, mptIssuanceId, expected, ledgerSequence) {
 
 describe('MPToken state - sync (forward)', () => {
 	let ctx
-	let scenario = loadScenario('sync', 'supply-holders-transfer-fee')
+	let scenario = loadScenario('supply-holders-transfer-fee')
 
 	before(async () => {
 		ctx = await createContext()
