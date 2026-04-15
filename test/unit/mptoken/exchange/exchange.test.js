@@ -189,6 +189,10 @@ describe('Exact Offer Match', () => {
 	it('MPT/MPT: Alice sells 500 MPT-A (scale=2) for 20000 MPT-B (scale=4), Bob crosses (no XRP pair, marketcap=0)', async () => {
 		await runAndAssert('mpt-mpt-offer')
 	})
+
+	it('MPT/XRP multi: Alice and Bob each sell 50 MPT for 25 XRP, Charlie crosses both (2 exchanges, price=50, marketcap=1000)', async () => {
+		await runAndAssert('mpt-xrp-multi-offer')
+	})
 })
 
 
@@ -201,6 +205,15 @@ describe('AMM Offer Consumption', () => {
 
 	it('MPT/XRP AMM: Alice creates 500000 MPT (scale=2) + 100 XRP pool, Bob offer crosses AMM', async () => {
 		await runAndAssert('mpt-xrp-amm-offer')
+	})
+})
+
+
+// ─── Combined Offer + AMM Consumption ───
+
+describe('Combined Offer + AMM Consumption', () => {
+	it('MPT/XRP: Alice offer + Bob AMM pool, Charlie crosses both (2 exchanges: 1 offer + 1 AMM)', async () => {
+		await runAndAssert('mpt-xrp-offer-plus-amm')
 	})
 })
 
