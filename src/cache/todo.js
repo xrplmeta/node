@@ -21,7 +21,7 @@ export function markCacheDirtyForTokenProps({ ctx, token }){
 	if(ctx.backwards)
 		return
 
-	let subject = getAccountId({ ctx, token })
+	let subject = getTokenId({ ctx, token })
 
 	if(!subject)
 		return
