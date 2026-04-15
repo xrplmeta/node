@@ -6,7 +6,6 @@ import {
 	markCacheDirtyForTokenIcons, 
 	markCacheDirtyForTokenProps
 } from '../../cache/todo.js'
-import TokenType from '../../xrpl/tokentype.js'
 
 
 
@@ -73,8 +72,10 @@ export function diffMultiTokenProps({ ctx, tokens, source }){
 		.map(({ token }) => token)
 		.filter(
 			(token, index, tokens) => index === tokens.findIndex(
-				({ currency, issuer, mptIssuanceId, tokenType }) => 
-					tokenType === TokenType.IOU ? isSameToken(token, { currency, issuer }) : token.mptIssuanceId === mptIssuanceId
+				({ currency, issuer, mptIssuanceId }) => isSameToken(
+					{ ...token, mpt_issuance_id: token.mptIssuanceId },
+					{ currency, issuer, mpt_issuance_id: mptIssuanceId }
+				)
 			)
 		)
 
