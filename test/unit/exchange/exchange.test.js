@@ -2,20 +2,20 @@ import { expect } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createContext } from '../../env.js'
-import { applyLedgerStateFromTransactions } from '../../../../src/ledger/state/index.js'
-import { applyLedgerEvents } from '../../../../src/ledger/events/index.js'
-import { updateDerived } from '../../../../src/ledger/derived/index.js'
-import { readBalance } from '../../../../src/db/helpers/balances.js'
-import { readTokenMetrics } from '../../../../src/db/helpers/tokenmetrics.js'
-import { readTableHeads, pullNewItems } from '../../../../src/db/helpers/heads.js'
-import TokenType from '../../../../src/xrpl/tokentype.js'
+import { createContext } from '../env.js'
+import { applyLedgerStateFromTransactions } from '../../../src/ledger/state/index.js'
+import { applyLedgerEvents } from '../../../src/ledger/events/index.js'
+import { updateDerived } from '../../../src/ledger/derived/index.js'
+import { readBalance } from '../../../src/db/helpers/balances.js'
+import { readTokenMetrics } from '../../../src/db/helpers/tokenmetrics.js'
+import { readTableHeads, pullNewItems } from '../../../src/db/helpers/heads.js'
+import TokenType from '../../../src/xrpl/tokentype.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 function loadScenario(name) {
 	let scenario = JSON.parse(
-		fs.readFileSync(path.join(__dirname, 'scenarios', `${name}.json`), 'utf-8')
+		fs.readFileSync(path.join(__dirname, 'fixtures', `${name}.json`), 'utf-8')
 	)
 
 	for (let ledger of scenario.ledgers) {

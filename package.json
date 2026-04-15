@@ -9,7 +9,7 @@
 		"start": "node src/run.js",
 		"postinstall": "npm run build-deps",
 		"build-deps": "node-gyp rebuild --directory=deps --release",
-		"test": "mocha test/unit/*.test.js",
+		"test": "mocha --recursive 'test/unit/**/*.test.js'",
 		"livetest": "node test/live/run.js"
 	},
 	"dependencies": {
