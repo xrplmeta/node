@@ -1,6 +1,21 @@
 import { decodeAccountID, encodeAccountID } from "ripple-address-codec"
+import WebSocket from 'ws'
 import log from '@mwni/log'
 import TokenType from './tokentype.js'
+
+const XRPLD_URL = 'ws://0.0.0.0:6006/'
+
+function xrplRequest(command){
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(XRPLD_URL)
+        ws.on('open', () => ws.send(JSON.stringify(command)))
+        ws.on('message', data => {
+            ws.close()
+            resolve(JSON.parse(data))
+        })
+        ws.on('error', reject)
+    })
+}
 
 export function isValidMPTIssuanceId(mptIssuanceId){
     return /^[A-Z0-9]{48}$/.test(mptIssuanceId)
@@ -83,12 +98,12 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
     // Step 3: fetch missing issuances from ledger and store
     for(let mptIssuanceId of missing){
         try{
-            let { result } = await ctx.xrpl.request({
+            let response = await xrplRequest({
                 command: 'ledger_entry',
-                mpt_issuance_id: mptIssuanceId,
+                mpt_issuance: mptIssuanceId,
                 ledger_index: ledgerSequence
             })
-            log.warn(`fetched MPT issuance ${mptIssuanceId} from ledger #${ledgerSequence}`)
+            let result = response.result
 
             ctx.db.core.tokens.createOne({
                 data: {
@@ -99,7 +114,7 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
                 }
             })
         }catch(error){
-            log.error(`failed to fetch MPT issuance ${mptIssuanceId}: ${error.error || error.message}`)
+            log.error(`failed to fetch MPT issuance ${mptIssuanceId}: ${error?.message || error}`)
         }
     }
 }
