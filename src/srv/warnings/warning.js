@@ -52,3 +52,25 @@ export function addLedgerV1DeprecationWarning(){
         return {...response, warnings: [...warnings, ledgerV1DeprecationWarning]}
     }
 }
+
+export function addTokenExchangesV1DeprecationWarning(){
+    return response => {
+        let warnings = response.warnings || []
+        const tokenExchangesV1DeprecationWarning = {
+            id: 'token_exchanges_api_deprecation',
+            message: 'tokens/exchanges endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/tokens/exchanges endpoint instead'
+        }
+        return {...response, warnings: [...warnings, tokenExchangesV1DeprecationWarning]}
+    }
+}
+
+export function addTokenSeriesV1DeprecationWarning(){
+    return response => {
+        let warnings = response.warnings || []
+        const tokenSeriesV1DeprecationWarning = {
+            id: 'token_series_api_deprecation',
+            message: 'tokens/series endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/token/:token/series endpoint instead'
+        }
+        return {...response, warnings: [...warnings, tokenSeriesV1DeprecationWarning]}
+    }
+}

@@ -199,7 +199,7 @@ export function serveTokenSeries(){
 		}else{
 			throw {
 				type: `invalidParam`,
-				message: `Invalid metric. Allowed values are: price, volume, trustlines, holders, supply, marketcap.`,
+				message: `Invalid metric. Allowed values are: price, trustlines, holders, supply, marketcap.`,
 				expose: true
 			}
 		}
@@ -239,7 +239,10 @@ export function serveTokenSeries(){
 
 export function serveTokenExchanges(){
 	return ({ ctx, base, quote, sequence, limit, newestFirst }) => {
-		if(isSameToken(base, quote)){
+		if(isSameToken(
+			{ ...base, mpt_issuance_id: base.mptIssuanceId },
+			{ ...quote, mpt_issuance_id: quote.mptIssuanceId }
+		)){
 			throw {
 				type: `invalidParam`,
 				message: `The base and quote asset can not be the same.`,

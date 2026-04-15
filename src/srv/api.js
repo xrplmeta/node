@@ -4,7 +4,7 @@ import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.j
 import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse, adjustTokensResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 import TokenType from '../xrpl/tokentype.js'
-import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning } from './warnings/warning.js'
+import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning, addTokenExchangesV1DeprecationWarning, addTokenSeriesV1DeprecationWarning } from './warnings/warning.js'
 
 
 export const server_info_v1 = compose([
@@ -98,12 +98,28 @@ export const token = compose([
 export const token_series_v1 = compose([
 	sanitizeIOUToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
+	serveTokenSeries(),
+	addTokenSeriesV1DeprecationWarning()
+])
+
+export const token_series = compose([
+	sanitizeToken({ key: 'token' }),
+	sanitizeRange({ withInterval: true }),
 	serveTokenSeries()
 ])
 
 export const token_exchanges_v1 = compose([
 	sanitizeIOUToken({ key: 'base', allowXRP: true }),
 	sanitizeIOUToken({ key: 'quote', allowXRP: true }),
+	sanitizeRange({ defaultToFullRange: true }),
+	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
+	serveTokenExchanges(),
+	addTokenExchangesV1DeprecationWarning()
+])
+
+export const token_exchanges = compose([
+	sanitizeToken({ key: 'base', allowXRP: true }),
+	sanitizeToken({ key: 'quote', allowXRP: true }),
 	sanitizeRange({ defaultToFullRange: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges()

@@ -258,16 +258,16 @@ export function alignTokenExchange({ exchange, base, quote }){
 export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, time }){
 	if(time){
 		var exchanges = ctx.db.core.tokenExchanges.readManyRaw({
-			query: 
+			query:
 				`SELECT MAX(Ledger.closeTime) as time, takerPaidToken, takerGotToken, takerPaidValue, takerGotValue
 				FROM TokenExchange
 				LEFT JOIN Ledger ON (Ledger.sequence = ledgerSequence)
 				WHERE (
 						(takerPaidToken = ? AND takerGotToken = ?)
 						OR
-						(takerGotToken = ? AND takerPaidToken = ?)
+						(takerPaidToken = ? AND takerGotToken = ?)
 					)
-					AND 
+					AND
 					(
 						(Ledger.closeTime >= ? AND Ledger.closeTime <= ?)
 						OR
@@ -278,7 +278,7 @@ export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, ti
 								WHERE (
 										(takerPaidToken = ? AND takerGotToken = ?)
 										OR
-										(takerGotToken = ? AND takerPaidToken = ?)
+										(takerPaidToken = ? AND takerGotToken = ?)
 									)
 									AND ledgerSequence < ?
 								ORDER BY ledgerSequence DESC
@@ -305,13 +305,13 @@ export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, ti
 		})
 	}else{
 		var exchanges = ctx.db.core.tokenExchanges.readManyRaw({
-			query: 
+			query:
 				`SELECT MAX(ledgerSequence) as sequence, takerPaidToken, takerGotToken, takerPaidValue, takerGotValue
 				FROM TokenExchange
 				WHERE (
 						(takerPaidToken = ? AND takerGotToken = ?)
 						OR
-						(takerGotToken = ? AND takerPaidToken = ?)
+						(takerPaidToken = ? AND takerGotToken = ?)
 					)
 					AND (
 						(ledgerSequence >= ? AND ledgerSequence <= ?)
@@ -323,7 +323,7 @@ export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, ti
 								WHERE (
 										(takerPaidToken = ? AND takerGotToken = ?)
 										OR
-										(takerGotToken = ? AND takerPaidToken = ?)
+										(takerPaidToken = ? AND takerGotToken = ?)
 									)
 									AND ledgerSequence < ?
 								ORDER BY ledgerSequence DESC

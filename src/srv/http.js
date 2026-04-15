@@ -215,10 +215,27 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'token_exchanges',
+				procedure: 'token_exchanges_v1',
 				params: {
 					base: parseIOUTokenUri(svc.params.base),
 					quote: parseIOUTokenUri(svc.params.quote),
+					newestFirst: svc.query.newest_first !== undefined,
+					...parseRange(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/tokens/exchanges/:base/:quote',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_exchanges',
+				params: {
+					base: parseTokenURI(svc.params.base),
+					quote: parseTokenURI(svc.params.quote),
 					newestFirst: svc.query.newest_first !== undefined,
 					...parseRange(svc.query)
 				}
@@ -232,9 +249,25 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'token_series',
+				procedure: 'token_series_v1',
 				params: {
 					token: parseIOUTokenUri(svc.params.token),
+					metric: svc.params.metric,
+					...parseRange(svc.query)
+				}
+			})
+		}
+	)
+
+	router.get(
+		'/v2/token/:token/series/:metric',
+		async svc => {
+			await handle({
+				ctx,
+				svc,
+				procedure: 'token_series',
+				params: {
+					token: parseTokenURI(svc.params.token),
 					metric: svc.params.metric,
 					...parseRange(svc.query)
 				}
@@ -364,6 +397,12 @@ function parseIOUTokenUri(uri){
 }
 
 function parseTokenURI(uri){
+	if(uri === 'XRP'){
+		return {
+			currency: 'XRP'
+		}
+	}
+
 	if(uri.includes(':')){
 		let [currency, issuer] = uri.split(':')
 
