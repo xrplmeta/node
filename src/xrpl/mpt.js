@@ -1,5 +1,4 @@
 import { decodeAccountID, encodeAccountID } from "ripple-address-codec"
-import TokenType from './tokentype.js'
 
 export function isValidMPTIssuanceId(mptIssuanceId){
     return /^[A-Z0-9]{48}$/.test(mptIssuanceId)

@@ -31,17 +31,17 @@ export async function startSync({ ctx }){
 			log.time.debug(`sync.cycle`)
 
 			let { ledger, ledgersBehind } = await stream.next()
-
+	
 			ctx.db.core.tx(() => {
 				ctx = {
 					...ctx,
 					currentLedger: ledger,
 					ledgerSequence: ledger.sequence,
 				}
-
+	
 				try{
 					let heads = readTableHeads({ ctx })
-					
+	
 					applyLedgerEvents({ ctx, ledger })
 					applyLedgerStateFromTransactions({ ctx, ledger })
 					updateDerived({ 

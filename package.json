@@ -22,7 +22,7 @@
 		"@xrplkit/tokens": "file:../forks/xrplkit/tokens",
 		"@xrplkit/toml": "1.0.0",
 		"@xrplkit/txmeta": "file:../forks/xrplkit/txmeta",
-		"@xrplkit/xfl": "file:../forks/xrplkit/xfl",
+		"@xrplkit/xfl": "2.1.1",
 		"@xrplkit/xls26": "2.6.0",
 		"@xrplkit/xls89": "0.2.0",
 		"@koa/router": "13.1.0",
