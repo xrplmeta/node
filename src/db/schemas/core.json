@@ -427,9 +427,6 @@
 				"mptIssuanceId": {
 					"type": "string"
 				},
-				"scale": {
-					"type": "integer"
-				},
 				"tokenType": {
 					"type": "string",
 					"enum": [

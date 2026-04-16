@@ -1,5 +1,4 @@
 import { extractExchanges } from '@xrplkit/txmeta'
-import { div } from '@xrplkit/xfl'
 import { markCacheDirtyForTokenExchanges } from '../../cache/todo.js'
 import TokenType from '../../xrpl/tokentype.js'
 
@@ -31,28 +30,14 @@ export function applyTokenExchanges({ ctx, ledger }){
 				sequence,
 				takerPaidToken,
 				takerGotToken,
-				takerPaidValue: applyScale(ctx, takerPaidToken, takerPaid.value),
-				takerGotValue: applyScale(ctx, takerGotToken, takerGot.value),
+				takerPaidValue: takerPaid.value,
+				takerGotValue: takerGot.value,
 			}
 		})
 
 		markCacheDirtyForTokenExchanges({ ctx, token: takerPaidToken })
 		markCacheDirtyForTokenExchanges({ ctx, token: takerGotToken })
 	}
-}
-
-function applyScale(ctx, token, value){
-	if(token.tokenType !== TokenType.MPT)
-		return value
-
-	let mptToken = ctx.db.core.tokens.readOne({
-		where: {
-			mptIssuanceId: token.mptIssuanceId,
-			tokenType: TokenType.MPT
-		}
-	})
-
-	return div(value, Math.pow(10, mptToken.scale).toString())
 }
 
 function tokenFromExchange(amount){
