@@ -6,6 +6,7 @@ import { applyLedgerStateFromObjects } from './state/index.js'
 import { applyLedgerEvents } from './events/index.js'
 import { updateAllDerived } from './derived/index.js'
 
+
 export async function createSnapshot({ ctx }){
 	ctx = {
 		...ctx,
@@ -57,8 +58,8 @@ export async function createSnapshot({ ctx }){
 }
 
 async function createSnapshotState({ ctx }){
-	let ledger = await fetchLedger({
-		ctx,
+	let ledger = await fetchLedger({ 
+		ctx, 
 		sequence: 'validated'
 	})
 
@@ -91,8 +92,7 @@ async function copyFromFeed({ ctx, feed }){
 		
 		if(!chunk)
 			break
-
-
+		
 		ctx.db.core.tx(() => {
 			applyLedgerStateFromObjects({
 				ctx,

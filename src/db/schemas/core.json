@@ -433,7 +433,7 @@
 						"XRP",
 						"IOU",
 						"MPT"
-					]
+					]				
 				},
 				"props": {
 					"type": "array",

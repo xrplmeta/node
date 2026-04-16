@@ -36,7 +36,7 @@ export async function startBackfill({ ctx }){
 
 			try{
 				let heads = readTableHeads({ ctx })
-				
+
 				applyLedgerEvents({ ctx, ledger })
 				applyLedgerStateFromTransactions({ ctx, ledger })
 				updateDerived({ 
