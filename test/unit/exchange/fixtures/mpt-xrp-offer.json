@@ -1,5 +1,5 @@
 {
-  "description": "MPT/XRP exact offer match (AssetScale=2): Alice places offer to sell 500 MPT for 50 XRP (sits on book). Bob places offer to sell 50 XRP for 500 MPT which crosses Alice's offer. Taker=Bob, Maker=Alice. Price=10 XRP per scaled MPT, marketcap=100.",
+  "description": "MPT/XRP exact offer match: Alice places offer to sell 500 MPT for 50 XRP (sits on book). Bob places offer to sell 50 XRP for 500 MPT which crosses Alice's offer. Taker=Bob, Maker=Alice. Price=0.1 XRP per MPT, marketcap=100.",
   "ledgers": [
     {
       "account_hash": "D81170B137B9C043A328AB91987CC7DC6372A5FA6F3121FCF9E7F1BA356C4EFA",
@@ -607,17 +607,17 @@
     },
     "metrics": {
       "holders": 2,
-      "supply": "10",
+      "supply": "1000",
       "marketcap": "100"
     },
     "balances": [
       {
         "account": "rEJ2ruxBVypBms7VV5PHSVEygjTnpcxpQ9",
-        "value": "5"
+        "value": "500"
       },
       {
         "account": "rfL1B36NyY1jcvk5wC8EwZkfKo2ctFkbVn",
-        "value": "5"
+        "value": "500"
       }
     ],
     "exchanges": [
@@ -631,7 +631,7 @@
           "mptIssuanceId": "000033F94D8ABB5A839DBAF33DE222BF3D1D211AE4BF0D2C"
         },
         "takerPaidValue": "50",
-        "takerGotValue": "5"
+        "takerGotValue": "500"
       }
     ]
   }

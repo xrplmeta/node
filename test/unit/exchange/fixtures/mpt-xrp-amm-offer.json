@@ -1,5 +1,5 @@
 {
-  "description": "MPT/XRP AMM offer consumption (AssetScale=2): Alice creates AMM pool (500000 MPT + 100 XRP, TradingFee=0). Bob places offer to buy 100 MPT for up to 10 XRP which crosses the AMM. Bob has no pre-existing MPToken \u2014 authorization was done in setup. Taker=Bob, Maker=AMM pool account. AMM account: rfwYTifqaehhboCq6CW66RQ74bXCQESp9P, LP Token currency: 03A9CC4096970C0D4243F6D18821AAAA814D7D2A, LP Token issuer: rfwYTifqaehhboCq6CW66RQ74bXCQESp9P",
+  "description": "MPT/XRP AMM offer consumption: Alice creates AMM pool (500000 MPT + 100 XRP, TradingFee=0). Bob places offer to buy 100 MPT for up to 10 XRP which crosses the AMM. Taker=Bob, Maker=AMM pool account. AMM account: rfwYTifqaehhboCq6CW66RQ74bXCQESp9P, LP Token currency: 03A9CC4096970C0D4243F6D18821AAAA814D7D2A, LP Token issuer: rfwYTifqaehhboCq6CW66RQ74bXCQESp9P",
   "ledgers": [
     {
       "account_hash": "2690AB7DA332DEC2E86853C2A916D9BE72359D0CE50E7A26A5D5276A488A3EE4",
@@ -634,7 +634,7 @@
     },
     "metrics": {
       "holders": 3,
-      "supply": "10000"
+      "supply": "1000000"
     },
     "exchanges": [
       {

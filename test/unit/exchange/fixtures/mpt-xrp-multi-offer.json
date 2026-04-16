@@ -1,5 +1,5 @@
 {
-  "description": "MPT/XRP multiple offer consumption (AssetScale=2): Alice and Bob each place offers to sell 50 MPT for 25 XRP (sit on book). Charlie places offer to buy 100 MPT for 50 XRP which crosses both offers in one transaction. Taker=Charlie, Makers=Bob+Alice. 2 exchanges. Price=50 XRP per scaled MPT, marketcap=1000.",
+  "description": "MPT/XRP multiple offer consumption: Alice and Bob each place offers to sell 50 MPT for 25 XRP (sit on book). Charlie places offer to buy 100 MPT for 50 XRP which crosses both offers in one transaction. Taker=Charlie, Makers=Bob+Alice. 2 exchanges. Price=0.5 XRP per MPT, marketcap=1000.",
   "ledgers": [
     {
       "account_hash": "03A1F759FF4A42A48C939407C8593A85E91013E275F86E7FA476F596851294B1",
@@ -966,21 +966,21 @@
     },
     "metrics": {
       "holders": 3,
-      "supply": "20",
+      "supply": "2000",
       "marketcap": "1000"
     },
     "balances": [
       {
         "account": "rLcbbZzrEdf6BQoonNkpQJzkABuCc6khco",
-        "value": "9.5"
+        "value": "950"
       },
       {
         "account": "rGNodcrMsaftzL18HbGxiXgGZNM5psrunQ",
-        "value": "9.5"
+        "value": "950"
       },
       {
         "account": "rUYH3x62cwkigidkHEN8UzNdGCcS8xSLi3",
-        "value": "1"
+        "value": "100"
       }
     ],
     "exchanges": [
@@ -994,7 +994,7 @@
           "mptIssuanceId": "000075767A46F0002541282954B582540C405E76AC464856"
         },
         "takerPaidValue": "25",
-        "takerGotValue": "0.5"
+        "takerGotValue": "50"
       },
       {
         "taker": "rUYH3x62cwkigidkHEN8UzNdGCcS8xSLi3",
@@ -1006,7 +1006,7 @@
           "mptIssuanceId": "000075767A46F0002541282954B582540C405E76AC464856"
         },
         "takerPaidValue": "25",
-        "takerGotValue": "0.5"
+        "takerGotValue": "50"
       }
     ]
   }

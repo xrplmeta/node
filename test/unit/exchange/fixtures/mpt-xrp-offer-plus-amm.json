@@ -1,5 +1,5 @@
 {
-  "description": "MPT/XRP offer + AMM combined consumption (AssetScale=2): Alice places offer to sell 1000 MPT for 0.1 XRP (cheaper than AMM, sits on book). Bob creates AMM pool (500000 MPT + 100 XRP). Charlie places offer to buy 1100 MPT for up to 100 XRP which crosses Alice's offer first then routes remainder through AMM. Taker=Charlie, Makers=Alice+AMM. 2 exchanges (1 offer + 1 AMM). AMM account: r3SST8ZRE1dhU15ibhCfoJPyxAxF74448E, LP Token currency: 03D35ECA2AD91111EC54443DAAA6DC388F4790D2, LP Token issuer: r3SST8ZRE1dhU15ibhCfoJPyxAxF74448E",
+  "description": "MPT/XRP offer + AMM combined consumption: Alice places offer to sell 1000 MPT for 0.1 XRP (cheaper than AMM, sits on book). Bob creates AMM pool (500000 MPT + 100 XRP). Charlie places offer to buy 1100 MPT for up to 100 XRP which crosses Alice's offer first then routes remainder through AMM. Taker=Charlie, Makers=Alice+AMM. 2 exchanges (1 offer + 1 AMM). AMM account: r3SST8ZRE1dhU15ibhCfoJPyxAxF74448E, LP Token currency: 03D35ECA2AD91111EC54443DAAA6DC388F4790D2, LP Token issuer: r3SST8ZRE1dhU15ibhCfoJPyxAxF74448E",
   "ledgers": [
     {
       "account_hash": "C9FB8EFBE2BB39CC157F4F8804AF13A60C8DCB3FFB97B33DA3425C2EBB884D98",
@@ -1003,7 +1003,7 @@
     },
     "metrics": {
       "holders": 3,
-      "supply": "10010"
+      "supply": "1001000"
     },
     "exchanges": [
       {
@@ -1016,7 +1016,7 @@
           "mptIssuanceId": "00007985710390B104077C8D426E3922E378DFED2B24711C"
         },
         "takerPaidValue": "0.1",
-        "takerGotValue": "10"
+        "takerGotValue": "1000"
       },
       {
         "taker": "rMuP2jYqMGWn59xY61fNcNryP2hbLVVBud",
