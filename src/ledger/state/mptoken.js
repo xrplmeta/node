@@ -1,6 +1,7 @@
 import { writeBalance } from "../../db/helpers/balances.js"
 import { readTokenMetrics, writeTokenMetrics } from "../../db/helpers/tokenmetrics.js"
 import { eq, gt, sum, sub } from "@xrplkit/xfl"
+import { issuerFromMPTIssuanceId } from "../../xrpl/mpt.js"
 import TokenType from "../../xrpl/tokentype.js"
 
 export function parse({ entry }){
@@ -20,12 +21,13 @@ export function diff({ ctx, previous, final }){
     let account = final?.account || previous?.account
     let mptIssuanceId = final?.mptIssuanceId || previous?.mptIssuanceId
 
-    let token = ctx.db.core.tokens.readOne({
-        where: {
+    let token = ctx.db.core.tokens.createOne({
+        data: {
+            issuer: { address: issuerFromMPTIssuanceId(mptIssuanceId) },
             mptIssuanceId,
             tokenType: TokenType.MPT
         }
-    })   
+    })
 
     // Read current metrics
     let { holders, supply } = readTokenMetrics({
@@ -42,10 +44,6 @@ export function diff({ ctx, previous, final }){
 
     // Update metrics based on MPTAmount changes
     if(previous && final){
-        // Modified: update supply, check holder status changes
-        if (previous.mptAmount === final.mptAmount && previous.flags === final.flags) {
-            previous.mptAmount = 0
-        }
         metrics.supply = sum(
             metrics.supply,
             sub(final.mptAmount, previous.mptAmount)

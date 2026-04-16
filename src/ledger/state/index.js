@@ -60,16 +60,26 @@ export function applyLedgerStateFromTransactions({ ctx, ledger }){
 					continue
 				}
 
+				let previous = {
+					...ModifiedNode.FinalFields,
+					...ModifiedNode.PreviousFields,
+					LedgerSequence: ModifiedNode.PreviousTxnLgrSeq
+				}
+
+				// When PreviousFields is empty for an MPToken ModifiedNode,
+				// it means the previous MPTAmount was 0 (default). Without this,
+				// previous looks identical to final because FinalFields fills both.
+				if(ModifiedNode.LedgerEntryType === 'MPToken'
+					&& Object.keys(ModifiedNode.PreviousFields || {}).length === 0){
+					previous.MPTAmount = '0'
+				}
+
 				deltas.push({
 					type: ModifiedNode.LedgerEntryType,
 					index: ModifiedNode.LedgerIndex,
 					ledgerSequence: ledger.sequence,
 					transactionIndex: i,
-					previous: {
-						...ModifiedNode.FinalFields,
-						...ModifiedNode.PreviousFields,
-						LedgerSequence: ModifiedNode.PreviousTxnLgrSeq
-					},
+					previous,
 					final: {
 						...ModifiedNode.FinalFields,
 						LedgerSequence: ledger.sequence

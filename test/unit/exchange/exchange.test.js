@@ -233,3 +233,16 @@ describe('AMM Non-Consumption', () => {
 		await runAndAssert('mpt-mpt-amm-offer')
 	})
 })
+
+
+// ─── AMM Deposit/Withdraw (liquidity operations, 0 exchanges) ───
+
+describe('AMM Deposit/Withdraw', () => {
+	it('IOU/XRP AMM deposit: Alice creates pool, Bob deposits — 0 exchanges', async () => {
+		await runAndAssert('iou-xrp-amm-deposit')
+	})
+
+	it('MPT/XRP AMM deposit + withdraw: Alice creates pool, Bob deposits then withdraws — 0 exchanges', async () => {
+		await runAndAssert('mpt-xrp-amm-deposit-withdraw')
+	})
+})
