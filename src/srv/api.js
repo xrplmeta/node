@@ -4,7 +4,7 @@ import { adjustServerInfoResponse, serveServerInfo } from './procedures/server.j
 import { serveTokenSummary, serveTokenSeries, serveTokenList, subscribeTokenList, unsubscribeTokenList, serveTokenExchanges, serveTokenHolders, adjustTokenResponse, adjustTokensResponse } from './procedures/token.js'
 import { serveLedger } from './procedures/ledger.js'
 import TokenType from '../xrpl/tokentype.js'
-import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning, addTokenExchangesV1DeprecationWarning, addTokenSeriesV1DeprecationWarning } from './warnings/warning.js'
+import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTokenHoldersV1DeprecationWarning, addTokensV1DeprecationWarning, addTokenV1DeprecationWarning, addTokenExchangesV1DeprecationWarning } from './warnings/warning.js'
 
 
 export const server_info_v1 = compose([
@@ -98,8 +98,7 @@ export const token = compose([
 export const token_series_v1 = compose([
 	sanitizeIOUToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
-	serveTokenSeries(),
-	addTokenSeriesV1DeprecationWarning()
+	serveTokenSeries()
 ])
 
 export const token_series = compose([
