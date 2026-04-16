@@ -1,21 +1,7 @@
 import { decodeAccountID, encodeAccountID } from "ripple-address-codec"
-import WebSocket from 'ws'
 import log from '@mwni/log'
 import TokenType from './tokentype.js'
-
-const XRPLD_URL = 'ws://0.0.0.0:6006/'
-
-function xrplRequest(command){
-    return new Promise((resolve, reject) => {
-        const ws = new WebSocket(XRPLD_URL)
-        ws.on('open', () => ws.send(JSON.stringify(command)))
-        ws.on('message', data => {
-            ws.close()
-            resolve(JSON.parse(data))
-        })
-        ws.on('error', reject)
-    })
-}
+import { wait } from "@xrplkit/time"
 
 export function isValidMPTIssuanceId(mptIssuanceId){
     return /^[A-Z0-9]{48}$/.test(mptIssuanceId)
@@ -97,25 +83,35 @@ export async function createMissingMPTokenIssuanceFromObjects({ ctx, objects, le
 
     // Step 3: fetch missing issuances from ledger and store
     for(let mptIssuanceId of missing){
-        try{
-            let response = await xrplRequest({
-                command: 'ledger_entry',
-                mpt_issuance: mptIssuanceId,
-                ledger_index: ledgerSequence
-            })
-            let result = response.result
+        let scale = 0
 
-            ctx.db.core.tokens.createOne({
-                data: {
-                    issuer: { address: issuerFromMPTIssuanceId(mptIssuanceId) },
-                    mptIssuanceId,
-                    scale: result.node?.AssetScale ?? 0,
-                    tokenType: TokenType.MPT
+        for(let attempt = 1; attempt <= 3; attempt++){
+            try{
+                let { result } = await ctx.xrpl.request({
+                    command: 'ledger_entry',
+                    mpt_issuance: mptIssuanceId,
+                    ledger_index: ledgerSequence
+                })
+
+                scale = result.node?.AssetScale ?? 0
+                break
+            }catch(error){
+                if(attempt < 3){
+                    await wait(1000)
+                }else{
+                    log.error(`failed to fetch MPT issuance ${mptIssuanceId} after 3 attempts: ${error?.message || error}. Defaulting AssetScale to 0.`)
                 }
-            })
-        }catch(error){
-            log.error(`failed to fetch MPT issuance ${mptIssuanceId}: ${error?.message || error}`)
+            }
         }
+
+        ctx.db.core.tokens.createOne({
+            data: {
+                issuer: { address: issuerFromMPTIssuanceId(mptIssuanceId) },
+                mptIssuanceId,
+                scale,
+                tokenType: TokenType.MPT
+            }
+        })
     }
 }
 

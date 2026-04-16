@@ -25,7 +25,7 @@ export function addTokenHoldersV1DeprecationWarning(){
         let warnings = response.warnings || []
         const tokenHoldersV1DeprecationWarning = {
             id: 'token_holders_api_deprecation',
-            message: 'token_holders endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/token/:token/holders endpoint or WebSocket token_holders command with api_version: 2 instead'
+            message: 'token/:token/holders endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/token/:token/holders endpoint or WebSocket token_holders command with api_version: 2 instead'
         }
         return {...response, warnings: [...warnings, tokenHoldersV1DeprecationWarning]}
     }
@@ -35,8 +35,8 @@ export function addServerInfoV1DeprecationWarning(){
     return response => {
         let warnings = response.warnings || []
         const serverInfoV1DeprecationWarning = {
-            id: 'server_info_api_deprecation',
-            message: 'server_info endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/server endpoint or WebSocket server_info command with api_version: 2 instead'
+            id: 'server_api_deprecation',
+            message: 'server endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/server endpoint or WebSocket server_info command with api_version: 2 instead'
         }
         return {...response, warnings: [...warnings, serverInfoV1DeprecationWarning]}
     }
@@ -58,19 +58,8 @@ export function addTokenExchangesV1DeprecationWarning(){
         let warnings = response.warnings || []
         const tokenExchangesV1DeprecationWarning = {
             id: 'token_exchanges_api_deprecation',
-            message: 'tokens/exchanges endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/tokens/exchanges endpoint instead'
+            message: 'tokens/exchanges endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/tokens/exchanges endpoint or WebSocket token_exchanges command with api_version: 2 instead'
         }
         return {...response, warnings: [...warnings, tokenExchangesV1DeprecationWarning]}
-    }
-}
-
-export function addTokenSeriesV1DeprecationWarning(){
-    return response => {
-        let warnings = response.warnings || []
-        const tokenSeriesV1DeprecationWarning = {
-            id: 'token_series_api_deprecation',
-            message: 'tokens/series endpoint is being deprecated and will be removed on MM-DD-YYYY. Prefer HTTP /v2/token/:token/series endpoint instead'
-        }
-        return {...response, warnings: [...warnings, tokenSeriesV1DeprecationWarning]}
     }
 }
