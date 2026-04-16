@@ -1,5 +1,5 @@
 {
-  "description": "IOU/MPT exact offer match (AssetScale=3): Alice places offer to sell 100 USD for 5000 MPT (sits on book). Bob places offer to sell 5000 MPT for 100 USD which crosses Alice's offer. Taker=Bob, Maker=Alice. No XRP pair so marketcap=0.",
+  "description": "IOU/MPT exact offer match: Alice places offer to sell 100 USD for 5000 MPT (sits on book). Bob places offer to sell 5000 MPT for 100 USD which crosses Alice's offer. Taker=Bob, Maker=Alice. No XRP pair so marketcap=0.",
   "ledgers": [
     {
       "account_hash": "48BA9165ABB72E3C26FD55D0CE89D9411242E414F72B89D3026432CD25284BC3",
@@ -1088,17 +1088,17 @@
     },
     "metrics": {
       "holders": 2,
-      "supply": "10",
+      "supply": "10000",
       "marketcap": "0"
     },
     "balances": [
       {
         "account": "rMYGEB4ehfF1MSQsfLvix49jqVLTSZksCA",
-        "value": "5"
+        "value": "5000"
       },
       {
         "account": "rpnBMhEt99sA11g6fg7RKQq2dtoXFicHcJ",
-        "value": "5"
+        "value": "5000"
       }
     ],
     "exchanges": [
@@ -1112,7 +1112,7 @@
           "currency": "USD",
           "issuer": "rG2a6FXUv2wQb68Ldp7tG3ipkupJvHR6i6"
         },
-        "takerPaidValue": "5",
+        "takerPaidValue": "5000",
         "takerGotValue": "100"
       }
     ]

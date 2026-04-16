@@ -1,5 +1,5 @@
 {
-  "description": "MPT/MPT exact offer match (MPT-A AssetScale=2, MPT-B AssetScale=4): Alice places offer to sell 500 MPT-A for 20000 MPT-B (sits on book). Bob places offer to sell 20000 MPT-B for 500 MPT-A which crosses Alice's offer. Taker=Bob, Maker=Alice. No XRP pair so marketcap=0.",
+  "description": "MPT/MPT exact offer match: Alice places offer to sell 500 MPT-A for 20000 MPT-B (sits on book). Bob places offer to sell 20000 MPT-B for 500 MPT-A which crosses Alice's offer. Taker=Bob, Maker=Alice. No XRP pair so marketcap=0.",
   "ledgers": [
     {
       "account_hash": "291883A25E1FE29079F10C28428DDA23A4243AE38252D7502D964664A05FDC37",
@@ -993,17 +993,17 @@
     },
     "metrics": {
       "holders": 2,
-      "supply": "10",
+      "supply": "1000",
       "marketcap": "0"
     },
     "balances": [
       {
         "account": "rfedM6KrcATyXjFg49FEFMiiT1y3jcnpmR",
-        "value": "5"
+        "value": "500"
       },
       {
         "account": "r4y5ZebdHVPDTB9FrUvBPXJ5uWkqZJ8Dzd",
-        "value": "5"
+        "value": "500"
       }
     ],
     "exchanges": [
@@ -1016,8 +1016,8 @@
         "takerGotToken": {
           "mptIssuanceId": "000035C2BEC3E1B595B81356315F272DA0210595C477D999"
         },
-        "takerPaidValue": "2",
-        "takerGotValue": "5"
+        "takerPaidValue": "20000",
+        "takerGotValue": "500"
       }
     ]
   }

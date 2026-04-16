@@ -178,19 +178,19 @@ describe('Exact Offer Match', () => {
 		await runAndAssert('iou-iou-offer')
 	})
 
-	it('IOU/MPT: Alice sells 100 USD for 5000 MPT (AssetScale=3), Bob crosses (no XRP pair, marketcap=0)', async () => {
+	it('IOU/MPT: Alice sells 100 USD for 5000 MPT, Bob crosses (no XRP pair, marketcap=0)', async () => {
 		await runAndAssert('iou-mpt-offer')
 	})
 
-	it('MPT/XRP: Alice sells 500 MPT (AssetScale=2) for 50 XRP, Bob crosses (price=10, marketcap=100)', async () => {
+	it('MPT/XRP: Alice sells 500 MPT for 50 XRP, Bob crosses (price=0.1, marketcap=100)', async () => {
 		await runAndAssert('mpt-xrp-offer')
 	})
 
-	it('MPT/MPT: Alice sells 500 MPT-A (scale=2) for 20000 MPT-B (scale=4), Bob crosses (no XRP pair, marketcap=0)', async () => {
+	it('MPT/MPT: Alice sells 500 MPT-A for 20000 MPT-B, Bob crosses (no XRP pair, marketcap=0)', async () => {
 		await runAndAssert('mpt-mpt-offer')
 	})
 
-	it('MPT/XRP multi: Alice and Bob each sell 50 MPT for 25 XRP, Charlie crosses both (2 exchanges, price=50, marketcap=1000)', async () => {
+	it('MPT/XRP multi: Alice and Bob each sell 50 MPT for 25 XRP, Charlie crosses both (2 exchanges, price=0.5, marketcap=1000)', async () => {
 		await runAndAssert('mpt-xrp-multi-offer')
 	})
 })
@@ -203,7 +203,7 @@ describe('AMM Offer Consumption', () => {
 		await runAndAssert('iou-xrp-amm-offer')
 	})
 
-	it('MPT/XRP AMM: Alice creates 500000 MPT (scale=2) + 100 XRP pool, Bob offer crosses AMM', async () => {
+	it('MPT/XRP AMM: Alice creates 500000 MPT + 100 XRP pool, Bob offer crosses AMM', async () => {
 		await runAndAssert('mpt-xrp-amm-offer')
 	})
 })
@@ -225,11 +225,11 @@ describe('AMM Non-Consumption', () => {
 		await runAndAssert('iou-iou-amm-offer')
 	})
 
-	it('IOU/MPT AMM: Alice creates 500 USD + 500000 MPT (scale=2) pool, Bob offer does NOT cross', async () => {
+	it('IOU/MPT AMM: Alice creates 500 USD + 500000 MPT pool, Bob offer does NOT cross', async () => {
 		await runAndAssert('iou-mpt-amm-offer')
 	})
 
-	it('MPT/MPT AMM: Alice creates 500000 MPT-A (scale=2) + 100000 MPT-B (scale=4) pool, Bob offer does NOT cross', async () => {
+	it('MPT/MPT AMM: Alice creates 500000 MPT-A + 100000 MPT-B pool, Bob offer does NOT cross', async () => {
 		await runAndAssert('mpt-mpt-amm-offer')
 	})
 })

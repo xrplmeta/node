@@ -1,5 +1,5 @@
 {
-  "description": "MPT transfers (AssetScale=2): Issuer->Alice 10000, Alice->Bob 5000, Bob->Alice 2000, Bob->Charlie 1000, Charlie->Issuer 500. Final raw balances: Issuer=500, Alice=7000, Bob=2000, Charlie=500. Supply=9500 raw = 95 scaled.",
+  "description": "MPT transfers: Issuer->Alice 10000, Alice->Bob 5000, Bob->Alice 2000, Bob->Charlie 1000, Charlie->Issuer 500. Final raw balances: Alice=7000, Bob=2000, Charlie=500. Supply=9500.",
   "mptIssuanceId": "00000003DB82F23B803E4509878F1BF4555EBAB3A30DE89F",
   "accounts": {
     "issuer": "rMrCiKUV4wUNXYJvZn2zQwd7BkSim2JJ3A",
@@ -881,20 +881,20 @@
     "balances": [
       {
         "account": "rKwsswRD2LvRMWjRh5pZthDNJcwWcMeZK8",
-        "value": "70"
+        "value": "7000"
       },
       {
         "account": "rsnyc3RYKFrRHgVZ4TJ6PKnPCBtaJkiqig",
-        "value": "20"
+        "value": "2000"
       },
       {
         "account": "rLVxUvEXhBVxSnMQvyVXj7yEN765nCoQfN",
-        "value": "5"
+        "value": "500"
       }
     ],
     "metrics": {
       "holders": 3,
-      "supply": "95"
+      "supply": "9500"
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "description": "MPT/MPT AMM non-consumption (MPT-A AssetScale=2, MPT-B AssetScale=4): Alice creates AMM pool (500000 MPT-A + 100000 MPT-B, TradingFee=0). Bob places offer to buy 100 MPT-A for 100 MPT-B. Offer does NOT cross the AMM (non-XRP AMM pools are not consumed via OfferCreate). 0 exchanges. AMM account: rPSx7ke8jzeJvERzVpjnTWLe42xmWnTmYE, LP Token currency: 03684ACFD24C96D65930DD798DC06834C9AA53E9, LP Token issuer: rPSx7ke8jzeJvERzVpjnTWLe42xmWnTmYE",
+  "description": "MPT/MPT AMM non-consumption: Alice creates AMM pool (500000 MPT-A + 100000 MPT-B, TradingFee=0). Bob places offer to buy 100 MPT-A for 100 MPT-B. Offer does NOT cross the AMM (non-XRP AMM pools are not consumed via OfferCreate). 0 exchanges. AMM account: rPSx7ke8jzeJvERzVpjnTWLe42xmWnTmYE, LP Token currency: 03684ACFD24C96D65930DD798DC06834C9AA53E9, LP Token issuer: rPSx7ke8jzeJvERzVpjnTWLe42xmWnTmYE",
   "ledgers": [
     {
       "account_hash": "867EC861A7D40A8256471E4541CB6C34FEBB2350573F479384B13399267A729E",
@@ -1129,7 +1129,7 @@
     },
     "metrics": {
       "holders": 3,
-      "supply": "10000"
+      "supply": "1000000"
     },
     "exchanges": []
   }

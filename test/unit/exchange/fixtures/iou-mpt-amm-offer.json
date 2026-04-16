@@ -1,5 +1,5 @@
 {
-  "description": "IOU/MPT AMM non-consumption (AssetScale=2): Alice creates AMM pool (500 USD + 500000 MPT, TradingFee=0). Bob places offer to buy 50 USD for 50000 MPT. Offer does NOT cross the AMM (non-XRP AMM pools are not consumed via OfferCreate). 0 exchanges. AMM account: r4GTGQ3K9Dz95GbL6CTFPmr8ybecMsL6DF, LP Token currency: 03A4C65244CEC15F3666D8B0767796AC5F66D4EC, LP Token issuer: r4GTGQ3K9Dz95GbL6CTFPmr8ybecMsL6DF",
+  "description": "IOU/MPT AMM non-consumption: Alice creates AMM pool (500 USD + 500000 MPT, TradingFee=0). Bob places offer to buy 50 USD for 50000 MPT. Offer does NOT cross the AMM (non-XRP AMM pools are not consumed via OfferCreate). 0 exchanges. AMM account: r4GTGQ3K9Dz95GbL6CTFPmr8ybecMsL6DF, LP Token currency: 03A4C65244CEC15F3666D8B0767796AC5F66D4EC, LP Token issuer: r4GTGQ3K9Dz95GbL6CTFPmr8ybecMsL6DF",
   "ledgers": [
     {
       "account_hash": "DD2CA185162D10BD9B1470724ADF1320EF6B9756326C3E95AFBDB89A1AE32BD9",
@@ -1095,7 +1095,7 @@
     },
     "metrics": {
       "holders": 3,
-      "supply": "20000"
+      "supply": "2000000"
     },
     "exchanges": []
   }
