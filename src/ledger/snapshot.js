@@ -5,8 +5,6 @@ import { fetch as fetchLedger } from '../xrpl/ledger.js'
 import { applyLedgerStateFromObjects } from './state/index.js'
 import { applyLedgerEvents } from './events/index.js'
 import { updateAllDerived } from './derived/index.js'
-import { createMPTokenIssuancesFromTransactions, createMissingMPTokenIssuanceFromObjects } from '../xrpl/mpt.js'
-
 
 export async function createSnapshot({ ctx }){
 	ctx = {
@@ -64,7 +62,6 @@ async function createSnapshotState({ ctx }){
 		sequence: 'validated'
 	})
 
-	createMPTokenIssuancesFromTransactions({ ctx, ledger })
 	applyLedgerEvents({ ctx, ledger })
 
 	ctx.currentLedger = ledger
@@ -95,7 +92,6 @@ async function copyFromFeed({ ctx, feed }){
 		if(!chunk)
 			break
 
-		await createMissingMPTokenIssuanceFromObjects({ ctx, objects: chunk.objects, ledgerSequence: ctx.snapshotState.ledgerSequence })
 
 		ctx.db.core.tx(() => {
 			applyLedgerStateFromObjects({

@@ -4,7 +4,6 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { createContext } from '../env.js'
 import { applyLedgerStateFromTransactions, applyLedgerStateFromObjects } from '../../../src/ledger/state/index.js'
-import { createMPTokenIssuancesFromTransactions, createMissingMPTokenIssuanceFromObjects } from '../../../src/xrpl/mpt.js'
 import { readBalance } from '../../../src/db/helpers/balances.js'
 import { readTokenMetrics } from '../../../src/db/helpers/tokenmetrics.js'
 import TokenType from '../../../src/xrpl/tokentype.js'
@@ -73,7 +72,6 @@ describe('MPToken state - sync (forward)', () => {
 			let testCtx = { ...ctx, ledgerSequence: ledger.sequence }
 
 			ctx.db.core.tx(() => {
-				createMPTokenIssuancesFromTransactions({ ctx: testCtx, ledger })
 				applyLedgerStateFromTransactions({ ctx: testCtx, ledger })
 			})
 		}
@@ -88,19 +86,6 @@ describe('MPToken state - snapshot', () => {
 	it('MPT transfers: same expected state from ledger objects', async () => {
 		let ctx = await createContext()
 		let fixture = loadFixture('mpt-transfers')
-
-		let snapshotCtxWithXrpl = {
-			...ctx,
-			xrpl: {
-				request: async () => { throw new Error('mock: ledger_entry not available in test') }
-			}
-		}
-
-		await createMissingMPTokenIssuanceFromObjects({
-			ctx: snapshotCtxWithXrpl,
-			objects: fixture.snapshotObjects,
-			ledgerSequence: fixture.snapshotSequence
-		})
 
 		// Apply all ledger objects (MPTokenIssuance + MPToken)
 		// In real snapshot, ctx.ledgerSequence is 0
