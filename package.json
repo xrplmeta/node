@@ -1,6 +1,6 @@
 {
 	"name": "xrplmeta",
-	"version": "2.23.0-alpha",
+	"version": "2.24.0-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
@@ -13,34 +13,34 @@
 		"livetest": "node test/live/run.js"
 	},
 	"dependencies": {
-		"@mwni/events": "3.0.0",
-		"@mwni/log": "3.2.0",
+		"@mwni/events": "3.1.0",
+		"@mwni/log": "3.5.0",
 		"@mwni/workers": "1.1.0",
 		"@structdb/sqlite": "1.7.2-alpha",
 		"@xrplkit/socket": "2.1.0",
 		"@xrplkit/time": "1.0.0",
-		"@xrplkit/tokens": "1.0.1",
+		"@xrplkit/tokens": "1.1.0",
 		"@xrplkit/toml": "1.0.0",
-		"@xrplkit/txmeta": "1.4.1",
-		"@xrplkit/xfl": "2.1.1",
+		"@xrplkit/txmeta": "1.5.0",
+		"@xrplkit/xfl": "2.1.2",
 		"@xrplkit/xls26": "2.6.0",
 		"@xrplkit/xls89": "0.2.0",
-		"@koa/router": "13.1.0",
-		"koa": "3.0.1",
+		"@koa/router": "15.4.0",
+		"koa": "3.2.0",
 		"koa-easy-ws": "2.1.0",
 		"koa-json": "2.0.2",
 		"koa-send": "5.0.1",
-		"better-sqlite3": "12.4.1",
-		"limiter": "2.0.1",
+		"better-sqlite3": "12.9.0",
+		"limiter": "3.0.0",
 		"node-abort-controller": "3.1.1",
 		"node-fetch": "3.3.2",
 		"minimist": "1.2.8",
 		"ripple-address-codec": "5.0.0",
-		"sharp": "0.34.4",
-		"ws": "8.18.3"
+		"sharp": "0.34.5",
+		"ws": "8.20.0"
 	},
 	"devDependencies": {
-		"chai": "6.2.0",
-		"mocha": "11.7.3"
+		"chai": "6.2.2",
+		"mocha": "11.7.5"
 	}
 }
