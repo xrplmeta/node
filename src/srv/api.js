@@ -140,12 +140,15 @@ export const token_holders = compose([
 ])
 
 function compose(functions){
-	return args => functions.reduce(
-		(v, f) => f(v),
-		args	
-	)
+	let func = args => functions
+		.filter(f => typeof f === 'function')
+		.reduce((v, f) => f(v), args)
+
+	return functions
+		.filter(f => !!f.tag)
+		.reduce((f, { tag }) => Object.assign(f, tag), func)
 }
 
 function tag(properties){
-	return f => Object.assign(f, properties)
+	return { tag: properties }
 }
