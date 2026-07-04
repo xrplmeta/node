@@ -72,6 +72,9 @@ export async function startServer({ ctx }){
 }
 
 console.errorOrg = console.error
-console.error = text => /.*Error: (write|read) ECONN.*/g.test(text)
+console.error = text => (
+	/.*Error: (write|read) ECONN.*/g.test(text) ||
+	/.*Error \[ERR_STREAM_PREMATURE_CLOSE\].*/g.test(text)
+)
 	? undefined
 	: console.errorOrg(text)
