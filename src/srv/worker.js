@@ -24,26 +24,93 @@ export async function executeProcedure({ ctx, procedure, params, requestId }){
 		return json(await func({ ...params, ctx }), requestId)
 	}
 
-	let now = Date.now()
-	let ranking = ctx.workers
-		.map(worker => ({ worker, score: now - (worker.lastRequestTime || 0) - (!!worker.busy) * 1000000000 }))
-		.sort((a, b) => b.score - a.score)
-	
+	if(!ctx.taskQueue)
+		ctx.taskQueue = []
 
-	log.debug(`available for handling ${procedure}`, ranking.map(({ worker, score }) => ({ busy: worker.busy, score })))
-
-	let worker = ranking.at(0).worker
-
-	worker.busy = true
-	worker.lastRequestTime = now
-
-	try{
-		return await worker.execute({ procedure, params, requestId })
-	}catch(error){
-		throw error
-	}finally{
-		worker.busy = false
+	let task = {
+		procedure,
+		params,
+		requestId,
+		processing: false,
+		worker: null,
+		queuedAt: Date.now(),
+		startedAt: null
 	}
+
+	let promise = new Promise((resolve, reject) => {
+		task.resolve = resolve
+		task.reject = reject
+	})
+
+	ctx.taskQueue.push(task)
+
+	log.debug(`queued ${procedure} (${ctx.taskQueue.length} tasks in queue)`)
+
+	dispatchTasks({ ctx })
+
+	return await promise
+}
+
+function dispatchTasks({ ctx }){
+	while(true){
+		let task = ctx.taskQueue.find(task => !task.processing)
+
+		if(!task)
+			break
+
+		let idleWorkers = ctx.workers.filter(worker => !worker.busy)
+
+		if(idleWorkers.length === 0)
+			break
+
+		let worker = idleWorkers
+			.sort((a, b) => (a.lastRequestTime || 0) - (b.lastRequestTime || 0))
+			.at(0)
+
+		task.processing = true
+		task.worker = worker
+		task.startedAt = Date.now()
+
+		worker.busy = true
+		worker.lastRequestTime = task.startedAt
+
+		log.debug(`processing ${task.procedure} (${idleWorkers.length - 1} workers idle)`)
+
+		worker.execute({
+			procedure: task.procedure,
+			params: task.params,
+			requestId: task.requestId
+		})
+			.then(result => task.resolve(result))
+			.catch(error => task.reject(error))
+			.finally(() => {
+				ctx.taskQueue.splice(ctx.taskQueue.indexOf(task), 1)
+				worker.busy = false
+				dispatchTasks({ ctx })
+			})
+	}
+}
+
+export function getWorkerQueueSnapshot({ ctx }){
+	let now = Date.now()
+
+	if(!ctx.taskQueue)
+		return []
+
+	return ctx.taskQueue.map(
+		task => ({
+			command: task.procedure,
+			queue_time: now - task.queuedAt,
+			...(
+				task.processing
+					? {
+						worker: ctx.workers.indexOf(task.worker),
+						processing_time: now - task.startedAt
+					}
+					: {}
+			)
+		})
+	)
 }
 
 export async function runWorker({ ctx }){

@@ -17,7 +17,10 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'server_info_v1'
+				procedure: 'server_info_v1',
+				params: {
+					worker_queue: svc.query.worker_queue !== undefined
+				}
 			})
 		}
 	)
@@ -28,7 +31,10 @@ export function createRouter({ ctx }){
 			await handle({
 				ctx,
 				svc,
-				procedure: 'server_info'
+				procedure: 'server_info',
+				params: {
+					worker_queue: svc.query.worker_queue !== undefined
+				}
 			})
 		}
 	)

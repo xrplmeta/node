@@ -1,10 +1,11 @@
 import version from '../../lib/version.js'
-import { getAvailableRange } from '../../db/helpers/ledgers.js'
 import TokenType from '../../xrpl/tokentype.js'
+import { getAvailableRange } from '../../db/helpers/ledgers.js'
+import { getWorkerQueueSnapshot } from '../worker.js'
 
 
 export function serveServerInfo(){
-	return ({ ctx }) => {
+	return ({ ctx, worker_queue }) => {
 		const iouCount = Number(ctx.db.core.tokens.count({
 			where: {
 				tokenType: TokenType.IOU
@@ -31,7 +32,12 @@ export function serveServerInfo(){
 			total_tokens: iouCount + mptCount + 1,
 			total_ious: iouCount,
 			total_mpts: mptCount,
-			total_nfts: 0
+			total_nfts: 0,
+			...(
+				worker_queue === true
+					? { worker_queue: getWorkerQueueSnapshot({ ctx }) }
+					: {}
+			)
 		}
 	}
 }

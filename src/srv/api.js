@@ -10,11 +10,13 @@ import { addLedgerV1DeprecationWarning, addServerInfoV1DeprecationWarning, addTo
 export const server_info_v1 = compose([
 	serveServerInfo(),
 	adjustServerInfoResponse(),
-	addServerInfoV1DeprecationWarning()
+	addServerInfoV1DeprecationWarning(),
+	tag({ mustRunMainThread: true })
 ])
 
 export const server_info = compose([
-	serveServerInfo()
+	serveServerInfo(),
+	tag({ mustRunMainThread: true })
 ])
 
 export const ledger_v1 = compose([
