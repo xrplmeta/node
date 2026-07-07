@@ -7,6 +7,16 @@ XRPL Meta collects metadata about digital assets on the XRP Ledger. It makes the
 
 
 
+## Install for production use
+
+Run the public Docker image, mounting a data directory of your choice to `/opt/data`. The node will write all persistent database and media files there.
+
+    docker run -v /path/to/data:/opt/data xrplmeta/node
+
+A template configuration file with decent defaults will be placed in the mounted data directory. However, it is recommended to adjust this config.
+
+
+
 ## Technical Overview
 
 On the first launch
@@ -39,16 +49,6 @@ Review the comments in [default configuration file](https://github.com/xrplmeta/
 https://xrplmeta.org/docs
 
 The node will listen for incoming HTTP connections on the port specified in the config file. These can either serve a REST query, or be upgraded to a WebSocket connection.
-
-
-
-## Install for production use
-
-Install the public NPM package:
-
-    npm install -g xrplmeta
-
-This will add the `xrplmeta` command to your PATH. Simply run this command to start the server. A template configuration file will be placed in your user directory. It is recommended to adjust this config.
 
 
 

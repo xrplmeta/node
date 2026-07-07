@@ -10,11 +10,12 @@
 		"postinstall": "npm run build-deps",
 		"build-deps": "node-gyp rebuild --directory=deps --release",
 		"test": "mocha --recursive 'test/unit/**/*.test.js'",
-		"livetest": "node test/live/run.js"
+		"livetest": "node test/live/run.js",
+		"docker:build": "docker build -t xrplmeta/node ."
 	},
 	"dependencies": {
 		"@mwni/events": "3.1.0",
-		"@mwni/log": "3.5.0",
+		"@mwni/log": "3.5.1",
 		"@mwni/workers": "1.1.0",
 		"@structdb/sqlite": "1.7.2-alpha",
 		"@xrplkit/socket": "2.1.0",
