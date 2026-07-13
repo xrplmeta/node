@@ -323,7 +323,14 @@
 						"XChainAddClaimAttestation",
 						"XChainAddAccountCreateAttestation",
 						"XChainModifyBridge",
-						"XChainCreateBridge"
+						"XChainCreateBridge",
+						"ConfidentialMPTConvert",
+						"ConfidentialMPTMergeInbox",
+						"ConfidentialMPTConvertBack",
+						"ConfidentialMPTSend",
+						"ConfidentialMPTClawback",
+						"SponsorshipTransfer",
+						"SponsorshipSet"
 					]
 				},
 				"count": {
