@@ -2,6 +2,7 @@ import log from '@mwni/log'
 import { spawn } from '@mwni/workers'
 import { openDB } from '../db/index.js'
 import * as procedures from './api.js'
+import { resolveCost, throwRateLimited } from './ratelimit.js'
 
 
 export async function spawnWorkers({ ctx }){
@@ -19,6 +20,18 @@ export async function spawnWorkers({ ctx }){
 
 export async function executeProcedure({ ctx, procedure, params, requestId }){
 	let func = procedures[procedure]
+
+	if(ctx.rateLimiter?.enabled && ctx.ip){
+		let result = ctx.rateLimiter.consume({
+			ip: ctx.ip,
+			cost: resolveCost(func, params)
+		})
+
+		if(!result.allowed){
+			log.debug(`rate limited ${ctx.ip} on ${procedure}`)
+			throwRateLimited(result)
+		}
+	}
 
 	if(func.mustRunMainThread){
 		return json(await func({ ...params, ctx }), requestId)

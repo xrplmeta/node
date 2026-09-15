@@ -5,6 +5,7 @@ import json from 'koa-json'
 import { createRouter } from './http.js'
 import { createManager } from './ws.js'
 import { spawnWorkers } from './worker.js'
+import { createRateLimiter, resolveClientIp } from './ratelimit.js'
 
 
 export async function startServer({ ctx }){
@@ -27,9 +28,11 @@ export async function startServer({ ctx }){
 
 	ctx = {
 		...ctx,
-		workers: await spawnWorkers({ ctx })
+		workers: await spawnWorkers({ ctx }),
+		rateLimiter: createRateLimiter({ ctx })
 	}
 
+	let serverCtx = ctx
 	let koa = new Koa()
 	let router = createRouter({ ctx })
 	let ws = createManager({ ctx })
@@ -42,7 +45,10 @@ export async function startServer({ ctx }){
 
 		if(ctx.ws){
 			ctx.req.socket.ignoreTimeout = true
-			ws.registerSocket(await ctx.ws())
+			ws.registerSocket(
+				await ctx.ws(),
+				resolveClientIp({ ctx: serverCtx, req: ctx.req, fallback: ctx.ip })
+			)
 		}else{
 			return await next(ctx)
 		}

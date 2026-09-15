@@ -6,6 +6,7 @@ import log from '@mwni/log'
 import * as procedures from './api.js'
 import { getCachedIconPath, iconSizes } from '../cache/icons.js'
 import { executeProcedure } from './worker.js'
+import { resolveClientIp } from './ratelimit.js'
 
 
 export function createRouter({ ctx }){
@@ -373,12 +374,23 @@ async function handle({ ctx, svc, procedure, params = {} }){
 	try{
 		svc.type = 'json'
 		svc.body = await executeProcedure({
-			ctx,
+			ctx: {
+				...ctx,
+				ip: resolveClientIp({ ctx, req: svc.req, fallback: svc.ip })
+			},
 			procedure,
 			params
 		})
 	}catch(e){
-		if(e.expose){
+		if(e.rateLimited){
+			svc.status = 429
+			svc.set('Retry-After', String(e.retry_after))
+			svc.body = {
+				type: e.type,
+				message: e.message,
+				retry_after: e.retry_after
+			}
+		}else if(e.expose){
 			delete e.expose
 
 			svc.status = 400

@@ -102,6 +102,14 @@ port = 4080
 # This is required for the API to correctly return the URLs of locally cached media files, such as token icons.
 # public_url = "https://example.com"
 
+# Rate limiting per client IP. Every IP has a bucket of points that refills over time.
+# Each API call costs a number of points depending on the defined `cost` in src/srv/api.js
+# Set ratelimit_bucket_size = 0 to disable rate limiting.
+ratelimit_bucket_size = 300
+ratelimit_refill_per_second = 10
+# ratelimit_real_ip_header = "X-Real-IP"
+# ratelimit_whitelist = ["127.0.0.1"]
+
 # Multiple sources can give conflicting data for the same field. This array defines who's data has precedence,
 # from highest to lowest. Example for the values below: 
 # if Xaman, Bithomp and X all define an icon for a token, the one from Xaman will be used.

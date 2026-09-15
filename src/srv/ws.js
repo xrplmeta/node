@@ -69,9 +69,10 @@ export function createManager({ ctx }){
 	}
 
 	return {
-		registerSocket(socket){
+		registerSocket(socket, ip){
 			let client = {
 				id: ++counter,
+				ip: ip || socket._socket?.remoteAddress,
 				socket, 
 				tokenSubscriptions: {},
 				alive: true
@@ -99,7 +100,8 @@ export function createManager({ ctx }){
 						await executeProcedure({
 							ctx: {
 								...ctx,
-								client
+								client,
+								ip: client.ip
 							},
 							procedure,
 							params,
@@ -113,6 +115,7 @@ export function createManager({ ctx }){
 						if(error.expose){
 							response = error
 							delete response.expose
+							delete response.rateLimited
 						}
 					}
 	
