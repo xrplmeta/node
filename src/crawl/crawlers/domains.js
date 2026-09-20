@@ -56,6 +56,12 @@ export default async function({ ctx }){
 						var xls26 = await fetchToml({ domain, fetch })
 					}catch(error){
 						log.debug(`issuer (${address}): ${error.message}`)
+
+						if(error.definitive){
+							log.debug(`issuer (${address}): toml does not exist, clearing props`)
+							clearDomainProps({ ctx, id, address })
+						}
+
 						return
 					}finally{
 						log.accumulate.info({
@@ -121,25 +127,29 @@ export default async function({ ctx }){
 						})
 					}
 				}else{
-					clearAccountProps({
-						ctx,
-						account: { id },
-						source: `issuer/domain/${address}`
-					})
-
-					for(let token of ctx.db.core.tokens.readMany({ 
-						where: {
-							issuer: { id }
-						}
-					})){
-						clearTokenProps({
-							ctx,
-							token,
-							source: `issuer/domain/${address}`
-						})
-					}
+					clearDomainProps({ ctx, id, address })
 				}
 			}
+		})
+	}
+}
+
+function clearDomainProps({ ctx, id, address }){
+	clearAccountProps({
+		ctx,
+		account: { id },
+		source: `issuer/domain/${address}`
+	})
+
+	for(let token of ctx.db.core.tokens.readMany({ 
+		where: {
+			issuer: { id }
+		}
+	})){
+		clearTokenProps({
+			ctx,
+			token,
+			source: `issuer/domain/${address}`
 		})
 	}
 }
@@ -148,7 +158,10 @@ export async function fetchToml({ domain, fetch }){
 	let { protocol, host, pathname } = parseURL(domain)
 
 	if(protocol && protocol !== 'https:' && protocol !== 'http:')
-		throw new Error(`unsupported protocol: ${domain}`)
+		throw Object.assign(
+			new Error(`unsupported protocol: ${domain}`),
+			{ definitive: true }
+		)
 
 	if(!host)
 		host = ''
@@ -173,12 +186,25 @@ export async function fetchToml({ domain, fetch }){
 		}catch(error){
 			log.debug(`failed ${tomlUrl}: ${error.message}`)
 
-			if(error.message === 'HTTP 404' || tomlUrl === tomlUrls.at(-1))
-				throw new Error(
-					error.message.includes(tomlUrl)
-						? error.message
-						: `${tomlUrl} -> ${error.message}`
+			let definitive = isDefinitiveFailure(error)
+
+			if(definitive || tomlUrl === tomlUrls.at(-1))
+				throw Object.assign(
+					new Error(
+						error.message.includes(tomlUrl)
+							? error.message
+							: `${tomlUrl} -> ${error.message}`
+					),
+					{ definitive }
 				)
 		}
 	}
+}
+
+function isDefinitiveFailure(error){
+	if(error.message === 'HTTP 404')
+		return true
+
+	let code = error.code || error.cause?.code || error.errno
+	return code === 'ENOTFOUND' || code === 'EAI_NONAME' || code === 'EAI_NODATA'
 }
