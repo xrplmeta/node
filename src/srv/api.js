@@ -135,14 +135,14 @@ export const token_series_v1 = compose([
 	sanitizeIOUToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries(),
-	tag({ cost: tokenSeriesCost })
+	tag({ slow: true, cost: tokenSeriesCost })
 ])
 
 export const token_series = compose([
 	sanitizeToken({ key: 'token' }),
 	sanitizeRange({ withInterval: true }),
 	serveTokenSeries(),
-	tag({ cost: tokenSeriesCost })
+	tag({ slow: true, cost: tokenSeriesCost })
 ])
 
 export const token_exchanges_v1 = compose([
@@ -152,7 +152,7 @@ export const token_exchanges_v1 = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges(),
 	addTokenExchangesV1DeprecationWarning(),
-	tag({ cost: tokenExchangesCost })
+	tag({ slow: true, cost: tokenExchangesCost })
 ])
 
 export const token_exchanges = compose([
@@ -161,7 +161,7 @@ export const token_exchanges = compose([
 	sanitizeRange({ defaultToFullRange: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 1000 }),
 	serveTokenExchanges(),
-	tag({ cost: tokenExchangesCost })
+	tag({ slow: true, cost: tokenExchangesCost })
 ])
 
 export const token_holders_v1 = compose([
@@ -170,7 +170,7 @@ export const token_holders_v1 = compose([
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	serveTokenHolders(),
 	addTokenHoldersV1DeprecationWarning(),
-	tag({ cost: tokenHoldersCost })
+	tag({ slow: true, cost: tokenHoldersCost })
 ])
 
 export const token_holders = compose([
@@ -178,7 +178,7 @@ export const token_holders = compose([
 	sanitizePoint({ defaultToLatest: true }),
 	sanitizeLimitOffset({ defaultLimit: 100, maxLimit: 100000 }),
 	serveTokenHolders(),
-	tag({ cost: tokenHoldersCost })
+	tag({ slow: true, cost: tokenHoldersCost })
 ])
 
 

@@ -40,10 +40,14 @@ export async function executeProcedure({ ctx, procedure, params, requestId }){
 	if(!ctx.taskQueue)
 		throw new Error(`ctx has no taskQueue`)
 
+	let lane = func.slow ? 'slow' : 'fast'
+	let queue = ctx.taskQueue[lane]
+
 	let task = {
 		procedure,
 		params,
 		requestId,
+		lane,
 		processing: false,
 		worker: null,
 		queuedAt: Date.now(),
@@ -55,18 +59,23 @@ export async function executeProcedure({ ctx, procedure, params, requestId }){
 		task.reject = reject
 	})
 
-	ctx.taskQueue.push(task)
+	queue.push(task)
 
-	log.debug(`queued ${procedure} (${ctx.taskQueue.length} tasks in queue)`)
+	log.debug(`queued ${procedure} in ${lane} lane (${queue.length} tasks in ${lane} queue)`)
 
 	dispatchTasks({ ctx })
 
 	return await promise
 }
 
+function nextPendingTask({ ctx }){
+	return ctx.taskQueue.fast.find(task => !task.processing)
+		|| ctx.taskQueue.slow.find(task => !task.processing)
+}
+
 function dispatchTasks({ ctx }){
 	while(true){
-		let task = ctx.taskQueue.find(task => !task.processing)
+		let task = nextPendingTask({ ctx })
 
 		if(!task)
 			break
@@ -87,7 +96,7 @@ function dispatchTasks({ ctx }){
 		worker.busy = true
 		worker.lastRequestTime = task.startedAt
 
-		log.debug(`processing ${task.procedure} (${idleWorkers.length - 1} workers idle)`)
+		log.debug(`processing ${task.procedure} from ${task.lane} lane (${idleWorkers.length - 1} workers idle)`)
 
 		worker.execute({
 			procedure: task.procedure,
@@ -97,7 +106,9 @@ function dispatchTasks({ ctx }){
 			.then(result => task.resolve(result))
 			.catch(error => task.reject(error))
 			.finally(() => {
-				ctx.taskQueue.splice(ctx.taskQueue.indexOf(task), 1)
+				let queue = ctx.taskQueue[task.lane]
+
+				queue.splice(queue.indexOf(task), 1)
 				worker.busy = false
 				dispatchTasks({ ctx })
 			})
@@ -110,9 +121,10 @@ export function getWorkerQueueSnapshot({ ctx }){
 	if(!ctx.taskQueue)
 		return []
 
-	return ctx.taskQueue.map(
+	return [...ctx.taskQueue.fast, ...ctx.taskQueue.slow].map(
 		task => ({
 			command: task.procedure,
+			lane: task.lane,
 			queue_time: now - task.queuedAt,
 			...(
 				task.processing

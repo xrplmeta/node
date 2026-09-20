@@ -30,7 +30,10 @@ export async function startServer({ ctx }){
 		...ctx,
 		workers: await spawnWorkers({ ctx }),
 		rateLimiter: createRateLimiter({ ctx }),
-		taskQueue: []
+		taskQueue: {
+			fast: [],
+			slow: []
+		}
 	}
 
 	let serverCtx = ctx
