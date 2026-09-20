@@ -33,7 +33,7 @@ export default async function({ ctx }){
                 tokenType: TokenType.IOU
             },
 			interval: config.fetchInterval,
-			concurrency: 3,
+			concurrency: config.concurrency || 3,
 			routine: async ({ id, address }, remaining) => {
 				let { domain } = reduceProps({
 					props: readAccountProps({ 
