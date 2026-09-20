@@ -38,7 +38,7 @@ export async function executeProcedure({ ctx, procedure, params, requestId }){
 	}
 
 	if(!ctx.taskQueue)
-		ctx.taskQueue = []
+		throw new Error(`ctx has no taskQueue`)
 
 	let task = {
 		procedure,
