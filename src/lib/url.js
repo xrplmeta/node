@@ -11,6 +11,9 @@ export function sanitize(url){
 export function validate(url){
 	let { protocol, hostname } = parse(url)
 
+	if(protocol === 'ipfs:')
+		return /^ipfs:\/\/[a-zA-Z0-9]+/.test(url)
+
 	if(protocol !== 'http:' && protocol !== 'https:')
 		return false
 

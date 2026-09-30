@@ -7,6 +7,7 @@ import { unixNow } from '@xrplkit/time'
 import { readAccountProps, readTokenProps } from '../db/helpers/props.js'
 import { validate as validateURL } from '../lib/url.js'
 import { createFetch } from '../lib/fetch.js'
+import { parse as parseIPFS, pickGatewayURL as pickIPFSGatewayURL } from '../lib/ipfs.js'
 import { getAccountId, getTokenId } from '../db/helpers/common.js'
 import { getCommonTokenCacheFields } from './tokens.js'
 
@@ -239,7 +240,34 @@ function unlinkCachedIconFromTokenCache({ ctx, token, url }){
 
 async function downloadAndProcessIcon({ ctx, url }){
 	let fetch = createFetch()
-	let res = await fetch(url, { raw: true })
+	let ipfs = parseIPFS(url)
+	let res
+
+	if(ipfs && !ipfs.gateway){
+		let gatewayUrl = pickIPFSGatewayURL({ path: ipfs.path })
+
+		log.debug(`resolving ${url} via ${gatewayUrl}`)
+		res = await fetch(gatewayUrl, { raw: true })
+	}else{
+		try{
+			res = await fetch(url, { raw: true })
+
+			if(!res.ok)
+				throw new Error(`HTTP ${res.status}`)
+		}catch(error){
+			if(!ipfs)
+				throw error
+
+			let gatewayUrl = pickIPFSGatewayURL({ path: ipfs.path, exclude: ipfs.gateway })
+
+			log.debug(`failed to download ${url} (${error.message}) - retrying via ${gatewayUrl}`)
+			res = await fetch(gatewayUrl, { raw: true })
+		}
+	}
+
+	if(!res.ok)
+		throw new Error(`HTTP ${res.status}`)
+
 	let mime = res.headers.get('content-type')
 	let fileType = mimeTypes[mime]
 
