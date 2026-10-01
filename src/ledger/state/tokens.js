@@ -1,6 +1,7 @@
 import { sum, sub, eq, lt, gt, neg, max } from '@xrplkit/xfl'
 import { writeBalance } from '../../db/helpers/balances.js'
 import { writeTokenMetrics, readTokenMetrics } from '../../db/helpers/tokenmetrics.js'
+import { writeTokenInception } from '../../db/helpers/inception.js'
 import TokenType from '../../xrpl/tokentype.js'
 
 
@@ -163,5 +164,12 @@ export function diff({ ctx, token, deltas }){
 			metrics: laterMetrics,
 			ledgerSequence: ctx.ledgerSequence
 		})
+	}
+
+	let supplyBefore = ctx.backwards ? metrics.supply : laterMetrics.supply
+	let supplyAfter = ctx.backwards ? laterMetrics.supply : metrics.supply
+
+	if(ctx.ledgerSequence > 0 && eq(supplyBefore, 0) && gt(supplyAfter, 0)){
+		writeTokenInception({ ctx, token })
 	}
 }

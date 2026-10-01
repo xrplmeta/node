@@ -34,6 +34,22 @@ export function markCacheDirtyForTokenProps({ ctx, token }){
 	})
 }
 
+export function markCacheDirtyForTokenInception({ ctx, token }){
+	// inception is discovered while backfilling
+
+	let subject = getTokenId({ ctx, token })
+
+	if(!subject)
+		return
+
+	ctx.db.cache.todos.createOne({
+		data: {
+			task: 'token.inception',
+			subject
+		}
+	})
+}
+
 export function markCacheDirtyForTokenMetrics({ ctx, token, metrics }){
 	if(ctx.backwards)
 		return

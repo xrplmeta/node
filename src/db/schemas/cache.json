@@ -70,6 +70,9 @@
 				"issuerProps": {
 					"type": "any"
 				},
+				"inception": {
+					"type": "integer"
+				},
 				"cachedIcons": {
 					"type": "any"
 				},
@@ -216,6 +219,7 @@
 				"tokenName",
 				"issuerAddress",
 				"issuerName",
+				"inception",
 				"trustLevel",
 				"trustlines",
 				"trustlinesDelta24H",
@@ -333,6 +337,7 @@
 						"account.props",
 						"account.icons",
 						"token.props",
+						"token.inception",
 						"token.exchanges",
 						"token.metrics.trustlines",
 						"token.metrics.holders",

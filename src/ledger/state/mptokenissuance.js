@@ -1,5 +1,6 @@
 import { clearTokenProps, writeAccountProps, writeTokenProps } from "../../db/helpers/props.js"
 import { mptIssuanceIdFromIssuerAndSequence } from "../../xrpl/mpt.js"
+import { writeTokenInception } from "../../db/helpers/inception.js"
 import TokenType from "../../xrpl/tokentype.js"
 import { parse as parseXLS89 } from '@xrplkit/xls89'
 
@@ -39,7 +40,12 @@ export function diff({ ctx, ledgerSequence, transactionIndex, previous, final })
     }
 
     let isDeleted = ctx.backwards ? final && !previous : previous && !final
+    let isCreated = ctx.backwards ? previous && !final : final && !previous
     let adjustIssuerNameProp = isDeleted
+
+    if (isCreated){
+        writeTokenInception({ ctx, token, ledgerSequence })
+    }
 
     if (!isDeleted && final?.mptokenMetadata != previous?.mptokenMetadata){
         if (!ctx.backwards) {

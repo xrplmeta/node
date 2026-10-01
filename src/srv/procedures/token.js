@@ -345,6 +345,7 @@ export function formatTokenCache({
 		issuer: cache.issuerAddress,
 		mpt_issuance_id: cache.mptIssuanceId,
 		token_type: cache.tokenType,
+		inception: cache.inception ?? null,
 		meta: {
 			token: reduceProps({
 				props: cache.tokenProps || [],

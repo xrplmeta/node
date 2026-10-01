@@ -3,6 +3,7 @@ import { wait } from '@xrplkit/time'
 import { 
 	updateCacheForAccountProps, 
 	updateCacheForTokenExchanges, 
+	updateCacheForTokenInception, 
 	updateCacheForTokenMetrics, 
 	updateCacheForTokenProps
 } from './tokens.js'
@@ -54,6 +55,15 @@ export async function startMetaCacheWorker({ ctx }){
 					}
 					case 'token.exchanges': {
 						updateCacheForTokenExchanges({ 
+							ctx, 
+							token: {
+								id: todo.subject 
+							}
+						})
+						break
+					}
+					case 'token.inception': {
+						updateCacheForTokenInception({ 
 							ctx, 
 							token: {
 								id: todo.subject 

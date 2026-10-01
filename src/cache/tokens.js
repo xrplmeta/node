@@ -5,6 +5,7 @@ import { readLedgerAt, readMostRecentLedger } from '../db/helpers/ledgers.js'
 import { readTokenMetrics } from '../db/helpers/tokenmetrics.js'
 import { readTokenExchangeAligned, readTokenExchangeCount, readTokenExchangeUniqueTakerCount, readTokenVolume } from '../db/helpers/tokenexchanges.js'
 import { readAccountProps, readTokenProps } from '../db/helpers/props.js'
+import { readTokenInceptionTime } from '../db/helpers/inception.js'
 import TokenType from '../xrpl/tokentype.js'
 
 
@@ -74,6 +75,22 @@ export function updateCacheForAccountProps({ ctx, account }){
 		}
 
 		updateCacheForTokenProps({ ctx, token })
+	}
+}
+
+export function updateCacheForTokenInception({ ctx, token }){
+	if(ctx.backwards)
+		return
+
+	let changedCache = ctx.db.cache.tokens.createOne({
+		data: {
+			...getCommonTokenCacheFields({ ctx, token })
+		},
+		returnUnchanged: false
+	})
+
+	if(changedCache){
+		dispatchTokenUpdate({ ctx, token, subject: 'inception' })
 	}
 }
 
@@ -284,7 +301,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 }
 
 export function getCommonTokenCacheFields({ ctx, token }){
-	if(!token.id || !token.issuer || !token.issuer.address || !token.tokenType)
+	if(!token.id || !token.issuer || !token.issuer.address || !token.tokenType || !('inceptionLedgerSequence' in token))
 		token = ctx.db.core.tokens.readOne({
 			where: token,
 			include: {
@@ -298,7 +315,8 @@ export function getCommonTokenCacheFields({ ctx, token }){
 		tokenCurrencyHex: token.tokenType === TokenType.IOU ? token.currency : undefined,
 		tokenCurrencyUtf8: token.tokenType === TokenType.IOU ? currencyHexToUTF8(token.currency) : undefined,
 		mptIssuanceId: token.mptIssuanceId,
-		issuerAddress: token.issuer.address
+		issuerAddress: token.issuer.address,
+		inception: readTokenInceptionTime({ ctx, token })
 	}
 }
 

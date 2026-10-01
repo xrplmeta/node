@@ -462,6 +462,9 @@
 						"MPT"
 					]				
 				},
+				"inceptionLedgerSequence": {
+					"type": "integer"
+				},
 				"props": {
 					"type": "array",
 					"items": {

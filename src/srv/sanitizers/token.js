@@ -33,6 +33,7 @@ const iouSortKeymap = {
 	takers_24h: 'takers24H',
 	takers_7d: 'takers7D',
 	trustlines: 'trustlines',
+	inception: 'inception',
 }
 
 const mptSortKeymap = Object.fromEntries(
