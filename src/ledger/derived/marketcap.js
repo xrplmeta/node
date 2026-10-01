@@ -80,8 +80,7 @@ export function updateMarketcapFromSupply({ ctx, supply }){
 		quote: { 
 			currency: 'XRP'
 		},
-		ledgerSequence: ctx.ledgerSequence,
-		skipDust: true
+		ledgerSequence: ctx.ledgerSequence
 	})
 
 	if(ctx.backwards && !exchange)

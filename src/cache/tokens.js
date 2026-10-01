@@ -164,8 +164,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		quote: {
 			currency: 'XRP'
 		},
-		ledgerSequence: sequences.current,
-		skipDust: true
+		ledgerSequence: sequences.current
 	})?.price || 0
 
 	let pre24h = readTokenExchangeAligned({
@@ -174,8 +173,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		quote: {
 			currency: 'XRP'
 		},
-		ledgerSequence: sequences.pre24h,
-		skipDust: true
+		ledgerSequence: sequences.pre24h
 	})?.price || 0
 
 	let pre7d = readTokenExchangeAligned({
@@ -184,8 +182,7 @@ export function updateCacheForTokenExchanges({ ctx, token }){
 		quote: {
 			currency: 'XRP'
 		},
-		ledgerSequence: sequences.pre7d,
-		skipDust: true
+		ledgerSequence: sequences.pre7d
 	})?.price || 0
 
 	let delta24h = sub(current, pre24h)

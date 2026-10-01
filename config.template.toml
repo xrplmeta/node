@@ -11,6 +11,9 @@ backfill_to_ledger = 32570
 snapshot_chunk_size = 64000
 # How many ledgers to fetch in advance before writing them to the database
 stream_queue_size = 100
+# Token exchanges where the XRP side is below this amount are considered dust and not recorded
+# Remove this line to record all exchanges
+filter_dust_below_xrp = "0.0001"
 
 
 [[LEDGER.SOURCE]]

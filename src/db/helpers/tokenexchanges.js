@@ -1,7 +1,5 @@
 import { XFL, sum, div, gt } from '@xrplkit/xfl'
 
-const dustValueXRP = '0.0001'
-
 export function readTokenExchangesAligned({ 
 	ctx, 
 	base, 
@@ -10,12 +8,11 @@ export function readTokenExchangesAligned({
 	sequenceEnd, 
 	limit, 
 	newestFirst, 
-	include, 
-	skipDust 
+	include
 }){
 	return ctx.db.core.tokenExchanges.readMany({
 		where: {
-			...composeBaseQuoteWhere({ base, quote, skipDust }),
+			...composeBaseQuoteWhere({ base, quote }),
 			AND: [
 				{
 					ledgerSequence: {
@@ -46,10 +43,10 @@ export function readTokenExchangesAligned({
 		.map(exchange => alignTokenExchange({ exchange, base, quote }))
 }
 
-export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence, skipDust }){
+export function readTokenExchangeAligned({ ctx, base, quote, ledgerSequence }){
 	let exchange = ctx.db.core.tokenExchanges.readOne({
 		where: {
-			...composeBaseQuoteWhere({ base, quote, skipDust }),
+			...composeBaseQuoteWhere({ base, quote }),
 			ledgerSequence: {
 				lessOrEqual: ledgerSequence
 			}
@@ -369,38 +366,17 @@ export function readTokenExchangeIntervalSeries({ ctx, base, quote, sequence, ti
 	)
 }
 
-function composeBaseQuoteWhere({ base, quote, skipDust }){
-	let takerGotBaseCondition = {
-		takerPaidToken: quote,
-		takerGotToken: base
-	}
-
-	let takerGotQuoteCondition = {
-		takerPaidToken: base,
-		takerGotToken: quote
-	}
-
-	if(skipDust){
-		if(base.currency === 'XRP'){
-			takerGotBaseCondition.takerGotValue = {
-				greaterOrEqual: dustValueXRP
-			}
-
-			takerGotQuoteCondition.takerPaidValue = {
-				greaterOrEqual: dustValueXRP
-			}
-		}else if(quote.currency === 'XRP'){
-			takerGotBaseCondition.takerPaidValue = {
-				greaterOrEqual: dustValueXRP
-			}
-
-			takerGotQuoteCondition.takerGotValue = {
-				greaterOrEqual: dustValueXRP
-			}
-		}
-	}
-	
+function composeBaseQuoteWhere({ base, quote }){
 	return {
-		OR: [takerGotBaseCondition, takerGotQuoteCondition]
+		OR: [
+			{
+				takerPaidToken: quote,
+				takerGotToken: base
+			},
+			{
+				takerPaidToken: base,
+				takerGotToken: quote
+			}
+		]
 	}
 }

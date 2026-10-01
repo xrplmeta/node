@@ -5,6 +5,7 @@ import { load as loadConfig } from './lib/config.js'
 import { override as overrideConfig } from './lib/config.js'
 import startApp from './app/main.js'
 import rebuildCache from './cmd/rebuild-cache.js'
+import cleanDust from './cmd/clean-dust.js'
 import backup from './cmd/backup.js'
 import version from './lib/version.js'
 
@@ -26,6 +27,9 @@ const config = overrideConfig(baseConfig, args)
 if(args._[0] === 'rebuild-cache'){
 	log.info(`rebuilding cache at "${config.node.dataDir}"`)
 	await rebuildCache({ config, args })
+}else if(args._[0] === 'clean-dust'){
+	log.info(`cleaning dust exchanges at "${config.node.dataDir}"`)
+	await cleanDust({ config, args })
 }else if(args._[0] === 'backup'){
 	let destinationFile = args._[1]
 
