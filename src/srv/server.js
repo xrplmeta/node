@@ -81,10 +81,18 @@ export async function startServer({ ctx }){
 	})
 }
 
+// suppress noisy koa errors caused by clients disconnecting mid-response
 console.errorOrg = console.error
-console.error = text => (
-	/.*Error: (write|read) ECONN.*/g.test(text) ||
-	/.*Error \[ERR_STREAM_PREMATURE_CLOSE\].*/g.test(text)
-)
-	? undefined
-	: console.errorOrg(text)
+console.error = (...args) => {
+	let text = args
+		.map(arg => arg?.stack || String(arg))
+		.join(' ')
+
+	if(
+		/Error: (write|read) ECONN/.test(text) ||
+		/Error \[ERR_STREAM_PREMATURE_CLOSE\]/.test(text)
+	)
+		return
+
+	console.errorOrg(...args)
+}
