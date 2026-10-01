@@ -49,9 +49,7 @@ export function group({ previous, final }){
 	let groups = []
 
 	for(let side of ['low', 'high']){
-		let entry = final
-			? final[side]
-			: previous[side]
+		let entry = final?.[side] || previous?.[side]
 
 		if(!entry)
 			continue
@@ -83,7 +81,7 @@ export function diff({ ctx, token, deltas }){
 			holders: true,
 			supply: true
 		},
-		ledgerSequence: ctx.ledgerSequence
+		ledgerSequence: ctx.backwards ? 0 : ctx.ledgerSequence
 	})
 
 	let metrics = {
@@ -91,6 +89,7 @@ export function diff({ ctx, token, deltas }){
 		holders: holders || 0,
 		supply: supply || 0,
 	}
+	let laterMetrics = { ...metrics }
 
 	for(let { previous, final } of deltas){
 		if(previous && final){
@@ -154,6 +153,15 @@ export function diff({ ctx, token, deltas }){
 		ctx,
 		token,
 		metrics,
-		ledgerSequence: ctx.ledgerSequence
+		ledgerSequence: ctx.backwards ? 0 : ctx.ledgerSequence
 	})
+
+	if(ctx.backwards){
+		writeTokenMetrics({
+			ctx,
+			token,
+			metrics: laterMetrics,
+			ledgerSequence: ctx.ledgerSequence
+		})
+	}
 }

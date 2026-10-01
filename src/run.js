@@ -9,6 +9,7 @@ import cleanDust from './cmd/clean-dust.js'
 import backup from './cmd/backup.js'
 import version from './lib/version.js'
 
+process.setMaxListeners(100)
 
 const args = minimist(process.argv.slice(2))
 const configPath = args.config
