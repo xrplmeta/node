@@ -7,6 +7,9 @@
 	},
 	"scripts": {
 		"start": "node src/run.js",
+		"rebuild-cache": "node src/run.js rebuild-cache",
+		"clean-dust": "node src/run.js clean-dust",
+		"backup": "node src/run.js backup",
 		"postinstall": "npm run build-deps",
 		"build-deps": "node-gyp rebuild --directory=deps --release",
 		"test": "mocha --recursive 'test/unit/**/*.test.js'",
