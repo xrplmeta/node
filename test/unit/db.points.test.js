@@ -11,10 +11,12 @@ const token = {
 	issuer: { address: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' },
 	tokenType: TokenType.IOU
 }
-const book = {
-	takerPays: token,
-	takerGets: { currency: 'XRP', issuer: null, tokenType: TokenType.XRP },
+const nft = {
+	tokenId: '000800006203F49C21D5D6E022CB16DE3538F248662FC73C3F4BB9C800000001',
+	issuer: { address: 'rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De' }
 }
+const offerId = '0F3A5E1B6A4D2C8E9B7F1D3C5A7E9B2D4F6A8C0E2B4D6F8A1C3E5B7D9F1A3C5E'
+const offerSelector = { account, offerId, nft }
 
 
 describe(
@@ -199,22 +201,22 @@ describe(
 			'it should create expirable open-ended offer at sequence 100',
 			() => {
 				writePoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
+					table: ctx.db.core.nftOffers,
+					selector: offerSelector,
 					ledgerSequence: 100,
 					backwards: false,
-					data: { quality: '1', size: '100' },
+					data: { amountToken: { id: 1 }, amountValue: '100', isSellOffer: true },
 					expirable: true
 				})
 
 				let o100 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
+					table: ctx.db.core.nftOffers,
+					selector: offerSelector,
 					ledgerSequence: 100,
 					expirable: true
 				})
-				expect(o100.quality.toString()).to.equal('1')
-				expect(o100.size.toString()).to.equal('100')
+				expect(o100.isSellOffer).to.equal(true)
+				expect(o100.amountValue.toString()).to.equal('100')
 			}
 		)
 
@@ -222,52 +224,12 @@ describe(
 			'it should read the open-ended offer later at sequence 150',
 			() => {
 				let o150 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
+					table: ctx.db.core.nftOffers,
+					selector: offerSelector,
 					ledgerSequence: 150,
 					expirable: true
 				})
-				expect(o150.size.toString()).to.equal('100')
-			}
-		)
-
-		it(
-			'it should evolve expirable offer at 160 closing previous interval',
-			() => {
-				writePoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
-					ledgerSequence: 160,
-					backwards: false,
-					data: { quality: '2', size: '80' },
-					expirable: true
-				})
-			}
-		)
-
-		it(
-			'it should read old value at 159 before evolution',
-			() => {
-				let o159 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
-					ledgerSequence: 159,
-					expirable: true
-				})
-				expect(o159.size.toString()).to.equal('100')
-			}
-		)
-
-		it(
-			'it should read new value at 160 after evolution',
-			() => {
-				let o160 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
-					ledgerSequence: 160,
-					expirable: true
-				})
-				expect(o160.size.toString()).to.equal('80')
+				expect(o150.amountValue.toString()).to.equal('100')
 			}
 		)
 
@@ -275,8 +237,8 @@ describe(
 			'it should expire expirable offer at 170 and close interval',
 			() => {
 				writePoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
+					table: ctx.db.core.nftOffers,
+					selector: offerSelector,
 					ledgerSequence: 170,
 					backwards: false,
 					data: null,
@@ -284,16 +246,16 @@ describe(
 				})
 
 				let o169 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
+					table: ctx.db.core.nftOffers,
+					selector: offerSelector,
 					ledgerSequence: 169,
 					expirable: true
 				})
-				expect(o169.size.toString()).to.equal('80')
+				expect(o169.amountValue.toString()).to.equal('100')
 
 				let o170 = readPoint({
-					table: ctx.db.core.tokenOffers,
-					selector: { account, accountSequence: 1, book },
+					table: ctx.db.core.nftOffers,
+					selector: offerSelector,
 					ledgerSequence: 170,
 					expirable: true
 				})

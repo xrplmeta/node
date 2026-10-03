@@ -1,8 +1,7 @@
 const relevantTables = [
 	'accountBalances',
 	'tokenExchanges',
-	'tokenSupply',
-	'tokenOffers'
+	'tokenSupply'
 ]
 
 

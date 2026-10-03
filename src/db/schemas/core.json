@@ -80,18 +80,6 @@
 				"$ref": "#/definitions/TokenHolders"
 			}
 		},
-		"tokenBooks": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/TokenBook"
-			}
-		},
-		"tokenOffers": {
-			"type": "array",
-			"items": {
-				"$ref": "#/definitions/TokenOffer"
-			}
-		},
 		"nfts": {
 			"type": "array",
 			"items": {
@@ -670,81 +658,6 @@
 			"unique": [
 				["token", "ledgerSequence:asc"],
 				["token", "ledgerSequence:desc"]
-			]
-		},
-		"TokenBook": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
-				},
-				"takerPays": {
-					"$ref": "#/definitions/Token"
-				},
-				"takerGets": {
-					"$ref": "#/definitions/Token"
-				}
-			},
-			"required": [
-				"takerPays",
-				"takerGets"
-			],
-			"unique": [
-				["takerGets", "takerPays"]
-			],
-			"index": [
-				"takerPays"
-			]
-		},
-		"TokenOffer": {
-			"type": "object",
-			"properties": {
-				"id": {
-					"type": "integer",
-					"id": true
-				},
-				"account": {
-					"$ref": "#/definitions/Account"
-				},
-				"accountSequence": {
-					"type": "integer"
-				},
-				"book": {
-					"$ref": "#/definitions/TokenBook"
-				},
-				"ledgerSequence": {
-					"type": "integer"
-				},
-				"lastLedgerSequence": {
-					"type": "integer"
-				},
-				"quality": {
-					"type": "string",
-					"format": "xrpl/xfl"
-				},
-				"size": {
-					"type": "string",
-					"format": "xrpl/xfl"
-				},
-				"expirationTime": {
-					"type": "integer"
-				}
-			},
-			"required": [
-				"account",
-				"accountSequence",
-				"book",
-				"quality",
-				"size",
-				"ledgerSequence",
-				"lastLedgerSequence"
-			],
-			"unique": [
-				["account", "accountSequence", "ledgerSequence:desc"]
-			],
-			"index": [
-				["book", "ledgerSequence", "lastLedgerSequence", "quality"]
 			]
 		},
 		"NFToken": {

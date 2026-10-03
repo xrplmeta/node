@@ -87,7 +87,6 @@ function assertTokenMatch(actual, expected, label) {
 
 async function runAndAssert(scenarioName) {
 	let ctx = await createContext()
-	ctx.config.ledger = { captureOffers: false }
 
 	let scenario = loadScenario(scenarioName)
 	runScenario(ctx, scenario)

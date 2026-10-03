@@ -1,7 +1,6 @@
 import log from '@mwni/log'
 import * as accounts from './accounts.js'
 import * as tokens from './tokens.js'
-import * as tokenOffers from './tokenoffers.js'
 import * as nfts from './nfts.js'
 import * as nftOffers from './nftoffers.js'
 import * as mptokenIssuance from './mptokenissuance.js'
@@ -10,7 +9,6 @@ import * as mptoken from './mptoken.js'
 const ledgerEntryModules = {
 	AccountRoot: accounts,
 	RippleState: tokens,
-	Offer: tokenOffers,
 	NFTokenPage: nfts,
 	NFTokenOffer: nftOffers,
 	MPTokenIssuance: mptokenIssuance,
