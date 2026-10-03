@@ -20,8 +20,6 @@ export async function createContext({ debugQueries=false }={}){
 
 	log.config({ level: 'error' })
 
-	console.log(`using data dir: ${dataDir}`)
-
 	return {
 		...ctx,
 		db: await openDB({

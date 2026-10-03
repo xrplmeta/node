@@ -6,7 +6,7 @@ import { lt } from '@xrplkit/xfl'
 
 export function applyTokenExchanges({ ctx, ledger }){
 	let exchanges = []
-	let dustValueXRP = ctx.config.ledger.filterDustBelowXrp
+	let dustValueXRP = ctx.config.ledger?.filterDustBelowXrp
 
 	for(let transaction of ledger.transactions){
 		exchanges.push(

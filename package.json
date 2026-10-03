@@ -12,7 +12,7 @@
 		"backup": "node src/run.js backup",
 		"postinstall": "npm run build-deps",
 		"build-deps": "node-gyp rebuild --directory=deps --release",
-		"test": "mocha --recursive 'test/unit/**/*.test.js'",
+		"test": "mocha --recursive --exit 'test/unit/**/*.test.js'",
 		"livetest": "node test/live/run.js",
 		"docker:build": "docker build -t xrplmeta/node ."
 	},
