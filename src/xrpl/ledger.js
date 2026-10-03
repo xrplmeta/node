@@ -18,8 +18,8 @@ export function format(ledger){
 		closeTime: rippleToUnix(ledger.close_time || ledger.ledger_time),
 		transactions: ledger.transactions
 			.map(
-				tx => tx.transaction
-					? { ...tx.transaction, metaData: tx.meta }
+				tx => tx.tx_json
+					? { ...tx.tx_json, hash: tx.hash, metaData: tx.meta }
 					: tx
 			)
 	}

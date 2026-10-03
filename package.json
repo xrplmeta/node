@@ -1,6 +1,6 @@
 {
-	"name": "xrplmeta",
-	"version": "2.29.0-alpha",
+	"name": "@xrplmeta/node",
+	"version": "3.0.0-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
@@ -21,7 +21,7 @@
 		"@mwni/log": "3.5.1",
 		"@mwni/workers": "1.1.0",
 		"@structdb/sqlite": "1.7.2-alpha",
-		"@xrplkit/socket": "2.1.0",
+		"@xrplkit/socket": "2.3.0",
 		"@xrplkit/time": "1.0.0",
 		"@xrplkit/tokens": "1.1.0",
 		"@xrplkit/toml": "1.0.0",
@@ -29,22 +29,22 @@
 		"@xrplkit/xfl": "2.1.2",
 		"@xrplkit/xls26": "2.6.0",
 		"@xrplkit/xls89": "0.2.0",
-		"@koa/router": "15.4.0",
-		"koa": "3.2.0",
+		"@koa/router": "15.7.0",
+		"koa": "3.2.1",
 		"koa-easy-ws": "2.1.0",
 		"koa-json": "2.0.2",
 		"koa-send": "5.0.1",
-		"better-sqlite3": "12.9.0",
-		"limiter": "3.0.0",
+		"better-sqlite3": "13.0.3",
+		"limiter": "4.1.0",
 		"node-abort-controller": "3.1.1",
 		"node-fetch": "3.3.2",
 		"minimist": "1.2.8",
-		"ripple-address-codec": "5.0.0",
-		"sharp": "0.34.5",
-		"ws": "8.20.0"
+		"ripple-address-codec": "5.0.1",
+		"sharp": "0.35.5",
+		"ws": "8.22.0"
 	},
 	"devDependencies": {
-		"chai": "6.2.2",
-		"mocha": "11.7.5"
+		"chai": "6.3.0",
+		"mocha": "12.0.3"
 	}
 }

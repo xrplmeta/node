@@ -12,11 +12,11 @@ export default class Node extends EventEmitter{
 			.replace(/:[0-9]+/, '')
 
 		this.tasks = []
-		this.socket = createSocket({ url: config.url })
+		this.socket = createSocket({ url: config.url, apiVersion: 2 })
 		this.availableLedgers = []
 
 		this.socket.on('transaction', tx => {
-			this.emit('event', {hash: tx.transaction.hash, tx})
+			this.emit('event', {hash: tx.hash, tx})
 		})
 
 		this.socket.on('ledgerClosed', ledger => {
@@ -66,11 +66,15 @@ export default class Node extends EventEmitter{
 	}
 
 	get status(){
-		return this.socket.status()
+		return {
+			connected: this.socket.connected,
+			connectionError: this.socket.connectionError,
+			openRequests: this.socket.requests
+		}
 	}
 
 	bid(payload){
-		if(this.busy || !this.status.connected || !this.hasReportedClosedLedger)
+		if(this.busy || !this.socket.connected || !this.hasReportedClosedLedger)
 			return 0
 
 		if(payload.command){
