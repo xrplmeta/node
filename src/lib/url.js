@@ -1,5 +1,3 @@
-import { parse } from 'url'
-
 export function sanitize(url){
 	return url.slice(0, 8) + url.slice(8)
 		.replace(/\/\//g,'/')
@@ -9,7 +7,11 @@ export function sanitize(url){
 }
 
 export function validate(url){
-	let { protocol, hostname } = parse(url)
+	try{
+		var { protocol, hostname } = new URL(url)
+	}catch{
+		return false
+	}
 
 	if(protocol === 'ipfs:')
 		return /^ipfs:\/\/[a-zA-Z0-9]+/.test(url)

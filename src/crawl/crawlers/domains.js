@@ -1,6 +1,5 @@
 import log from '@mwni/log'
 import { parse as parseXLS26 } from '@xrplkit/xls26'
-import { parse as parseURL } from 'url'
 import { sanitize as sanitizeURL } from '../../lib/url.js'
 import { scheduleIterator } from '../schedule.js'
 import { createFetch } from '../../lib/fetch.js'
@@ -154,20 +153,35 @@ function clearDomainProps({ ctx, id, address }){
 	}
 }
 
+function parseDomain(domain){
+	if(!/^[a-z][a-z0-9+.-]*:/i.test(domain)){
+		// no scheme: treat entire string as host + path
+		return {
+			protocol: null,
+			host: '',
+			pathname: domain.split(/[?#]/)[0]
+		}
+	}
+
+	try{
+		let { protocol, host, pathname } = new URL(domain)
+		return { protocol, host, pathname }
+	}catch{
+		throw Object.assign(
+			new Error(`invalid domain: ${domain}`),
+			{ definitive: true }
+		)
+	}
+}
+
 export async function fetchToml({ domain, fetch }){
-	let { protocol, host, pathname } = parseURL(domain)
+	let { protocol, host, pathname } = parseDomain(domain)
 
 	if(protocol && protocol !== 'https:' && protocol !== 'http:')
 		throw Object.assign(
 			new Error(`unsupported protocol: ${domain}`),
 			{ definitive: true }
 		)
-
-	if(!host)
-		host = ''
-
-	if(!pathname)
-		pathname = ''
 
 	let tomlUrls = (protocol ? [protocol] : ['https:', 'http:'])
 		.map(protocol => `${protocol}//${host}${pathname}/${tomlStandardPath}`)
