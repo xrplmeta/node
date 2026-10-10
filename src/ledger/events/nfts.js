@@ -53,6 +53,9 @@ export function applyNFTokenExchanges({ ctx, ledger }){
 }
 
 export function applyNFTokenModifications({ ctx, ledger }){
+	if(ctx.backwards)
+		return
+
 	for(let transaction of ledger.transactions){
 		if(transaction.TransactionType !== 'NFTokenModify')
 			continue

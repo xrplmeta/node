@@ -27,30 +27,65 @@ export function parse({ index, entry }){
 
 
 
-export function diff({ ctx, previous, final }){
-	if(previous){
-		for(let { owner, ...pNft } of previous.nfts){
-			if(final && final.nfts.some(fNft => fNft.tokenId === pNft.tokenId))
-				continue
+export function group({ previous, final }){
+	return [{
+		group: { key: 'nfts' },
+		previous,
+		final
+	}]
+}
 
-			ctx.db.core.nfts.createOne({
-				data: ctx.backwards
-					? pNft
-					: { ...pNft, owner: null }
-			})
-		}
+
+export function diff({ ctx, deltas }){
+	let removed = new Map()
+	let added = new Map()
+
+	for(let { previous, final } of deltas){
+		for(let nft of previous?.nfts || [])
+			removed.set(nft.tokenId, nft)
+
+		for(let nft of final?.nfts || [])
+			added.set(nft.tokenId, nft)
 	}
 
-	if(final){
-		for(let { owner, ...fNft } of final.nfts){
-			if(previous && previous.nfts.some(pNft => pNft.tokenId === fNft.tokenId))
+	if(ctx.backwards){
+		// Ownership and URI are already known from snapshot / forward sync
+		// and must not be touched. Only make sure NFTs that were burned
+		// before the snapshot exist in the database.
+		for(let nft of [...removed.values(), ...added.values()]){
+			let exists = ctx.db.core.nfts.readOne({
+				where: { tokenId: nft.tokenId },
+				select: { id: true }
+			})
+
+			if(exists)
 				continue
 
-			ctx.db.core.nfts.createOne({
-				data: ctx.backwards
-					? fNft
-					: { ...fNft, owner }
-			})
+			let { owner, ...data } = nft
+
+			ctx.db.core.nfts.createOne({ data })
 		}
+
+		return
+	}
+
+	for(let [tokenId, nft] of removed){
+		if(added.has(tokenId))
+			continue
+
+		let { owner, ...data } = nft
+
+		ctx.db.core.nfts.createOne({
+			data: { ...data, owner: null }
+		})
+	}
+
+	for(let [tokenId, nft] of added){
+		let before = removed.get(tokenId)
+
+		if(before && before.owner.address === nft.owner.address)
+			continue
+
+		ctx.db.core.nfts.createOne({ data: nft })
 	}
 }

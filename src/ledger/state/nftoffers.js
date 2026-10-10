@@ -55,6 +55,30 @@ export function parse({ index, entry }){
 
 
 export function diff({ ctx, previous, final }){
+	if(ctx.backwards){
+		if(final && !previous){
+			let { offerId, ledgerSequence, ...data } = final
+
+			let exists = ctx.db.core.nftOffers.readOne({
+				where: { offerId },
+				select: { id: true }
+			})
+
+			if(!exists){
+				ctx.db.core.nftOffers.createOne({
+					data: {
+						...data,
+						offerId,
+						ledgerSequence,
+						lastLedgerSequence: ctx.ledgerSequence - 1
+					}
+				})
+			}
+		}
+
+		return
+	}
+
 	if(previous){
 		expireNFTokenOffer({
 			...previous,
