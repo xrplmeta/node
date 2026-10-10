@@ -12,19 +12,24 @@ export function applyTokenExchanges({ ctx, ledger }){
 		exchanges.push(
 			...extractExchanges(transaction)
 				.filter(exchange => !isDustExchange({ exchange, dustValueXRP }))
+				.map(exchange => ({ 
+					...exchange, 
+					parentBatchHash: transaction.parentBatchHash || undefined
+				}))
 		)
 	}
 
 	if(exchanges.length === 0)
 		return
 
-	for(let { hash, sequence, maker, taker, takerPaid, takerGot } of exchanges){
+	for(let { hash, parentBatchHash, sequence, maker, taker, takerPaid, takerGot } of exchanges){
 		let takerPaidToken = tokenFromExchange(takerPaid)
 		let takerGotToken = tokenFromExchange(takerGot)
 
 		ctx.db.core.tokenExchanges.createOne({
 			data: {
 				txHash: hash,
+				parentBatchHash,
 				ledgerSequence: ledger.sequence,
 				taker: {
 					address: taker

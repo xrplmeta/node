@@ -507,6 +507,10 @@
 					"type": "string",
 					"format": "hex"
 				},
+				"parentBatchHash": {
+					"type": "string",
+					"format": "hex"
+				},
 				"maker": {
 					"$ref": "#/definitions/Account"
 				},
@@ -751,6 +755,10 @@
 					"id": true
 				},
 				"txHash": {
+					"type": "string",
+					"format": "hex"
+				},
+				"parentBatchHash": {
 					"type": "string",
 					"format": "hex"
 				},

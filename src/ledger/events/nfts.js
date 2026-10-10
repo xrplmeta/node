@@ -40,6 +40,7 @@ export function applyNFTokenExchanges({ ctx, ledger }){
 		ctx.db.core.nftExchanges.createOne({
 			data: {
 				txHash: transaction.hash,
+				parentBatchHash: transaction.parentBatchHash || undefined,
 				account: {
 					address: transaction.Account
 				},

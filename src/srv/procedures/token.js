@@ -266,8 +266,9 @@ export function serveTokenExchanges(){
 		
 		return {
 			exchanges: exchanges.map(
-				({ txHash, ledgerSequence, taker, maker, price, volume }) => ({
+				({ txHash, parentBatchHash, ledgerSequence, taker, maker, price, volume }) => ({
 					txHash,
+					...(parentBatchHash ? { parentBatchHash } : {}),
 					ledgerSequence,
 					taker: taker.address,
 					maker: maker.address,

@@ -2,13 +2,14 @@ import { expect } from 'chai'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createContext } from '../env.js'
+import { createContext, readLedgerTxTypeCounts } from '../env.js'
 import { applyLedgerStateFromTransactions } from '../../../src/ledger/state/index.js'
 import { applyLedgerEvents } from '../../../src/ledger/events/index.js'
 import { updateDerived } from '../../../src/ledger/derived/index.js'
 import { readBalance } from '../../../src/db/helpers/balances.js'
 import { readTokenMetrics } from '../../../src/db/helpers/tokenmetrics.js'
 import { readTableHeads, pullNewItems } from '../../../src/db/helpers/heads.js'
+import { formatTransactions } from '../../../src/xrpl/ledger.js'
 import TokenType from '../../../src/xrpl/tokentype.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -27,6 +28,8 @@ function loadScenario(name) {
 				Object.assign(tx, tx.tx_json)
 			}
 		}
+
+		ledger.transactions = formatTransactions(ledger.transactions)
 	}
 
 	return scenario
@@ -162,6 +165,40 @@ async function runAndAssert(scenarioName) {
 
 		if (exp.takerGotValue !== undefined)
 			expect(actual.takerGotValue.toString(), `exchange[${i}].takerGotValue`).to.equal(exp.takerGotValue)
+
+		if (exp.txHash !== undefined)
+			expect(actual.txHash, `exchange[${i}].txHash`).to.equal(exp.txHash)
+
+		if (exp.parentBatchHash !== undefined)
+			expect(actual.parentBatchHash, `exchange[${i}].parentBatchHash`).to.equal(exp.parentBatchHash)
+		else
+			expect(actual.parentBatchHash, `exchange[${i}].parentBatchHash`).to.be.oneOf([null, undefined])
+	}
+
+	if (expected.lastLedger) {
+		let ledgerRow = ctx.db.core.ledgers.readOne({
+			where: { sequence: lastSequence }
+		})
+		let exp = expected.lastLedger
+
+		expect(ledgerRow, 'ledger row should exist').to.not.be.null
+
+		if (exp.txCount !== undefined)
+			expect(ledgerRow.txCount, 'ledger.txCount').to.equal(exp.txCount)
+
+		if (exp.minFee !== undefined)
+			expect(ledgerRow.minFee, 'ledger.minFee').to.equal(exp.minFee)
+
+		if (exp.maxFee !== undefined)
+			expect(ledgerRow.maxFee, 'ledger.maxFee').to.equal(exp.maxFee)
+
+		if (exp.avgFee !== undefined)
+			expect(ledgerRow.avgFee, 'ledger.avgFee').to.equal(exp.avgFee)
+
+		if (exp.txTypeCounts !== undefined) {
+			let counts = readLedgerTxTypeCounts({ ctx, sequence: lastSequence })
+			expect(counts, 'ledger.txTypeCounts').to.deep.equal(exp.txTypeCounts)
+		}
 	}
 }
 
@@ -191,6 +228,15 @@ describe('Exact Offer Match', () => {
 
 	it('MPT/XRP multi: Alice and Bob each sell 50 MPT for 25 XRP, Charlie crosses both (2 exchanges, price=0.5, marketcap=1000)', async () => {
 		await runAndAssert('mpt-xrp-multi-offer')
+	})
+})
+
+
+// ─── Batch Transactions ───
+
+describe('Batch Transactions', () => {
+	it('IOU/XRP: Bob crosses Alice via inner OfferCreate of a Batch, second inner tx fails (1 exchange linked to parentBatchHash, inner fees ignored)', async () => {
+		await runAndAssert('iou-xrp-batch-offer')
 	})
 })
 
