@@ -14,6 +14,7 @@ export default class Node extends EventEmitter{
 		this.tasks = []
 		this.socket = createSocket({ url: config.url, apiVersion: 2 })
 		this.availableLedgers = []
+		this.rateLimitedUntil = 0
 
 		this.socket.on('transaction', tx => {
 			this.emit('event', {hash: tx.hash, tx})
@@ -63,18 +64,32 @@ export default class Node extends EventEmitter{
 
 			this.emit('error')
 		})
+
+		this.socket.on('backoff', ({ delay, hits }) => {
+			this.emit('backoff', { delay, hits })
+		})
 	}
 
 	get status(){
 		return {
 			connected: this.socket.connected,
 			connectionError: this.socket.connectionError,
+			rateLimited: this.socket.rateLimited || this.inCooldown,
+			nextReconnectDelay: this.socket.nextReconnectDelay,
+			cooldownRemaining: Math.max(0, this.rateLimitedUntil - Date.now()),
 			openRequests: this.socket.requests
 		}
 	}
 
+	get inCooldown(){
+		return Date.now() < this.rateLimitedUntil
+	}
+
 	bid(payload){
 		if(this.busy || !this.socket.connected || !this.hasReportedClosedLedger)
+			return 0
+
+		if(this.inCooldown && payload.command)
 			return 0
 
 		if(payload.command){
@@ -128,6 +143,18 @@ export default class Node extends EventEmitter{
 				return {ticket}
 			}
 		}catch(error){
+			let rateLimit = parseRateLimitError(error)
+
+			if(rateLimit){
+				this.rateLimitedUntil = Date.now() + rateLimit.retryAfter
+				this.emit('ratelimit', { retryAfter: rateLimit.retryAfter, message: rateLimit.message })
+
+				throw Object.assign(new Error(rateLimit.message), {
+					rateLimited: true,
+					retryAfter: rateLimit.retryAfter
+				})
+			}
+
 			throw error
 		}finally{
 			this.busy = false
@@ -137,4 +164,32 @@ export default class Node extends EventEmitter{
 	disconnect(){
 		this.socket.close()
 	}
+}
+
+
+const defaultRateLimitRetry = 10000
+
+function parseRateLimitError(error){
+	let message = [
+		error?.message,
+		error?.error_message,
+		error?.error,
+		error?.error_exception
+	]
+		.filter(v => typeof v === 'string')
+		.join(' ')
+
+	if(!/rate limit|slowDown|tooBusy|\b429\b/i.test(message))
+		return
+
+	let retryAfter = defaultRateLimitRetry
+	let match = message.match(/retry in ~?(\d+)\s*(ms|s)/i)
+
+	if(match){
+		retryAfter = parseInt(match[1]) * (match[2].toLowerCase() === 's' ? 1000 : 1)
+	}else if(error?.retry_after_ms){
+		retryAfter = error.retry_after_ms
+	}
+
+	return { retryAfter: retryAfter + 250, message }
 }

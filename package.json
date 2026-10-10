@@ -21,7 +21,7 @@
 		"@mwni/log": "3.5.1",
 		"@mwni/workers": "1.1.0",
 		"@structdb/sqlite": "1.7.2-alpha",
-		"@xrplkit/socket": "2.3.0",
+		"@xrplkit/socket": "2.4.0",
 		"@xrplkit/time": "1.0.0",
 		"@xrplkit/tokens": "1.1.0",
 		"@xrplkit/toml": "1.0.0",

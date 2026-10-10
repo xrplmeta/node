@@ -5,6 +5,8 @@ import { format as formatLedger } from './ledger.js'
 import Node from './node.js'
 
 
+const maxRateLimitRetries = 5
+
 export function createPool(sources){
 	let events = new createEmitter()
 	let seenHashes = []
@@ -28,10 +30,22 @@ export function createPool(sources){
 			
 				bestBid.node.do(request.payload)
 					.then(result => request.resolve({result, node: bestBid.node.name}))
-					.catch(error => request.reject({
-						error: error.message || error.stack || error.error_message, 
-						node: bestBid.node.name
-					}))
+					.catch(error => {
+						if(error.rateLimited && !closed){
+							request.retries = (request.retries || 0) + 1
+
+							if(request.retries <= maxRateLimitRetries){
+								log.debug(`request rate limited by ${bestBid.node.name}, re-queueing (retry ${request.retries})`)
+								queue.unshift(request)
+								return
+							}
+						}
+
+						request.reject({
+							error: error.message || error.stack || error.error_message, 
+							node: bestBid.node.name
+						})
+					})
 
 				queue.splice(i--, 1)
 			}
@@ -84,6 +98,14 @@ export function createPool(sources){
 
 			node.on('error', () => {
 				log.debug(`failed to connect to ${spec.url}:`, node.error)
+			})
+
+			node.on('backoff', ({ delay, hits }) => {
+				log.warn(`rate limited (HTTP 429) by ${spec.url} - backing off for ${Math.round(delay / 1000)}s (attempt ${hits})`)
+			})
+
+			node.on('ratelimit', ({ retryAfter }) => {
+				log.warn(`request rate limited by ${spec.url} - pausing requests to this node for ${(retryAfter / 1000).toFixed(1)}s`)
 			})
 
 			node.on('event', ({ hash, tx, ledger }) => {
