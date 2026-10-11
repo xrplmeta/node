@@ -17,14 +17,15 @@ filter_dust_below_xrp = "0.0001"
 
 
 [[LEDGER.SOURCE]]
-# A public websocket endpoint provided by a rippled or clio node
+# A public websocket endpoint provided by a xrpld or clio node
 # The node will pull all relevant ledger data from there
 url = "wss://xrplcluster.com"
-connections = 2
 
 [[LEDGER.SOURCE]]
 url = "wss://s1.ripple.com"
 
+[[LEDGER.SOURCE]]
+url = "wss://s2.ripple.com"
 
 
 [[TRUSTLIST]]
