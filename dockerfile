@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7-labs
 FROM node:26-alpine3.23
 
 RUN mkdir -p /opt/app
