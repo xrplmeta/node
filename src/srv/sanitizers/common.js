@@ -126,17 +126,48 @@ export function sanitizeRange({ withInterval = false, defaultToFullRange = false
 
 export function sanitizeLimitOffset({ defaultLimit, maxLimit }){
 	return ({ ctx, limit, offset, ...args }) => {
+		limit = parseInteger(limit)
+		offset = parseInteger(offset)
+
+		if(limit !== undefined && !(limit >= 1)){
+			throw {
+				type: `invalidParam`,
+				message: `The limit has to be a positive integer.`,
+				expose: true
+			}
+		}
+
+		if(offset !== undefined && !(offset >= 0)){
+			throw {
+				type: `invalidParam`,
+				message: `The offset has to be a non-negative integer.`,
+				expose: true
+			}
+		}
+
 		return {
 			...args,
 			ctx,
-			limit: limit
-				? Math.min(parseInt(limit), maxLimit)
+			limit: limit !== undefined
+				? Math.min(limit, maxLimit)
 				: defaultLimit,
-			offset: offset
-				? parseInt(offset)
-				: undefined
+			offset
 		}
 	}
+}
+
+// undefined/null/'' -> undefined (not given), integer or integer string -> number, else NaN
+function parseInteger(value){
+	if(value === undefined || value === null || value === '')
+		return undefined
+
+	if(typeof value === 'number')
+		return Number.isInteger(value) ? value : NaN
+
+	if(typeof value === 'string' && /^\s*-?\d+\s*$/.test(value))
+		return parseInt(value)
+
+	return NaN
 }
 
 export function sanitizeSourcePreferences(){
