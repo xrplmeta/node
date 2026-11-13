@@ -13,6 +13,8 @@ Run the public Docker image, mounting a data directory of your choice to `/opt/d
 
     docker run -v /path/to/data:/opt/data xrplmeta/node
 
+The container runs as the unprivileged `node` user (uid 1000), so the mounted directory must be writable by it, e.g. `chown 1000:1000 /path/to/data`.
+
 A template configuration file with decent defaults will be placed in the mounted data directory. However, it is recommended to adjust this config.
 
 
