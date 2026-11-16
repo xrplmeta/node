@@ -239,7 +239,7 @@ function unlinkCachedIconFromTokenCache({ ctx, token, url }){
 }
 
 async function downloadAndProcessIcon({ ctx, url }){
-	let fetch = createFetch()
+	let fetch = createFetch({ maxSize: 20 * 1024 * 1024 })
 	let ipfs = parseIPFS(url)
 	let res
 

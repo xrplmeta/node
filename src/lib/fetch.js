@@ -4,7 +4,6 @@ import https from 'https'
 import net from 'net'
 import { RateLimiter } from 'limiter'
 import { sanitize } from './url.js'
-import { AbortController } from 'node-abort-controller'
 import fetch from 'node-fetch'
 
 
@@ -126,43 +125,34 @@ const httpsAgent = new (guardAgent(https.Agent))({ lookup: safeLookup })
 export const selectAgent = url => url.protocol === 'http:' ? httpAgent : httpsAgent
 
 
-export function createFetch({ baseUrl, headers, ratelimit, timeout = 20 } = {}){
-	let limiter = ratelimit 
+export function createFetch({ baseUrl, headers, ratelimit, timeout = 20, maxSize = 5 * 1024 * 1024, agent = selectAgent } = {}){
+	let limiter = ratelimit
 		? new RateLimiter({
-			tokensPerInterval: ratelimit, 
+			tokensPerInterval: ratelimit,
 			interval: 'minute'
-		}) 
+		})
 		: null
 
 	return async (url = '', options = {}) => {
 		if(limiter)
 			await limiter.removeTokens(1)
-		
-		let res
+
 		let data
-		let controller = new AbortController()
-		let timeoutTimer = setTimeout(() => controller.abort(), timeout * 1000)
 		let sanitizedUrl = sanitize(baseUrl ? `${baseUrl}/${url}` : url)
 
-		try{
-			res = await fetch(
-				sanitizedUrl,
-				{
-					agent: selectAgent,
-					signal: controller.signal,
-					headers: {
-						'user-agent': 'XRPL-Meta-Node (https://xrplmeta.org)',
-						...headers,
-						...options.headers
-					}
+		let res = await fetch(
+			sanitizedUrl,
+			{
+				agent,
+				signal: AbortSignal.timeout(timeout * 1000),
+				size: maxSize,
+				headers: {
+					'user-agent': 'XRPL-Meta-Node (https://xrplmeta.org)',
+					...headers,
+					...options.headers
 				}
-			)
-		}catch(error){
-			res?.blob()?.catch(() => null)
-			throw error
-		}finally{
-			clearTimeout(timeoutTimer)
-		}
+			}
+		)
 
 		if(options.raw){
 			return res
@@ -176,7 +166,10 @@ export function createFetch({ baseUrl, headers, ratelimit, timeout = 20 } = {}){
 			}else{
 				data = await res.text()
 			}
-		}catch{
+		}catch(error){
+			if(error.name === 'AbortError' || error.type === 'max-size')
+				throw error
+
 			data = null
 		}
 
