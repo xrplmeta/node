@@ -1,0 +1,1240 @@
+# ** XRPL Meta Auxiliary Token List **
+# This is a hand curated list of tokens meant for the public.
+# It shall establish certain token issuers as trustworthy
+# and fill the gaps until most token issuers self-publish their metadata.
+#
+# THE LIST IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES 
+# WITH REGARD TO THIS LIST INCLUDING ALL IMPLIED WARRANTIES OF 
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE 
+# FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY 
+# DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, 
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS LIST.
+
+
+
+#### RIPPLE ####
+
+[[ISSUERS]]
+address = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"
+currency = "524C555344000000000000000000000000000000"
+trust_level = 3
+
+
+#### CASINOCOIN ####
+
+[[ISSUERS]]
+address = "rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr"
+name = "CasinoCoin"
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rCSCManTZ8ME9EoLrSHHYKW8PPwWMgkwr"
+currency = "CSC"
+name = "CasinoCoin"
+desc = "CasinoCoin (CSC) is a digital currency, developed specifically for the regulated gaming industry."
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://casinocoin.im"
+type = "info"
+title = "Official Website"
+
+[[TOKENS.URLS]]
+url = "https://casinocoin.info"
+type = "info"
+title = "Token Info Dashboard"
+
+[[TOKENS.URLS]]
+url = "https://facebook.com/CasinoCoin"
+type = "social"
+
+[[TOKENS.URLS]]
+url = "https://x.com/CasinoCoin"
+type = "social"
+
+[[TOKENS.URLS]]
+url = "https://www.instagram.com/casinocoinofficial/"
+type = "social"
+
+[[TOKENS.URLS]]
+url = "https://www.linkedin.com/company/11267967/"
+type = "social"
+
+[[TOKENS.URLS]]
+url = "https://www.reddit.com/r/casinocoin/"
+type = "community"
+
+[[TOKENS.URLS]]
+url = "https://discord.com/invite/3p9pAur"
+type = "community"
+
+[[TOKENS.URLS]]
+url = "https://t.me/casinocoinchat"
+type = "community"
+
+
+#### BITSTAMP ####
+
+[[ISSUERS]]
+address = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+name = "Bitstamp"
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+currency = "USD"
+name = "US Dollar"
+desc = "Bitstamp's USD is a fully backed U.S. Dollar IOU on the XRPL. It can be redeemed into real Dollars on bitstamp.net. For support, visit their website or X @BitstampSupport"
+trust_level = 3
+asset_class = "rwa"
+asset_subclass = "stablecoin"
+
+[[TOKENS.URLS]]
+url = "https://bitstamp.net"
+type = "website"
+
+[[TOKENS.URLS]]
+url = "https://x.com/Bitstamp"
+type = "social"
+
+[[TOKENS]]
+issuer = "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+currency = "BTC"
+name = "Bitcoin"
+desc = "Bitstamp's BTC is a fully backed Bitcoin IOU on the XRPL. It can be redeemed into native Bitcoin on bitstamp.net. For support, visit their website or X @BitstampSupport"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://bitstamp.net"
+type = "website"
+
+[[TOKENS.URLS]]
+url = "https://x.com/Bitstamp"
+type = "social"
+
+
+#### GATEHUB ####
+
+[[ISSUERS]]
+address = "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rchGBxcD1A1C2tdxF6papQYZ8kjRKMYcL"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcA8X3TVMST1n3CJeAdGk1RdRCHii7N2h"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcvxE9PS9YBwxtGg1qNeewV6ZB3wGubZq"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcEGREd8NmkKRE8GE424sksyt1tJVFZwu"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcxJwVnftZzXqyH9YheB8TgeiZUhNo1Eu"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rctArjqVvTHihekzDeecKo6mkTYTUSBNc"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcoef87SYMJ58NAFx7fNM5frVknmvHsvJ"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcyS4CeCZVYvTiKcxj6Sx32ibKwcDHLds"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rDAN8tzydyNfnNf2bfUQY6iR96UbpvNsze"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rf5YPb9y9P3fTjhxNaZqmrwaj5ar8PG1gM"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcRzGWq6Ng3jeYhqnmM4zcWcUh69hrQ8V"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rcXY84C4g14iFp6taFXjjQGVeHqSCh9RX"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rckzVpTnKpP4TJ1puQe827bV3X4oYtdTP"
+name = "GateHub"
+trust_level = 3
+
+[[ISSUERS]]
+address = "rEa5QY8tdbjgitLyfKF1E5Qx3VGgvbUhB3"
+name = "GateHub"
+trust_level = 3
+
+[[TOKENS]]
+currency = "EUR"
+issuer = "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq"
+name = "Euro"
+trust_level = 3
+asset_class = "rwa"
+asset_subclass = "stablecoin"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "USD"
+issuer = "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq"
+name = "US Dollar"
+trust_level = 3
+asset_class = "rwa"
+asset_subclass = "stablecoin"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "BTC"
+issuer = "rchGBxcD1A1C2tdxF6papQYZ8kjRKMYcL"
+name = "Bitcoin"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "ETH"
+issuer = "rcA8X3TVMST1n3CJeAdGk1RdRCHii7N2h"
+name = "Ethereum"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "5553445400000000000000000000000000000000"
+issuer = "rcvxE9PS9YBwxtGg1qNeewV6ZB3wGubZq"
+name = "USDt (Tether)"
+trust_level = 3
+asset_class = "rwa"
+asset_subclass = "stablecoin"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "5553444300000000000000000000000000000000"
+issuer = "rcEGREd8NmkKRE8GE424sksyt1tJVFZwu"
+name = "USDc (Circle)"
+trust_level = 3
+asset_class = "rwa"
+asset_subclass = "stablecoin"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "FLR"
+issuer = "rcxJwVnftZzXqyH9YheB8TgeiZUhNo1Eu"
+name = "Flare Spark"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "SGB"
+issuer = "rctArjqVvTHihekzDeecKo6mkTYTUSBNc"
+name = "Songbird"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "XAU"
+issuer = "rcoef87SYMJ58NAFx7fNM5frVknmvHsvJ"
+name = "Gold Gram"
+trust_level = 3
+asset_class = "rwa"
+asset_subclass = "commodity"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "BCH"
+issuer = "rcyS4CeCZVYvTiKcxj6Sx32ibKwcDHLds"
+name = "Bitcoin Cash"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "ETC"
+issuer = "rDAN8tzydyNfnNf2bfUQY6iR96UbpvNsze"
+name = "Ethereum Classic"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "47414C4100000000000000000000000000000000"
+issuer = "rf5YPb9y9P3fTjhxNaZqmrwaj5ar8PG1gM"
+name = "GALA"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "LTC"
+issuer = "rcRzGWq6Ng3jeYhqnmM4zcWcUh69hrQ8V"
+name = "Litecoin"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "DSH"
+issuer = "rcXY84C4g14iFp6taFXjjQGVeHqSCh9RX"
+name = "Dash"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "REP"
+issuer = "rckzVpTnKpP4TJ1puQe827bV3X4oYtdTP"
+name = "REP"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+[[TOKENS]]
+currency = "5758525000000000000000000000000000000000"
+issuer = "rEa5QY8tdbjgitLyfKF1E5Qx3VGgvbUhB3"
+name = "Wrapped XRP"
+trust_level = 3
+asset_class = "wrapped"
+
+[[TOKENS.URLS]]
+url = "https://gatehub.net"
+type = "website"
+
+
+#### EQUILIBRIUM GAMES ####
+
+[[ISSUERS]]
+address = "rpakCr61Q92abPXJnVboKENmpKssWyHpwu"
+trust_level = 3
+
+[[TOKENS]]
+currency = "457175696C69627269756D000000000000000000"
+issuer = "rpakCr61Q92abPXJnVboKENmpKssWyHpwu"
+self_assessment = 1
+trust_level = 3
+asset_class = "gaming"
+
+
+#### STASIS ####
+
+[[ISSUERS]]
+address = "rs5hzzF7RzdV2Ub7Fv14Z1ShjuCrnL7FEX"
+name = "Stasis"
+trust_level = 3
+
+[[TOKENS]]
+currency = "4555525300000000000000000000000000000000"
+issuer = "rs5hzzF7RzdV2Ub7Fv14Z1ShjuCrnL7FEX"
+name = "Euro (EURS)"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://stasis.net"
+type = "website"
+
+
+#### KUDOS ####
+
+[[ISSUERS]]
+address = "rXTKdHWuppSjkbiKoEv53bfxHAn1MxmTb"
+name = "Kudos"
+trust_level = 3
+
+[[TOKENS]]
+currency = "XTK"
+issuer = "rXTKdHWuppSjkbiKoEv53bfxHAn1MxmTb"
+name = "XTK"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://xrptoolkit.com"
+type = "website"
+
+
+#### RIPPLE ####
+
+[[ISSUERS]]
+address = "rEXPigwnEvLFUUR7WQfcEHnxxqW6cto5EV"
+name = "Ripple"
+trust_level = 3
+
+[[TOKENS]]
+currency = "EXP"
+issuer = "rEXPigwnEvLFUUR7WQfcEHnxxqW6cto5EV"
+name = "Experience"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://ripple.com"
+type = "website"
+
+
+#### CHORUSX ####
+
+[[ISSUERS]]
+address = "rKk7mu1dNB25fsPEJ4quoQd5B8QmaxewKi"
+name = "ChorusX"
+trust_level = 3
+
+[[TOKENS]]
+currency = "CX1"
+issuer = "rKk7mu1dNB25fsPEJ4quoQd5B8QmaxewKi"
+name = "CX1"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://chorusx.com"
+type = "website"
+
+
+#### ELYSIAN ####
+
+[[ISSUERS]]
+address = "rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg"
+name = "Aesthetes"
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rHXuEaRYnnJHbDeuBH5w8yPh5uwNVh5zAg"
+currency = "ELS"
+name = "Elysian"
+desc = "The first Token for the Art and NFT Industry running on the XRPL."
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://aesthetes.art"
+type = "website"
+title = "Official Website"
+
+[[TOKENS.URLS]]
+url = "https://x.com/aesthetes_art"
+type = "social"
+
+[[TOKENS.URLS]]
+url = "https://x.com/Elysianers"
+type = "social"
+
+
+#### MG.SOCIAL ####
+
+[[ISSUERS]]
+address = "rHP4bHzghBdzskqcaPciL5WRGkHosB5zYx"
+name = "MG.Social"
+trust_level = 3
+
+[[TOKENS]]
+currency = "MGS"
+issuer = "rHP4bHzghBdzskqcaPciL5WRGkHosB5zYx"
+name = "MG Social"
+trust_level = 3
+
+
+#### WIETSE WIND ####
+
+[[ISSUERS]]
+address = "rwietsevLFg8XSmG3bEZzFein1g8RBqWDZ"
+name = "Wietse Wind"
+icon = "https://cdn.xumm.pro/globalid-avatars/540dea11-04a8-447b-84cf-290109849e3d"
+trust_level = 3
+
+[[TOKENS]]
+currency = "TAN"
+issuer = "rwietsevLFg8XSmG3bEZzFein1g8RBqWDZ"
+name = "Sun Kissed"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://wietse.com"
+type = "website"
+
+[[TOKENS]]
+currency = "WIE"
+issuer = "rwietsevLFg8XSmG3bEZzFein1g8RBqWDZ"
+name = "Wietse"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://wietse.com"
+type = "website"
+
+
+#### SAVE CRYPTOCURRENCY ####
+
+[[ISSUERS]]
+address = "rDN4Ux1WFJJsPCdqdfZgrDZ2icxdAmg2w"
+name = "SavE Cryptocurrency"
+trust_level = 3
+
+[[TOKENS]]
+currency = "SEC"
+issuer = "rDN4Ux1WFJJsPCdqdfZgrDZ2icxdAmg2w"
+name = "SEC Coin"
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://seccoin.co"
+type = "website"
+
+
+#### SOLOGENIC ####
+
+[[ISSUERS]]
+address = "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz"
+name = "Sologenic"
+trust_level = 3
+
+[[TOKENS]]
+currency = "534F4C4F00000000000000000000000000000000"
+issuer = "rsoLo2S1kiGeCcn6hCUXVrCpGMWLrRrLZz"
+name = "SOLO"
+desc = "SOLO is the utility token for the Sologenic ecosystem. It can be used for covering fees when minting NFTs on their platform."
+trust_level = 3
+
+[[TOKENS.URLS]]
+url = "https://sologenic.com"
+type = "website"
+
+
+#### XSGCOIN ####
+
+[[ISSUERS]]
+address = "rXSGuKAkUGkPL6iUMJWX1Fi5bogsVYPMs"
+name = "XSG Coin"
+trust_level = 2
+
+[[TOKENS]]
+currency = "XSG"
+issuer = "rXSGuKAkUGkPL6iUMJWX1Fi5bogsVYPMs"
+name = "XSG Coin"
+trust_level = 2
+
+[[TOKENS.URLS]]
+url = "https://xsgcoin.biz"
+type = "website"
+
+
+#### SHITKOIN ####
+
+[[ISSUERS]]
+address = "rshitKoinuxBNACMhL6QLwAsfWCUDxYobm"
+name = "ShitKoin"
+trust_level = 2
+
+[[TOKENS]]
+currency = "POO"
+issuer = "rshitKoinuxBNACMhL6QLwAsfWCUDxYobm"
+name = "POO"
+trust_level = 2
+
+
+#### CALORIE ####
+
+[[TOKENS]]
+currency = "43616C6F72696500000000000000000000000000"
+issuer = "rNqGa93B8ewQP9mUwpwqA19SApbf62U7PY"
+trust_level = 1
+
+
+#### SCHMECKLES ####
+
+[[ISSUERS]]
+address = "rPxw83ZP6thv7KmG5DpAW4cDW55DZRZ9wu"
+name = "Schmeckles"
+domain = "schmeckles.io"
+icon = "https://schmeckles.io/wp-content/uploads/2022/09/Schmeckles-216-%C3%97-216px.png"
+
+[[TOKENS]]
+issuer = "rPxw83ZP6thv7KmG5DpAW4cDW55DZRZ9wu"
+currency = "5363686D65636B6C657300000000000000000000"
+name = "Schmeckles"
+desc = "Schmeckles is a token on the XRP Ledger for Rick and Morty fans."
+icon = "https://schmeckles.io/wp-content/uploads/2022/09/Schmeckles-216-%C3%97-216px.png"
+
+[[TOKENS.URLS]]
+url = "https://schmeckles.io"
+type = "info"
+title = "Official Website"
+
+[[TOKENS.URLS]]
+url = "https://schmeckles.io/whitepaper"
+type = "info"
+title = "Whitepaper"
+
+[[TOKENS.URLS]]
+url = "https://x.com/Schmeckles_XRPL"
+type = "social"
+
+
+#### SWISSTECHTOKEN ####
+
+[[ISSUERS]]
+address = "raq7pGaYrLZRa88v6Py9V5oWMYEqPYr8Tz"
+domain = "helvetx.io"
+
+
+#### HADANFT ####
+
+[[ISSUERS]]
+address = "rsR5JSisuXsbipP6sGdKdz5agjxn8BhHUC"
+trust_level = 1
+
+[[TOKENS]]
+issuer = "rsR5JSisuXsbipP6sGdKdz5agjxn8BhHUC"
+currency = "4841444100000000000000000000000000000000"
+trust_level = 1
+
+[[ISSUERS]]
+address = "rHiPGSMBbzDGpoTPmk2dXaTk12ZV1pLVCZ"
+trust_level = 1
+
+[[TOKENS]]
+issuer = "rHiPGSMBbzDGpoTPmk2dXaTk12ZV1pLVCZ"
+currency = "484144414C495445000000000000000000000000"
+trust_level = 1
+
+
+#### OXP ####
+
+[[ISSUERS]]
+address = "rrno7Nj4RkFJLzC4nRaZiLF5aHwcTVon3d"
+domain = "onxrp.com"
+name = "onXRP"
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rrno7Nj4RkFJLzC4nRaZiLF5aHwcTVon3d"
+currency = "OXP"
+trust_level = 3
+icon = "http://onxrp.com/wp-content/uploads/2022/09/OXP-Token.png"
+
+
+#### D.P.MONKSFINANCE ####
+
+[[ISSUERS]]
+address = "rMJAXYsbNzhwp7FfYnAsYP5ty3R9XnurPo"
+name = "D.P.MonksFinance LTD"
+ 
+[[TOKENS]]
+issuer = "rMJAXYsbNzhwp7FfYnAsYP5ty3R9XnurPo"
+currency = "XDX"
+name = "XDX"
+desc = "XDX is a digital currency, developed to be utilised to specific mobile applications."
+
+[[TOKENS.URLS]]
+url = "https://dpmonksfinance.com"
+type = "website"
+title = "Official Website"
+ 
+[[TOKENS.URLS]]
+url = "https://dpmonksfinance.com/projects-2"
+type = "website"
+title = "Crypto"
+ 
+[[TOKENS.URLS]]
+url = "https://x.com/dpmonksfinance"
+type = "social"
+
+
+#### DNSK POKER ####
+
+[[ISSUERS]]
+address = "rDNSKmHYj6NZfy1hvxNaT1kyUChvJFerkd"
+domain = "daniinskii.com"
+
+
+#### ARNILLA STUDIOS ####
+
+[[ISSUERS]]
+address = "rPXFg78B1b4ZSisfdibXztT5kPmp5HTDXe"
+domain = "xrp.arnillastudios.com"
+
+
+#### COLLEGECOIN NETWORK ####
+
+[[ISSUERS]]
+address = "rG1bDjT25WyvPz757YC9NqdRKyz9ywF8e8"
+domain = "collegecoin.network"
+trust_level = 1
+
+[[TOKENS]]
+issuer = "rG1bDjT25WyvPz757YC9NqdRKyz9ywF8e8"
+currency = "CCN"
+name = "CollegeCoinNetwork"
+desc = "CCN is a college-based meme token which can be used for buying textbooks, misc goods and crowd-funding college parties!"
+icon = "https://collegecoin.network/wp-content/uploads/2022/04/cropped-background-modified.png"
+trust_level = 1
+
+
+#### XME XRPL ####
+
+[[ISSUERS]]
+address = "rana9qGVUedcBGeEXjECMnTcMRQvL9GCvW"
+domain = "xme.buzz"
+
+
+#### BPM Wallet ####
+
+[[ISSUERS]]
+address = "rDBMvpjV6DoWvr3LqMUG8JBgd4QbBoU1E2"
+domain = "bpmwallet.io"
+
+
+#### TIPPER ####
+
+[[ISSUERS]]
+address = "rht98AstPWmLPQMrwd9YDrcDoTjw9Tiu4B"
+name = "Tipper"
+domain = "tipper.solutions"
+
+[[TOKENS]]
+currency = "TPR"
+issuer = "rht98AstPWmLPQMrwd9YDrcDoTjw9Tiu4B"
+icon = "https://static.wixstatic.com/media/1c0ecd_8824361780d04953a41f589c8a9b38f4~mv2.png/v1/fill/w_600,h_570,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/logo%20tpr.png"
+desc = "Tipper was launched to fulfill the rewarding segment of the XRP community and to provide advanced reward integrations for P2E games, NFT projects."
+
+
+#### SANCTUMCHAIN ####
+
+[[ISSUERS]]
+address = "rNcqT1tds4vdroichNKuTh3Ppd8KAdFHnN"
+domain = "xsanctumchain.com"
+
+
+#### XSPECTAR ####
+
+[[ISSUERS]]
+address = "rh5jzTCdMRCVjQ7LT6zucjezC47KATkuvv"
+domain = "xspectar.com"
+
+
+#### IMMORTALIS AETERNUM ####
+
+[[ISSUERS]]
+address = "riafaaac9TCGqxErJvL7qcD61kDnkfHuC"
+domain = "immortalisaeternumfoundation.io"
+
+
+#### BEARMARKET DEGENS ####
+
+[[ISSUERS]]
+address = "rLuGZGoPCEZrXj262RfHQsVuEmNKxw6rxt"
+trust_level = 1
+
+
+#### SHIBANFT ####
+
+[[ISSUERS]]
+address = "rnRXAnVZTyattZXEpKpgTyvdm17DpjrzSZ"
+domain = "shibanft.co.uk"
+name = "ShibaNFT"
+
+[[TOKENS]]
+issuer = "rnRXAnVZTyattZXEpKpgTyvdm17DpjrzSZ"
+currency = "ShibaNFT"
+name = "ShibaNFT"
+desc = "ShibaNFT ( ShibaNFT ) is a digital currency, developed specifically to speed up the xrpl adoption through gaming and nft creations."
+icon = "https://shibanft.co.uk/wp-content/uploads/2022/02/shibanft-favicon.png"
+
+
+#### ARK ####
+
+[[ISSUERS]]
+address = "rf5Jzzy6oAFBJjLhokha1v8pXVgYYjee3b"
+trust_level = 1
+
+
+#### TALENTCHAIN ####
+
+[[ISSUERS]]
+address = "r92SQCuWhYoB4w2UnKU7PKj4Mh7jSyemrH"
+domain = "talentchain.io"
+
+
+#### ROSE ####
+
+[[ISSUERS]]
+address = "rLYcBjVF5vXhBVdWQELcv7FyRfRuakPnzr"
+domain = "malaya-infinity.com"
+
+
+#### XSTO ####
+
+[[ISSUERS]]
+address = "rfQNEfqLQc5L34rS92Xh5nVtk9NVHbv4Gj"
+domain = "xloyality.com"
+
+
+#### XRDOGE ####
+
+[[ISSUERS]]
+address = "rLqUC2eCPohYvJCEBJ77eCCqVL2uEiczjA"
+domain = "xrdoge.org"
+trust_level = 1
+
+
+#### GAMEON ####
+
+[[ISSUERS]]
+address = "rnucXjMr92b229V2KHgjG6V1Hz3JjsgqQN"
+name = "XGameOn!"
+
+[[TOKENS]]
+issuer = "rnucXjMr92b229V2KHgjG6V1Hz3JjsgqQN"
+currency = "58474F2100000000000000000000000000000000"
+name = "XGO!"
+
+
+#### XNET ####
+
+[[ISSUERS]]
+address = "rPB7vXTeWrQ5nxEpQbLvay8nfJUJfeecYL"
+domain = "xnet.cam"
+
+
+#### LFGO ####
+
+[[ISSUERS]]
+address = "rBETMo1JSfigtMfU8kBem95vKcFmjG9gSw"
+domain = "letseffinggo.com"
+
+
+#### Xcrusader ####
+
+[[TOKENS]]
+issuer = "rhXa7avJF65iC27j6KRDRrWo2mVqrfVUmZ"
+currency = "Xcrusader"
+name = "Xcrusader"
+icon = "https://i.ibb.co/jh038GF/XCRUSADERS.png"
+
+
+#### BRROMSTOFLY ####
+
+[[ISSUERS]]
+address = "rbsycYaPpKu56uDLMw8nmu1Pmv5fuMbA4"
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rbsycYaPpKu56uDLMw8nmu1Pmv5fuMbA4"
+currency = "BSY"
+trust_level = 3
+
+
+#### PALAU STABLECOIN ####
+
+[[ISSUERS]]
+address = "rwekfW4MiS5yZjXASRBDzzPPWYKuHvKP7E"
+trust_level = 3
+name = "Palau National Government"
+icon = "https://www.palaugov.pw/wp-content/uploads/2018/12/logo.png"
+
+[[TOKENS]]
+issuer = "rwekfW4MiS5yZjXASRBDzzPPWYKuHvKP7E"
+currency = "PSC"
+trust_level = 3
+name = "Palau Stablecoin (USD)"
+
+
+#### QWAKEN ####
+
+[[TOKENS]]
+issuer = "rQwakn2cdSkHDCKjcsZitW7vD5Pow5g7ov"
+currency = "QWK"
+icon = "https://secure.gravatar.com/avatar/d34474a5fa3b11bc18e2b09e81ead5b1?d=mm&s=173"
+
+
+#### XBOTS CLUB ####
+
+[[ISSUERS]]
+address = "rfTsfrviaNgJ1URQf4FVWjsr59ULr1FNgu"
+domain = "memorylabs.xbots.club"
+
+
+#### $FAITH ####
+
+[[ISSUERS]]
+address = "rfeSrMKMvyb3MSMnQRFZ1Dwd9KHS6g49ZT"
+domain = "faithtokens.net"
+
+
+#### xSTIK ####
+
+[[ISSUERS]]
+address = "rJNV9i4Q6zvRhpE2zjxgkvff3eGHQohZht"
+domain = "xrpstik.com"
+
+
+#### GHOST COIN ####
+
+[[ISSUERS]]
+address = "rw57VKMLgWYcgdcu89Bnz1YHne1gE35F1L"
+domain = "ghostcoin.network"
+trust_level = 1
+
+[[TOKENS]]
+issuer = "rw57VKMLgWYcgdcu89Bnz1YHne1gE35F1L"
+currency = "GHOST"
+self_assessment = 1
+
+
+#### MISSION BPM ####
+
+[[ISSUERS]]
+address = "rDBMvpjV6DoWvr3LqMUG8JBgd4QbBoU1E2"
+domain = "missionbpm.com"
+
+
+#### PROOF OF ZAZA ####
+
+[[ISSUERS]]
+address = "rpvbUsHkJ91rGTa9gShUQU6jzLrFBgsVe3"
+kyc = true
+trust_level = 1
+
+
+#### XPMARKET ####
+
+[[ISSUERS]]
+address = "rXPMxBeefHGxx2K7g5qmmWq3gFsgawkoa"
+kyc = true
+trust_level = 3
+
+[[TOKENS]]
+issuer = "rXPMxBeefHGxx2K7g5qmmWq3gFsgawkoa"
+currency = "XPM"
+trust_level = 3
+
+
+#### XRP BAGS ####
+
+[[ISSUERS]]
+address = "rDuckCoinu8jntxtYoWRhEv4oNvsLYx6EQ"
+domain = "rdc.xrpbags.io"
+
+
+#### ELEMENTRIX ####
+
+[[ISSUERS]]
+address = "rft6qQzH7zepPbBo3Q2ghdSpuakjyJooDj"
+domain = "elementrixnfts.com"
+
+
+#### RUGGLES ####
+
+[[ISSUERS]]
+address = "rniCNwo7oAeqBWtAnwgauZN3uxbVRn1m3p"
+domain = "goguerrilla.xyz"
+
+
+#### MILADY ####
+
+[[TOKENS]]
+issuer = "rhPSguKUfFLjELmXxctobqpz4NgPneBXvS"
+currency = "4D494C4144590000000000000000000000000000"
+name = "MILADY"
+
+
+#### MONEY MINDED APES ####
+
+[[ISSUERS]]
+address = "rnxGEQytwx7jDfoKXfot9G4gQ1pbuHwf9m"
+domain = "xrp.moneymindedapes.com"
+
+[[ISSUERS]]
+address = "rMULA5hkZqsu7545NPnJZfu5ghKxuRbCro"
+domain = "xrp.moneymindedapes.com"
+
+
+#### XRPOTATO ####
+
+[[ISSUERS]]
+address = "rUBb8uaiekJXzjLohVhpCQBTGT3WwjmvKD"
+domain = "xrpotato.com"
+
+[[TOKENS]]
+currency = "5852506F7461746F000000000000000000000000"
+issuer = "rUBb8uaiekJXzjLohVhpCQBTGT3WwjmvKD"
+name = "$XRPotato"
+
+
+#### VERSEX ####
+
+[[ISSUERS]]
+address = "rRCA6gnPkvpKmWwfcYxHQ845gFQ5ThYQe"
+domain = "versex.io"
+name = "VerseX"
+
+[[TOKENS]]
+issuer = "rRCA6gnPkvpKmWwfcYxHQ845gFQ5ThYQe"
+currency = "XVR"
+name = "VerseX Token"
+desc = "The VerseX Token (XVR) powers the VerseX metaverse ecosystem, offering utility for trading, gameplay, and community engagement."
+icon = "https://static.wixstatic.com/media/bda225_72b128dcedbb451d98d54a9a9cf0ad24~mv2.jpg/v1/fill/w_38,h_37,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/bda225_72b128dcedbb451d98d54a9a9cf0ad24~mv2.jpg"
+
+[[TOKENS.URLS]]
+url = "https://versex.io"
+type = "website"
+title = "Official Website"
+
+[[TOKENS.URLS]]
+url = "https://versex.io/blank-7"
+type = "website"
+title = "Token Info Dashboard"
+
+[[TOKENS.URLS]]
+url = "https://x.com/VerseXVR" 
+type = "social"
+title = "Official Twitter"
+
+[[TOKENS.URLS]]
+url = "https://discord.gg/Suk4yXySVt"
+type = "social"
+title = "Discord Community"
+
+
+#### XRP ARMY ####
+
+[[ISSUERS]]
+address = "r319FqohpKLwjtcV2mosyC5sy125fDk4uH"
+domain = "xrparmy.trade"
+
+
+#### FAITH TOKEN ####
+
+[[ISSUERS]]
+address = "rfeSrMKMvyb3MSMnQRFZ1Dwd9KHS6g49ZT"
+domain = "faithtokens.net"
+
+
+#### FRACTIONS ####
+
+[[ISSUERS]]
+address = "rEpjJd2X91D4vy1wctrE8o1wrFn4Mpzn4H"
+domain = "xrp.services.fractions.foundation"
+
+
+#### XBANK ####
+
+[[ISSUERS]]
+address = "rLpDQmJUpDxLXCjrwmm5rPehZyGA4GRFNZ"
+domain = "millionpixelwall.com"
+
+
+#### HASHTAG ####
+
+[[ISSUERS]]
+address = "rHashTaG41RvVaWAfsK6rtHwBuca3vP82b"
+name = "HASHTAGCoin"
+icon = "https://static.wixstatic.com/media/2c26ad_27b3c6a80f504cb1a0f5dec52de4de37~mv2.png"
+
+[[TOKENS]]
+issuer = "rHashTaG41RvVaWAfsK6rtHwBuca3vP82b"
+currency = "HASHTAGCoin"
+name = "HASHTAGCoin"
+desc = "HASHTAGCoin is a digital currency, developed specifically with the advent of the Hashtag symbol # becoming the universal language of the internet, HASHTAG COIN sits at the forefront of digital culture.
+Just as Hashtags connects conversations, trends and communities across the globe, this crypto embodies that same spirit.."
+icon = "https://static.wixstatic.com/media/2c26ad_27b3c6a80f504cb1a0f5dec52de4de37~mv2.png"
+
+[[TOKENS.URLS]]
+url = "https://hashtagcoin.us"
+type = "website"
+title = "Official Website"
+
+[[TOKENS.URLS]]
+url = "https://hashtagcoin.us"
+type = "website"
+title = "Token Info Dashboard"
+
+[[TOKENS.URLS]]
+url = "https://x.com/HashtagHtc"
+type = "social"
+
+
+#### OBJECT ####
+
+[[ISSUERS]]
+address = "rDMsTj7MvUcxo3GyWzUzPAVDVeN9HThWiS"
+domain = "meta.object.technology"
+
+
+#### XRP RUGGLES ####
+
+[[ISSUERS]]
+address = "rniCNwo7oAeqBWtAnwgauZN3uxbVRn1m3p"
+domain = "xrpruggles.net"
+
+
+#### $BULL ####
+
+[[ISSUERS]]
+address = "rwxrCZTjrxXmtYA6v6krDKjjFaRuUiAhvJ"
+domain = "bull.supply"
+
+
+#### HOODIE CHICKEN ####
+
+[[TOKENS]]
+currency = "HCT"
+issuer = "rNctiwizGzY7Tnb3fZJxdfu9hMuCUotZdn"
+icon = "https://hoodiechicken.com/wp-content/uploads/2025/01/hoodie-logo-red.png"
+
+
+#### XLINE ####
+
+[[ISSUERS]]
+address = "rJN7xXGUjgcz1j5MqsJhxUZkLPqFB4xpMr"
+trust_level = 1
+
+
+#### CLUB 589 ####
+
+[[ISSUERS]]
+address = "rPkeT1gLcpqkBja31xE4FdxzKJWDaR2hoe"
+domain = "club589.io"
+
+
+#### MXI ####
+
+[[TOKENS]]
+issuer = "rsLuJwr4QixJqLdCftR6kgstuQRmawZiVe"
+currency = "MXI"
+icon = "https://miro.medium.com/v2/resize:fit:720/format:webp/1*Yfwfq6tl3yAhV3oR54sfPA.jpeg"
+
+
+#### KQC ####
+
+[[ISSUERS]]
+address = "rnsnhiy8yfhsoHirchcLM7nBTWJSNH6skM"
+trust_level = 1
+
+
+#### XRBC ####
+
+[[ISSUERS]]
+address = "rGQaHbQHCsTLQtboQPwUBasXjLvk8uDbpT"
+domain = "xrbitcoincash.com"
+
+
+#### ROBLOQ ####
+
+[[ISSUERS]]
+address = "rBDtUygw2AZTiZoHiN1WeWK8e4R5vVFsva"
+domain = "robloq.com"
+
+
+#### XRPL PULSE ####
+
+[[ISSUERS]]
+address = "rDtJVoGix8XyPN6xxzRz4uf3NDqxm13w2P"
+domain = "xrplpulse.com"
+
+
+#### WALDOCOIN ####
+
+[[ISSUERS]]
+address = "rstjAWDiqKsUMhHqiJShRSkuaZ44TXZyDY"
+domain = "waldocoin.live"
+
+
+#### x589 CARDD ####
+
+[[ISSUERS]]
+address = "rEmMBNqUEq1uUmN6e8G6XoQHXBwFvZS75Q"
+domain = "x589xrp.github.io"
+
+
+#### GEIBEAR ####
+
+[[ISSUERS]]
+address = "raadqNCqPHhqpb5HEMBjbfFa21YYu9GWfW"
+domain = "geibear.com"
+
+
+#### DEEPTIDE ####
+
+[[ISSUERS]]
+address = "rnHDzEH4xyW6u4LbXqDoX1uk36v5ovhbFi"
+domain = "deeptide.co"
+
+
+#### BRITTOTOKEN ####
+
+[[ISSUERS]]
+address = "rfxwXDzenkYoXSEbNA4cZjaT9FY3eeL47e"
+domain = "www.brittotoken.com"
