@@ -226,7 +226,7 @@ function unlinkCachedIconFromTokenCache({ ctx, token, url }){
 	ctx.db.cache.tokens.updateOne({
 		data: {
 			cachedIcons: {
-				...tokenCache.cachedIcon,
+				...tokenCache.cachedIcons,
 				[url]: undefined
 			}
 		},
@@ -275,10 +275,9 @@ async function downloadAndProcessIcon({ ctx, url }){
 		throw new Error(`unsupported format: ${mime}`)
 
 	let buffer = Buffer.from(await res.arrayBuffer())
-	let hash = createHash('md5')
+	let hash = createHash('sha256')
 		.update(buffer)
 		.digest('hex')
-		.slice(0, 10)
 		.toUpperCase()
 
 	let makePath = suffix => getCachedIconPath({ ctx, hash, suffix, fileType })
@@ -309,6 +308,22 @@ function deleteIcon({ ctx, url }){
 		}
 	})
 
+	ctx.db.cache.icons.deleteOne({
+		where: {
+			id: icon.id
+		}
+	})
+
+	let sharedCount = ctx.db.cache.icons.count({
+		where: {
+			hash: icon.hash,
+			fileType: icon.fileType
+		}
+	})
+
+	if(Number(sharedCount) > 0)
+		return
+
 	fs.rmSync(
 		getCachedIconPath({ ctx, ...icon }),
 		{ force: true }
@@ -322,12 +337,6 @@ function deleteIcon({ ctx, url }){
 			)
 		}
 	}
-
-	ctx.db.cache.icons.deleteOne({
-		where: {
-			id: icon.id
-		}
-	})
 }
 
 function getIconCacheDir({ ctx }){
