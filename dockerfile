@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7-labs
 FROM node:26-alpine3.23
 
 RUN mkdir -p /opt/app
@@ -13,7 +14,10 @@ COPY package-lock.json .
 COPY config.template.toml .
 
 RUN apk add --no-cache --virtual .build-deps python3 make g++ \
-	&& npm ci \
-	&& apk del .build-deps
+	&& npm ci --omit=dev \
+	&& apk del .build-deps \
+	&& chown node:node /opt/data
+
+USER node
 
 ENTRYPOINT ["node", "src/run.js", "--config", "/opt/data/config.toml"]
