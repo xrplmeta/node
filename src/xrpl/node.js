@@ -15,6 +15,7 @@ export default class Node extends EventEmitter{
 		this.socket = createSocket({ url: config.url, apiVersion: 2 })
 		this.availableLedgers = []
 		this.rateLimitedUntil = 0
+		this.connectionCount = 0
 
 		this.socket.on('transaction', tx => {
 			this.emit('event', {hash: tx.hash, tx})
@@ -35,6 +36,8 @@ export default class Node extends EventEmitter{
 		})
 
 		this.socket.on('open', async () => {
+			let connection = ++this.connectionCount
+
 			this.hasReportedClosedLedger = false
 			this.emit('connected')
 
@@ -44,8 +47,20 @@ export default class Node extends EventEmitter{
 					streams: ['ledger', 'transactions']
 				})
 			}catch(error){
-				log.warn(`failed to subscribe to node "${this.name}":`)
-				log.warn(error)
+				// Without a subscription the node never receives ledgers, and the
+				// connection stays open, so close it to reconnect and subscribe again.
+				// The delay avoids hitting an overloaded server (e.g. tooBusy) again immediately.
+				let resubscribeDelay = 10000
+
+				log.warn(
+					`failed to subscribe to node "${this.name}" - reconnecting in ${resubscribeDelay / 1000}s. response:`,
+					error instanceof Error ? error.stack : JSON.stringify(error)
+				)
+
+				setTimeout(() => {
+					if(this.connectionCount === connection && this.socket.connected)
+						this.socket.close()
+				}, resubscribeDelay)
 			}
 		})
 
