@@ -1,6 +1,6 @@
 {
 	"name": "@xrplmeta/node",
-	"version": "3.0.0-alpha",
+	"version": "3.0.1-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
