@@ -1,6 +1,6 @@
 {
 	"name": "@xrplmeta/node",
-	"version": "3.0.0-alpha",
+	"version": "3.0.1-alpha",
 	"type": "module",
 	"bin": {
 		"xrplmeta": "./src/run.js"
@@ -36,7 +36,6 @@
 		"koa-send": "5.0.1",
 		"better-sqlite3": "13.0.3",
 		"limiter": "4.1.0",
-		"node-abort-controller": "3.1.1",
 		"node-fetch": "3.3.2",
 		"minimist": "1.2.8",
 		"ripple-address-codec": "5.0.1",

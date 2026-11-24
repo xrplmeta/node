@@ -20,7 +20,8 @@ export default async function({ ctx }){
 	}
 	
 	let fetch = createFetch({
-		timeout: config.connectionTimeout || 20
+		timeout: config.connectionTimeout || 20,
+		maxSize: 1024 * 1024
 	})
 
 	while(true){

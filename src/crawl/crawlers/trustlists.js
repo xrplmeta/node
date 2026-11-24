@@ -23,7 +23,8 @@ export default async function({ ctx }){
 
 async function crawlList({ ctx, id, url, fetchInterval = 600, trustLevel = 0, ignoreAdvisories = false }){
 	let fetch = createFetch({
-		baseUrl: url
+		baseUrl: url,
+		maxSize: 1024 * 1024
 	})
 
 	while(true){
